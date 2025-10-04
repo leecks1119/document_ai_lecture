@@ -1,6 +1,6 @@
 # Document AI 강의 자료 📚
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab01_개발환경구축.ipynb)
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab01_개발환경구축.ipynb)
 [![Python 3.8+](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
@@ -18,7 +18,7 @@ OCR, 이미지 전처리, NER, LLM 통합까지 실전 Document AI 기술을 Goo
 
 **또는 직접 URL로 접속:**
 ```
-https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab01_개발환경구축.ipynb
+https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab01_개발환경구축.ipynb
 ```
 
 ### 2️⃣ 패키지 설치 (노트북 첫 셀)
@@ -54,17 +54,17 @@ entities = ner.rule_based_ner(text)
 
 | Lab | 제목 | Colab | 난이도 | 시간 |
 |-----|------|-------|--------|------|
-| **01** | [개발환경 구축](notebooks/Lab01_개발환경구축.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab01_개발환경구축.ipynb) | ⭐ | 10분 |
-| **02** | [Document AI 기술표](notebooks/Lab02_기술표.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab02_기술표.ipynb) | ⭐ | 15분 |
-| **03** | [PaddleOCR 기본](notebooks/Lab03_PaddleOCR.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab03_PaddleOCR.ipynb) | ⭐⭐ | 20분 |
-| **04** | [OCR 엔진 비교](notebooks/Lab04_OCR엔진비교.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab04_OCR엔진비교.ipynb) | ⭐⭐⭐ | 30분 |
-| **05** | [신뢰도 측정](notebooks/Lab05_신뢰도측정.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab05_신뢰도측정.ipynb) | ⭐⭐⭐ | 25분 |
-| **06** | [이미지 전처리](notebooks/Lab06_이미지전처리.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab06_이미지전처리.ipynb) | ⭐⭐⭐⭐ | 40분 |
-| **07** | [OCR 앙상블](notebooks/Lab07_앙상블.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab07_앙상블.ipynb) | ⭐⭐⭐⭐ | 35분 |
-| **08** | [표 검출](notebooks/Lab08_표검출.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab08_표검출.ipynb) | ⭐⭐⭐⭐ | 40분 |
-| **09** | [NER 정보추출](notebooks/Lab09_NER정보추출.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab09_NER정보추출.ipynb) | ⭐⭐⭐ | 30분 |
-| **10** | [토이 프로젝트](notebooks/Lab10_토이프로젝트.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab10_토이프로젝트.ipynb) | ⭐⭐⭐⭐⭐ | 60분 |
-| **11** | [전체 테스트](notebooks/Lab11_전체테스트.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab11_전체테스트.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **01** | [개발환경 구축](notebooks/Lab01_개발환경구축.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab01_개발환경구축.ipynb) | ⭐ | 10분 |
+| **02** | [Document AI 기술표](notebooks/Lab02_기술표.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab02_기술표.ipynb) | ⭐ | 15분 |
+| **03** | [PaddleOCR 기본](notebooks/Lab03_PaddleOCR.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab03_PaddleOCR.ipynb) | ⭐⭐ | 20분 |
+| **04** | [OCR 엔진 비교](notebooks/Lab04_OCR엔진비교.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab04_OCR엔진비교.ipynb) | ⭐⭐⭐ | 30분 |
+| **05** | [신뢰도 측정](notebooks/Lab05_신뢰도측정.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab05_신뢰도측정.ipynb) | ⭐⭐⭐ | 25분 |
+| **06** | [이미지 전처리](notebooks/Lab06_이미지전처리.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab06_이미지전처리.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **07** | [OCR 앙상블](notebooks/Lab07_앙상블.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab07_앙상블.ipynb) | ⭐⭐⭐⭐ | 35분 |
+| **08** | [표 검출](notebooks/Lab08_표검출.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab08_표검출.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **09** | [NER 정보추출](notebooks/Lab09_NER정보추출.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab09_NER정보추출.ipynb) | ⭐⭐⭐ | 30분 |
+| **10** | [토이 프로젝트](notebooks/Lab10_토이프로젝트.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab10_토이프로젝트.ipynb) | ⭐⭐⭐⭐⭐ | 60분 |
+| **11** | [전체 테스트](notebooks/Lab11_전체테스트.ipynb) | [![Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab11_전체테스트.ipynb) | ⭐⭐⭐⭐ | 40분 |
 
 **총 실습 시간: 약 5시간 45분**
 
@@ -257,7 +257,7 @@ MIT License - 자유롭게 사용, 수정, 배포 가능합니다.
 
 - **Notion 강의 자료**: [Document AI 강의](https://www.notion.so/Document-AI-281707c7ae7581beb748feca63ac4e16)
 - **GitHub Repository**: https://github.com/leecks1119/document_ai_lecture
-- **Colab 빠른 시작**: [Lab01 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/main/notebooks/Lab01_개발환경구축.ipynb)
+- **Colab 빠른 시작**: [Lab01 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab01_개발환경구축.ipynb)
 
 ---
 
