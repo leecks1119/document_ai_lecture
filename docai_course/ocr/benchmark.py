@@ -56,22 +56,33 @@ class OCRBenchmark:
         try:
             from paddleocr import PaddleOCR
             start = time.time()
-            ocr = PaddleOCR(use_angle_cls=True, lang='korean', use_gpu=self.use_gpu)
-            result = ocr.ocr(image_path, cls=True)
+            # 최신 API: use_gpu 파라미터 제거, predict() 메소드 사용
+            ocr = PaddleOCR(use_angle_cls=True, lang='korean')
+            result = ocr.predict(image_path)
             end = time.time()
             
-            if result and result[0]:
-                text = ' '.join([line[1][0] for line in result[0]])
-                conf = sum([line[1][1] for line in result[0]]) / len(result[0])
-                acc = self._calculate_accuracy(text, ground_truth)
+            # 최신 API의 결과 구조 처리
+            if result and len(result) > 0:
+                ocr_result = result[0]
+                texts = ocr_result.get('rec_texts', [])
+                scores = ocr_result.get('rec_scores', [])
                 
-                results.append({
-                    'engine': 'PaddleOCR',
-                    'text': text,
-                    'character_accuracy': acc,
-                    'processing_time': end - start,
-                    'confidence': conf
-                })
+                if texts:
+                    text = ' '.join(texts)
+                    conf = sum(scores) / len(scores) if scores else 0.0
+                    acc = self._calculate_accuracy(text, ground_truth)
+                    
+                    results.append({
+                        'engine': 'PaddleOCR',
+                        'text': text,
+                        'character_accuracy': acc,
+                        'processing_time': end - start,
+                        'confidence': conf
+                    })
+                else:
+                    results.append({'engine': 'PaddleOCR', 'error': 'No text detected'})
+            else:
+                results.append({'engine': 'PaddleOCR', 'error': 'No result returned'})
         except Exception as e:
             results.append({'engine': 'PaddleOCR', 'error': str(e)})
         
