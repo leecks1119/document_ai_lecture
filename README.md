@@ -53,16 +53,16 @@ entities = ner.rule_based_ner(text)
 
 | Lab | 제목 | 난이도 | 시간 |
 |-----|------|--------|------|
-| **01** | [개발환경 구축](notebooks/Lab01_개발환경구축.ipynb) | ⭐ | 10분 |
-| **03** | [PaddleOCR 기본](notebooks/Lab03_PaddleOCR.ipynb) | ⭐⭐ | 20분 |
-| **04** | [OCR 엔진 비교](notebooks/Lab04_OCR엔진비교.ipynb) | ⭐⭐⭐ | 30분 |
-| **05** | [신뢰도 측정](notebooks/Lab05_신뢰도측정.ipynb) | ⭐⭐⭐ | 25분 |
-| **06** | [이미지 전처리](notebooks/Lab06_이미지전처리.ipynb) | ⭐⭐⭐⭐ | 40분 |
-| **07** | [OCR 앙상블](notebooks/Lab07_앙상블.ipynb) | ⭐⭐⭐⭐ | 35분 |
-| **08** | [표 검출](notebooks/Lab08_표검출.ipynb) | ⭐⭐⭐⭐ | 40분 |
-| **09** | [NER 정보추출](notebooks/Lab09_NER정보추출.ipynb) | ⭐⭐⭐ | 30분 |
-| **10** | [토이 프로젝트](notebooks/Lab10_토이프로젝트.ipynb) | ⭐⭐⭐⭐⭐ | 60분 |
-| **11** | [전체 테스트](notebooks/Lab11_전체테스트.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **01** | [개발환경 구축](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab01_개발환경구축.ipynb) | ⭐ | 10분 |
+| **03** | [PaddleOCR 기본](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab03_PaddleOCR.ipynb) | ⭐⭐ | 20분 |
+| **04** | [OCR 엔진 비교](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab04_OCR엔진비교.ipynb) | ⭐⭐⭐ | 30분 |
+| **05** | [신뢰도 측정](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab05_신뢰도측정.ipynb) | ⭐⭐⭐ | 25분 |
+| **06** | [이미지 전처리](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab06_이미지전처리.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **07** | [OCR 앙상블](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab07_앙상블.ipynb) | ⭐⭐⭐⭐ | 35분 |
+| **08** | [표 검출](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab08_표검출.ipynb) | ⭐⭐⭐⭐ | 40분 |
+| **09** | [NER 정보추출](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab09_NER정보추출.ipynb) | ⭐⭐⭐ | 30분 |
+| **10** | [토이 프로젝트](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab10_토이프로젝트.ipynb) | ⭐⭐⭐⭐⭐ | 60분 |
+| **11** | [전체 테스트](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/notebooks/Lab11_전체테스트.ipynb) | ⭐⭐⭐⭐ | 40분 |
 
 ---
 
