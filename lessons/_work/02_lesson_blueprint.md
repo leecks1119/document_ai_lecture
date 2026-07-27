@@ -117,10 +117,11 @@ OCR 결과는 학생이 칠판을 받아 적은 노트와 같다.
 
 ### 실습
 
-- 기본: 준비된 `ocr_result.json`을 읽고 영수증 위에 바운딩 박스 표시
+- 기본: 준비된 `ocr_result.json`과 완성된 `draw_boxes()`로 결과를 확인하고 텍스트 저장
 - 대체: 노트북 안의 `MOCK_OCR_RESULT` 사용
 - 선택: EasyOCR 실제 실행
-- 코드: `load_ocr_result()`, `draw_boxes()`
+- 제공 코드: `load_ocr_result()`, `draw_boxes()`
+- 학습자 작성 범위: 결과 텍스트를 줄 단위로 합쳐 저장
 - 산출물: `ocr_text.txt`
 
 ### 도식
@@ -167,8 +168,9 @@ OCR 텍스트는 장바구니에 섞인 물건이고 정제는 종류별 바구�
 ### 실습
 
 - 기본: 공백과 금액 쉼표를 정리하고 헤더·날짜·품목·합계 줄 구분
-- 대체: 준비된 `clean_lines.json` 사용
-- 코드: `normalize_line()`, `group_receipt_lines()`
+- 대체 입력: 노트북에 포함된 `SAMPLE_OCR_TEXT`
+- 코드: 일부가 완성된 `normalize_line()`, `group_receipt_lines()`
+- 결과에는 `raw_text`, `cleaned_lines`, `change_log`를 함께 보존
 - 산출물: `clean_receipt.json`
 
 ### 도식
@@ -214,10 +216,11 @@ JSON 스키마는 빈 신청서 양식이고 추출은 영수증에서 찾은 �
 
 ### 실습
 
-- 기본: 정제 텍스트를 영수증 JSON으로 변환하고 제공 스키마와 대조
+- 기본: 제공된 스키마 골격의 날짜와 합계 필드를 완성하고 mock 결과와 대조
 - 대체: `extracted_result.json` 사용
 - 선택: Colab Secrets를 사용하는 실제 생성형 AI API
-- 코드: `mock_extract()`, `validate_schema()`
+- 제공 코드: `mock_extract()`, `validate_schema()`
+- 학습자 작성 범위: 스키마 골격의 두 필드와 `null` 규칙 확인
 - 산출물: `receipt.json`
 
 ### 도식
@@ -311,8 +314,9 @@ Gradio 화면은 리모컨이고 Python 함수는 실제로 동작하는 기계�
 
 ### 실습
 
-- 기본: `파일 확인 → mock OCR → mock_extract → JSON`을 `process_document()`로 연결
-- 대체: 실패 시 `SAMPLE_OCR_TEXT`, `SAMPLE_JSON`으로 전환하고 상태 표시
+- 기본: 제공 보조 함수를 `process_document()`에서 연결
+- 대체: 오류를 먼저 표시하고 학습자가 `샘플로 계속`을 선택한 뒤에만 `SAMPLE_OCR_TEXT`, `SAMPLE_JSON` 사용
+- 화면의 상태에는 항상 `LIVE 선택 경로` 또는 `MOCK 결과`를 표시
 - 선택: EasyOCR 어댑터
 - 코드: `validate_upload()`, `process_document()`
 - 산출물: `app_06.py`
@@ -360,9 +364,10 @@ Gradio 화면은 리모컨이고 Python 함수는 실제로 동작하는 기계�
 
 ### 실습
 
-- 기본: 정상·필수값 누락·합계 불일치 데이터 검사 후 UTF-8 BOM CSV 생성
+- 기본: 제공된 정상·필수값 누락·합계 불일치 데이터를 사용해 필수값과 품목 합계 규칙만 완성
 - 대체: Gradio 대신 Colab `files.download()` 사용
-- 코드: `validate_receipt()`, `to_csv_file()`
+- 학습자 작성: `validate_receipt()`의 필수값과 품목 합계 규칙
+- 제공 코드: 테스트 데이터, 날짜·금액 검사, CSV 수식 문자 보호, `to_csv_file()`
 - 산출물: `receipt.csv`
 
 ### 도식
@@ -408,9 +413,10 @@ Document AI 앱은 신입 사원이고 사람 검토자는 최종 결재자다.
 
 ### 실습
 
-- 기본: 정상·누락·mock 흐름을 실행하고 비용 처리 적용 카드 작성
+- 기본: 제공된 `run_smoke_test()` 한 번으로 정상·누락·mock 흐름을 확인하고 비용 처리 적용 카드만 작성
 - 대체: 제공된 실행 결과를 읽고 문제 지점과 검토자 표시
-- 코드: `run_smoke_test()`에서 기존 함수만 호출
+- 제공 코드: `run_smoke_test()`에서 기존 함수 호출
+- 학습자 작성 범위: `business_application_card.md` 한 장
 - 산출물: `business_application_card.md`
 
 카드 항목은 입력 문서, 추출 필드, 오류 영향, 사람 검토자, 저장 형식, 삭제 시점으로 제한한다.
