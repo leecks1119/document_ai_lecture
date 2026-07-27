@@ -1,7 +1,16 @@
 import pytest
 
-from src.extract import build_extraction_prompt, mock_extract, validate_schema
-from src.sample_data import SAMPLE_OCR_TEXT, SAMPLE_VLM_MARKDOWN
+from src.extract import (
+    build_extraction_prompt,
+    extract_receipt_from_text,
+    mock_extract,
+    validate_schema,
+)
+from src.sample_data import (
+    GOLDEN_RECEIPT_OCR_TEXT,
+    SAMPLE_OCR_TEXT,
+    SAMPLE_VLM_MARKDOWN,
+)
 
 
 def test_mock_extract_returns_expected_receipt():
@@ -32,3 +41,30 @@ def test_sample_matches_schema_when_jsonschema_is_available():
     pytest.importorskip("jsonschema")
 
     assert validate_schema(mock_extract(SAMPLE_OCR_TEXT)) == []
+
+
+def test_public_korean_receipt_variants_are_parsed():
+    result = extract_receipt_from_text(
+        GOLDEN_RECEIPT_OCR_TEXT,
+        source_mode="prepared_fixture_rule_extraction",
+    )
+
+    assert result["store_name"] == "이태리집"
+    assert result["date"] == "2025-10-04"
+    assert result["total_amount"] == 76000
+    assert len(result["items"]) == 5
+    assert result["items"][-1] == {
+        "name": "콜라",
+        "quantity": 3,
+        "unit_price": 2000,
+        "line_total": 6000,
+    }
+    assert result["evidence"]["total_amount"]["raw_value"] == "합계 금액 76,000"
+
+
+def test_unknown_values_remain_none():
+    result = extract_receipt_from_text("상호만있는문서")
+
+    assert result["date"] is None
+    assert result["total_amount"] is None
+    assert result["items"] == []

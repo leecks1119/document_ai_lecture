@@ -13,16 +13,34 @@ def test_explicit_sample_path_is_labeled():
     result = process_document(use_sample=True)
 
     assert result["ok"]
-    assert "MOCK PaddleOCR + MOCK VLM + MOCK 추출" in result["status"]
+    assert "PREPARED REPLAY" in result["status"]
     assert result["validation"]["valid"]
     assert result["review_status"] == "PENDING_REVIEW"
     assert result["xlsx_bytes"] is None
+    assert result["data"]["total_amount"] == 76000
+    assert result["data"]["items"][2]["name"] == "수제 돈가스"
+    assert all(item["name"] != "숙제 돈가스" for item in result["data"]["items"])
+    assert result["data"]["source_mode"] == "prepared_fixture_rule_extraction"
 
 
 def test_human_approval_enables_xlsx():
     result = process_document(use_sample=True, human_approved=True)
 
     assert result["review_status"] == "APPROVED"
+    assert result["xlsx_bytes"]
+
+
+def test_explicit_review_record_is_preserved():
+    review = {
+        "decision": "CHANGED",
+        "reviewer": "learner-01",
+        "reviewed_at": "2026-07-28T15:00:00+09:00",
+        "note": "원본 확인",
+    }
+    result = process_document(use_sample=True, review_record=review)
+
+    assert result["review_status"] == "CHANGED"
+    assert result["review_record"] == review
     assert result["xlsx_bytes"]
 
 
@@ -42,6 +60,18 @@ def test_upload_rejects_files_over_course_limit(tmp_path):
     path.write_bytes(b"0" * (MAX_FILE_SIZE + 1))
 
     assert validate_upload(path) == ["수업에서는 5MB 이하 파일만 사용합니다."]
+
+
+def test_upload_rejects_multipage_pdf(tmp_path):
+    fitz = __import__("fitz")
+    path = tmp_path / "two_pages.pdf"
+    document = fitz.open()
+    document.new_page()
+    document.new_page()
+    document.save(path)
+    document.close()
+
+    assert validate_upload(path) == ["필수 실습은 PDF 한 페이지만 처리합니다."]
 
 
 def test_invalid_live_ocr_result_does_not_create_xlsx(tmp_path, monkeypatch):

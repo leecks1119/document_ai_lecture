@@ -1,14 +1,14 @@
 # 2026 Document AI 교재 개편 상태
 
-기준일: 2026-07-27  
+기준일: 2026-07-28
 작업 브랜치: `document_ai_lecture_2026`
 
 이 문서는 1~8교시 교재, Colab 실습, 이미지 자산의 범위와 완료 증거를 추적한다.
 
-> 2026-07-27 기술 정정 완료: 활성 과정은 PaddleOCR 3.7,
+> 2026-07-28 기술 정정 완료: 활성 과정은 PaddleOCR 3.7,
 > PP-OCRv5 Korean, PaddleOCR-VL 1.6 기반이다.
 >
-> 2026-07-27 과정 메시지 재정의: 실제 영수증 한 장으로 작은 프로토타입을
+> 2026-07-28 과정 메시지 재정의: 실제 영수증 한 장으로 작은 프로토타입을
 > 만들고, 최종 결과를 `receipt_result.xlsx`로 내려받은 뒤 견적서·신청서·
 > 거래명세서의 PoC 후보를 검토한다.
 
@@ -69,14 +69,17 @@
 | 초기 교재 설계 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/02_lesson_blueprint.md` |
 | 초기 분량·운영 검수 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/03_manager_review.md` |
 | 이전 Markdown·Colab·이미지 구현 | 과거 기준 완료 | 교재 8개, Colab 8개, 도식 16개 |
-| 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 29개 테스트, Colab 8개 독립 실행 |
+| 전체 실행 및 내부 링크 검증 | 완료 | 테스트 41개, Colab 독립 8개·순차 인계, Office·시각 검증 통과 |
 | 이전 최종 교육 품질 검수 | 대체됨 | 과정 메시지와 최종 Excel 기준 확정 전의 검수 |
 | PaddleOCR·멀티모달 기술 정정 | 완료 | 커밋 `301754b`, `d2f1c21`, `e0e12bb` 및 최종 교재 검증 |
 | 8교시 서문·핵심 메시지 개편 | 완료 | 실제 영수증·10/90·Excel·PoC 연결 반영 |
 | Colab·Streamlit 앱·샘플 산출물 동기화 | 완료 | `ocr_result.json`, `receipt_pipeline_trace.json`, `receipt_result.xlsx` 생성 및 검증 |
 | 학생·강사 자료 분리 | 완료 | `lessons/` 학생 교재, `instructor/` 운영·교시별 노트 |
 | 공식·1차 참고자료 확장 | 완료 | `docs/course_references.md`에 21개 자료와 교시별 적용 범위 |
-| 최종 교육 품질 재검수 | 완료 | P0 0건, P1 0건, 99/100, 완료 게이트 통과 |
+| 프리미엄 품질 기준선 감사 | 완료 | 전문가 46/100, 초보자 강사 38/100, 이전 99/100 철회 |
+| 종단간 실습·샘플·강사용 자료 보완 | 완료 | 같은 공개 영수증 1~7교시, 확장 문서 3종, Office 4종, 강사용 런북 |
+| 최종 교육 품질 재검수 | 완료 | 시니어 교육담당 90/100, 내부 P0·P1 0건, 저장소 내부 GO |
+| 외부 출시 사전점검 | 대기 | 원격 push·비로그인 Colab 8개·LIVE 실행·현장 20명·운영시간 확정 필요 |
 
 ## 커밋 원칙
 

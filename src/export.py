@@ -16,7 +16,9 @@ FORMULA_PREFIXES = ("=", "+", "-", "@")
 def safe_spreadsheet_text(value: Any) -> Any:
     """스프레드시트에서 수식으로 해석될 수 있는 문자열을 보호한다."""
 
-    if isinstance(value, str) and value.startswith(FORMULA_PREFIXES):
+    if isinstance(value, str) and value.lstrip(" \t\r\n").startswith(
+        FORMULA_PREFIXES
+    ):
         return "'" + value
     return value
 
@@ -70,7 +72,8 @@ def receipt_to_xlsx_bytes(
     data: dict,
     *,
     source_text: str = "",
-    review_status: str = "사람 확인 완료",
+    review_status: str = "APPROVED",
+    review_record: dict | None = None,
 ) -> bytes:
     """원문·정제값·최종값·검토 상태가 남는 Excel 바이트를 반환한다."""
 
@@ -79,20 +82,39 @@ def receipt_to_xlsx_bytes(
     summary.title = "검토_요약"
 
     raw_values = data.get("raw_values") or {}
+    cleaned_values = data.get("cleaned_values") or {}
+    review_record = review_record or {
+        "decision": review_status,
+        "reviewer": "교육용 검수자",
+        "reviewed_at": "",
+        "note": "",
+    }
     fields = ("store_name", "date", "total_amount")
     summary_rows = [
         {
             "field": field,
             "raw_value": raw_values.get(field, data.get(field)),
-            "cleaned_value": data.get(field),
+            "cleaned_value": cleaned_values.get(field, data.get(field)),
             "final_value": data.get(field),
-            "review_status": review_status,
+            "decision": review_record.get("decision", review_status),
+            "reviewer": review_record.get("reviewer", ""),
+            "reviewed_at": review_record.get("reviewed_at", ""),
+            "change_reason": review_record.get("note", ""),
         }
         for field in fields
     ]
     _write_table(
         summary,
-        ["field", "raw_value", "cleaned_value", "final_value", "review_status"],
+        [
+            "field",
+            "raw_value",
+            "cleaned_value",
+            "final_value",
+            "decision",
+            "reviewer",
+            "reviewed_at",
+            "change_reason",
+        ],
         summary_rows,
     )
 
@@ -108,9 +130,23 @@ def receipt_to_xlsx_bytes(
     ]
     _write_table(items, item_columns, receipt_to_rows(data))
 
-    source = workbook.create_sheet("원문")
+    source = workbook.create_sheet("원문_근거")
     source.append(["source_mode", safe_spreadsheet_text(data.get("source_mode", ""))])
+    provenance = data.get("provenance") or {}
+    for key in (
+        "fixture_type",
+        "input_file",
+        "input_sha256",
+        "engine",
+        "engine_version",
+        "target_technology",
+        "recorded_at",
+        "reviewer",
+        "disclaimer",
+    ):
+        source.append([key, safe_spreadsheet_text(provenance.get(key, ""))])
     source.append(["ocr_text", safe_spreadsheet_text(source_text)])
+    source.append(["evidence", safe_spreadsheet_text(str(data.get("evidence", {})))])
     source.column_dimensions["A"].width = 18
     source.column_dimensions["B"].width = 80
 

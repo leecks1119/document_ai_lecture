@@ -20,13 +20,19 @@ def test_xlsx_has_expected_sheets_and_values():
     )
     workbook = load_workbook(io.BytesIO(xlsx_bytes))
 
-    assert workbook.sheetnames == ["검토_요약", "품목", "원문"]
+    assert workbook.sheetnames == ["검토_요약", "품목", "원문_근거"]
     assert workbook["품목"]["A2"].value == "샘플문구점"
-    assert workbook["원문"]["B2"].value == "샘플 OCR 원문"
+    evidence = {
+        row[0].value: row[1].value
+        for row in workbook["원문_근거"].iter_rows(min_col=1, max_col=2)
+    }
+    assert evidence["ocr_text"] == "샘플 OCR 원문"
 
 
 def test_formula_prefix_is_escaped():
     assert safe_spreadsheet_text("=1+1") == "'=1+1"
+    assert safe_spreadsheet_text(" \t=1+1") == "' \t=1+1"
+    assert safe_spreadsheet_text("\r@SUM(A1:A2)") == "'\r@SUM(A1:A2)"
 
 
 def test_formula_prefix_is_escaped_in_xlsx():
@@ -37,3 +43,18 @@ def test_formula_prefix_is_escaped_in_xlsx():
     workbook = load_workbook(io.BytesIO(receipt_to_xlsx_bytes(data)))
 
     assert workbook["검토_요약"]["D2"].value.startswith("'=")
+
+
+def test_review_record_is_written():
+    review = {
+        "decision": "CHANGED",
+        "reviewer": "learner-03",
+        "reviewed_at": "2026-07-28T14:10:00+09:00",
+        "note": "원본 대조 후 합계 수정",
+    }
+    workbook = load_workbook(
+        io.BytesIO(receipt_to_xlsx_bytes(SAMPLE_RECEIPT, review_record=review))
+    )
+
+    assert workbook["검토_요약"]["E2"].value == "CHANGED"
+    assert workbook["검토_요약"]["F2"].value == "learner-03"

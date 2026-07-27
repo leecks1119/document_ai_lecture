@@ -1,165 +1,95 @@
 # 5교시. 문서 자동화 웹 애플리케이션 기본 구현
 
-> 1~4교시에서 확인한 Python 처리 결과에 파일 입력·실행 버튼·결과 화면을 붙여 작은 웹앱 코드로 만듭니다.
->
-> **핵심 메시지:** Streamlit을 사용하면 여러분이 Python 처리 함수를 버튼으로 실행하고 결과를 화면에서 확인할 수 있습니다.
+> **이번 교시의 한 문장:** 파일 입력·실행 버튼·결과 화면을 처리 함수에 붙이면 사람이 사용할 수 있는 도구의 형태가 됩니다.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/05_streamlit_basic.ipynb)
+[Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/05_streamlit_basic.ipynb)
 
-## 1. 학습 목표
+## 60분 뒤 남길 것
 
-- Streamlit 코드에서 입력·실행·출력 부분을 찾을 수 있다.
-- 파일 입력과 준비된 처리 결과를 한 화면에 연결할 수 있다.
-- Colab에서 실제 서버를 공개하지 않고 `AppTest`로 화면 코드를 검사할 수 있다.
+- 업로드, 버튼, 원문, JSON 영역을 가진 Streamlit 앱을 만듭니다.
+- 업로드한 파일명이 실제 화면에 반영되는지 확인합니다.
+- 브라우저를 공개하지 않고 AppTest로 동작을 검사합니다.
+- `course_outputs/app_05.py`를 만듭니다.
 
-## 2. 이번 교시의 결과물
-
-- `app_05.py`: 한 장의 문서 입력과 판독 원문·JSON 결과 영역을 가진 Streamlit 앱
-
-## 3. 시작하기 전에
-
-### 선수 지식
-
-- Python 함수를 호출하면 결과가 돌아온다는 뜻을 이해하면 충분하다.
-
-### 준비 파일
-
-- 4교시의 `receipt.json` 또는 노트북의 완성 복구본
-- [비식별 한국 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
-- [5교시 Colab 노트북](../colab/05_streamlit_basic.ipynb)
-
-모든 실습은 Colab에서 진행합니다. 비식별 공개 샘플만 사용하고 외부 공개 터널이나 배포 주소는 만들지 않습니다.
-
-## 4. 핵심 개념
-
-### 4.1 Streamlit 앱도 위에서 아래로 실행되는 Python 파일입니다
-
-```python
-import streamlit as st
-
-st.title("영수증 Document AI 미니 앱")
-uploaded = st.file_uploader("영수증 한 장")
-run = st.button("처리")
-```
-
-`st.title()`은 제목, `st.file_uploader()`는 파일 입력, `st.button()`은 실행 시점을 만듭니다.
-
-### 4.2 화면과 문서 처리 함수의 역할은 다릅니다
+## 개념 10%: 화면과 처리 함수는 역할이 다릅니다
 
 ```text
-Streamlit 화면: 파일을 받고 버튼 클릭을 전달합니다.
-처리 함수: OCR·구조화·검증 결과를 반환합니다.
-Streamlit 화면: 반환된 원문·JSON·오류를 보여 줍니다.
+화면: 파일을 받고 상태와 결과를 보여 줌
+처리 함수: 파일을 읽고 OCR·구조화·검증을 수행
 ```
 
-화면이 정상적으로 열려도 추출값이 정확하다는 뜻은 아닙니다. 결과의 정확성은 원문 대조와 검증 규칙으로 따로 확인합니다.
+파일을 올렸는데 파일명·바이트 수·결과가 바뀌지 않는다면 업로드가 실제 처리와 연결된 것이 아닙니다.
 
-### 4.3 Colab에서는 AppTest로 웹앱 코드를 검사합니다
+![업로드, 처리 함수, 화면 출력으로 이어지는 최소 앱 구조](assets/05/01_component_flow.svg)
 
-Streamlit의 `AppTest`는 브라우저 서버를 열지 않고도 제목·파일 입력·버튼·오류를 Python 코드로 확인합니다. 이번 시간에는 공개 링크를 만들지 않고 AppTest로 화면 코드가 실행되는지 확인합니다.
+![파일 선택, 실행 버튼, 결과 영역으로 이루어진 최소 화면](assets/05/02_minimal_ui.svg)
 
-## 5. 전체 실습 흐름
+## 실습 90%
+
+### 1. 앱 코드의 네 부분을 찾습니다
+
+```python
+st.title(...)
+uploaded = st.file_uploader(...)
+st.button(...)
+st.text_area(...)
+st.json(...)
+```
+
+### 2. 업로드가 장식이 아닌지 확인합니다
+
+파일을 선택하면 다음 값이 달라져야 합니다.
 
 ```text
-Colab에서 app_05.py 작성
-  → 파일 입력·버튼·결과 영역 연결
-  → Streamlit AppTest 실행
-  → 예외가 없는지 확인
-  → app_05.py 다운로드
+업로드 연결 확인: 파일명 · 바이트 수
 ```
 
-## 6. 단계별 실습
+5교시는 화면 연결을 다루므로 OCR 실행은 6교시에서 붙입니다.
 
-### 실습 1. 준비된 처리 결과를 화면에 연결하기
+### 3. 공개 샘플 준비 결과를 표시합니다
 
-노트북의 시작 코드에서 빈칸 세 곳만 채웁니다.
+버튼을 누르면 화면에 다음 세 가지가 나타납니다.
 
-```python
-import streamlit as st
+- `실행 모드: PREPARED_FALLBACK`
+- 공개 한국 영수증의 판독 원문
+- 상호명·날짜·품목·총액 JSON
 
-st.title("영수증 Document AI 미니 앱")
-uploaded = st.file_uploader(
-    "영수증 이미지 또는 PDF 한 장",
-    type=["png", "jpg", "jpeg", "pdf"],
-)
+### 4. AppTest로 검사합니다
 
-if st.button("준비 결과로 실행"):
-    st.info("준비 결과를 사용했습니다.")
-    st.text_area("판독 원문", SAMPLE_TEXT)
-    st.json(SAMPLE_JSON)
+Colab에서는 공개 Streamlit 터널이나 배포 주소를 만들지 않습니다. `streamlit.testing.v1.AppTest`로 다음을 확인합니다.
+
+```text
+제목 1개
+파일 업로더 1개
+버튼 1개
+버튼 클릭 후 PREPARED_FALLBACK 표시
 ```
 
-Colab에서 파일을 저장한 뒤 화면 코드를 검사합니다.
+정상 결과:
 
-```python
-from streamlit.testing.v1 import AppTest
-
-app_test = AppTest.from_file("app_05.py").run(timeout=20)
-assert not app_test.exception
-assert len(app_test.file_uploader) == 1
-assert len(app_test.button) == 1
+```text
+CHECKPOINT 1/1 PASS: 업로드·버튼·결과 화면
 ```
 
-**기대 결과**
+아래는 같은 준비 결과 경로를 실제 앱에서 실행한 화면입니다. 상태 문구와 결과 영역이 함께 보이는지 비교합니다.
 
-- `app_05.py`가 생성됩니다.
-- AppTest 결과에 예외가 없습니다.
-- 파일 입력 한 개와 실행 버튼 한 개가 확인됩니다.
+![공개 한국 영수증 준비 결과를 표시한 실제 Streamlit 앱](assets/screens/app_prepared_result.png)
 
-**완성 복구본**
+## 통과 기준
 
-빈칸 수정이 어렵다면 `완성 코드 불러오기`를 선택하고 AppTest에서 같은 결과가 나오는지 확인합니다. 전체 시도가 3분을 넘으면 필요한 셀을 위에서 아래로 다시 실행하고, 계속 실패하면 강사에게 알립니다.
+- `app_05.py`가 생성되었습니다.
+- 업로드된 파일의 이름과 크기를 코드가 실제로 읽습니다.
+- 준비 결과 버튼을 누른 뒤 원문과 JSON이 표시됩니다.
+- 외부 공개 주소 없이 AppTest가 통과합니다.
 
-## 7. 실습 결과 확인
+## 막혔을 때
 
-- 파일을 여러 장이 아니라 한 장만 받는가?
-- 준비 결과를 표시할 때 화면에 `준비 결과`라고 명확히 적었는가?
-- 판독 원문과 구조화 JSON을 서로 다른 영역에 보여 주는가?
-- Colab AppTest에서 예외가 없는가?
+- `ModuleNotFoundError: streamlit`이면 설치 셀부터 다시 실행합니다.
+- AppTest에 제목이 없으면 앱 코드가 저장된 뒤 검사 셀을 실행했는지 확인합니다.
+- 파일을 업로드했는데 메시지가 변하지 않으면 `uploaded.getvalue()` 연결을 확인합니다.
 
-## 8. 문제 해결
-
-| 증상 | 원인 | 해결 방법 |
-| --- | --- | --- |
-| `No module named streamlit` | 설치 셀 미실행 | 노트북의 `환경 준비` 셀 다시 실행 |
-| AppTest에 예외 표시 | 변수명 또는 들여쓰기 오류 | 전체 정답의 해당 줄과 비교 |
-| 버튼을 눌러도 결과 없음 | `if st.button(...)` 아래 코드 누락 | 준비 결과 표시 세 줄 확인 |
-| 실제 화면을 열 수 없음 | Colab에서 서버를 공개하지 않음 | AppTest로 필수 실습 완료 |
-
-## 9. 형성평가
-
-1. Streamlit의 역할은 OCR 모델을 만드는 것인가, Python 처리 함수를 화면에 연결하는 것인가?
-2. AppTest가 통과하면 추출값의 정확성도 보장되는가?
-
-<details>
-<summary>정답 보기</summary>
-
-1. Python 처리 함수를 화면에 연결하는 것입니다.
-2. 아닙니다. UI 코드와 추출값 검증은 별개의 확인입니다.
-
-</details>
-
-## 10. 핵심 요약
-
-- Streamlit은 Python 스크립트를 웹앱 화면으로 표현합니다.
-- 파일 입력·실행 버튼·결과 영역이 처리 함수와 연결돼야 합니다.
-- 모든 필수 구현과 검사는 Colab에서 수행합니다.
-- 화면 동작과 문서 데이터 정확성은 따로 검증합니다.
-
-## 11. 완료 체크리스트
-
-- [ ] Colab에서 `app_05.py`를 만들었다.
-- [ ] 파일 입력과 버튼을 연결했다.
-- [ ] AppTest에서 예외가 없는지 확인했다.
-- [ ] `app_05.py`를 다운로드했다.
-
-## 12. 다음 교시 예고
-
-6교시에서는 준비 결과 대신 실제 OCR 또는 복구 결과와 JSON 추출 함수를 Streamlit 앱에 연결합니다.
+다음 교시에는 업로드한 파일을 실제 PaddleOCR 함수에 연결하고 실패·복구 상태를 화면에 표시합니다.
 
 ## 참고 자료
 
-- [Streamlit 시작하기](https://docs.streamlit.io/get-started)
-- [Streamlit `st.file_uploader`](https://docs.streamlit.io/develop/api-reference/widgets/st.file_uploader)
-- [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
-- [과정 참고자료와 적용 범위](../docs/course_references.md)
+공식 근거는 [과정 참고자료와 적용 범위](../docs/course_references.md)의 5교시 표에서 확인할 수 있습니다.

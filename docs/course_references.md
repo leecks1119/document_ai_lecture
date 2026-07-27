@@ -1,9 +1,13 @@
 # 과정 참고자료와 적용 범위
 
-조사 기준일: 2026-07-27
+기술 조사 기준일: 2026-07-27<br>
+링크·구현 재확인일: 2026-07-28
+마지막 링크·주장 확인일: 2026-07-28
 검토 범위: 공식 제품 문서, 표준, 규제기관 자료, 공공기관 지침
 
 이 과정은 참고 링크를 장식처럼 나열하지 않습니다. 아래 21개 자료를 실제로 검토하고, 각 자료가 뒷받침하는 주장과 적용 교시를 구분했습니다. 18개는 채택하고 3개는 적용 범위를 제한해 조건부로 채택했습니다.
+
+2026-07-28 현재 PaddleOCR 일반 OCR 파이프라인의 기본 계열은 PP-OCRv6이지만, 공식 다국어 문서의 한국어 전용 인식 모델은 PP-OCRv5 Korean입니다. 따라서 이 한국어 영수증 입문 과정은 PP-OCRv5 Korean을 명시하며, 이를 “PaddleOCR 전체의 최신 모델”이라고 표현하지 않습니다.
 
 ## 교시별 핵심 근거
 
@@ -16,7 +20,7 @@
 | 5 | 2·6 | [PyPI PaddleOCR](https://pypi.org/project/paddleocr/) | 수업에서 사용하는 PaddleOCR 3.7.0 버전과 Python 호환 확인 | 채택 |
 | 6 | 2 | [PP-OCRv5 다국어 인식](https://www.paddleocr.ai/latest/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html) | 한국어 영수증에 `lang="korean"`과 PP-OCRv5 Korean 설정 사용 | 채택 |
 | 7 | 2·3·6 | [PaddleOCR OCR 파이프라인](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/OCR.html) | 검출·인식 단계와 `rec_texts`·`rec_scores`·`rec_polys` 출력 | 채택: 노트북에서 PP-OCRv5를 명시 |
-| 8 | 1·3·4 | [PaddleOCR-VL 1.6 소개](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html) | 문서 VLM이 텍스트·표·수식·차트·레이아웃을 함께 다룰 수 있음 | 조건부: 제작사 벤치마크를 절대 성능으로 표현하지 않음 |
+| 8 | 1·3·4 | [PaddleOCR-VL 1.6 소개](https://www.paddleocr.ai/latest/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html) | 문서 VLM이 텍스트·표·수식·차트·레이아웃을 함께 다룰 수 있음 | 조건부: 제작사 벤치마크를 절대 성능으로 표현하지 않음 |
 | 9 | 3·4·6 | [PaddleOCR-VL 사용법](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html) | 영역별 인식 결과를 읽기 순서로 병합하고 JSON·Markdown으로 내보내는 흐름 | 채택 |
 | 10 | 4·7 | [JSON Schema 명세](https://json-schema.org/specification) | 자료형·필수 필드·허용 값 등 구조 검증 규칙 | 채택 |
 | 11 | 7·8 | [Google Document AI 평가](https://docs.cloud.google.com/document-ai/docs/evaluate) | 정답 라벨과 예측을 비교하는 precision·recall·F1과 임계값의 절충 | 채택 |

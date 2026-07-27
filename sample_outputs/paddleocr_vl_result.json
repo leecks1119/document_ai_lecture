@@ -1,10 +1,17 @@
 {
-  "model": "PaddleOCR-VL-1.6",
-  "source_mode": "mock_vlm",
+  "target_technology": "PaddleOCR-VL-1.6",
+  "executed_model": null,
+  "source_mode": "synthetic_fixture",
+  "provenance": {
+    "fixture_type": "synthetic_fixture",
+    "input_file": "receipt_sample.png",
+    "created_by": "course generator",
+    "disclaimer": "현재 실행에서 VLM을 호출한 결과가 아닙니다."
+  },
   "pages": [
     {
       "page": 1,
-      "markdown": "# 샘플문구점\n\n거래일자: 2026-07-27\n\n| 품목 | 수량 | 단가 | 금액 |\n| --- | ---: | ---: | ---: |\n| 연필 | 2 | 1,000원 | 2,000원 |\n| 노트 | 1 | 3,000원 | 3,000원 |\n\n**합계: 5,000원**\n",
+      "markdown": "# 샘플문구점\n\n> **PREPARED SYNTHETIC FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.\n\n거래일자: 2026-07-27\n\n| 품목 | 수량 | 단가 | 금액 |\n| --- | ---: | ---: | ---: |\n| 연필 | 2 | 1,000원 | 2,000원 |\n| 노트 | 1 | 3,000원 | 3,000원 |\n\n**합계: 5,000원**\n",
       "blocks": [
         {
           "label": "title",

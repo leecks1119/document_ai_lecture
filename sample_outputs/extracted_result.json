@@ -17,5 +17,35 @@
       "line_total": 3000
     }
   ],
-  "source_mode": "mock"
+  "adjustments": {
+    "discount": 0,
+    "tax": 0,
+    "service": 0,
+    "rounding": 0
+  },
+  "evidence": {
+    "store_name": {
+      "raw_value": "샘플문구점",
+      "line": 1
+    },
+    "date": {
+      "raw_value": "거래일자: 2026-07-27",
+      "line": 2
+    },
+    "total_amount": {
+      "raw_value": "합계: 5,000원",
+      "line": 5
+    }
+  },
+  "raw_values": {
+    "store_name": "샘플문구점",
+    "date": "2026-07-27",
+    "total_amount": "5,000원"
+  },
+  "cleaned_values": {
+    "store_name": "샘플문구점",
+    "date": "2026-07-27",
+    "total_amount": 5000
+  },
+  "source_mode": "synthetic_fixture_rule_extraction"
 }

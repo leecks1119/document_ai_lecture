@@ -1,4 +1,4 @@
-"""합성 영수증 이미지와 수업용 mock 결과를 재생성한다."""
+"""합성 영수증 이미지와 출처가 표시된 수업용 준비 결과를 재생성한다."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ sys.path.insert(0, str(ROOT))
 
 from src.export import receipt_to_xlsx_bytes
 from src.sample_data import (
+    GOLDEN_RECEIPT,
+    GOLDEN_RECEIPT_OCR_TEXT,
     SAMPLE_OCR_RESULT,
     SAMPLE_OCR_TEXT,
     SAMPLE_RECEIPT,
@@ -112,7 +114,21 @@ def main() -> None:
         encoding="utf-8",
     )
     (SAMPLE_OUTPUTS / "ocr_result.json").write_text(
-        json.dumps(SAMPLE_OCR_RESULT, ensure_ascii=False, indent=2) + "\n",
+        json.dumps(
+            {
+                "source_mode": "synthetic_fixture",
+                "provenance": {
+                    "fixture_type": "synthetic_fixture",
+                    "input_file": "receipt_sample.png",
+                    "created_by": "course generator",
+                    "disclaimer": "현재 실행에서 OCR을 호출한 결과가 아닙니다.",
+                },
+                "regions": SAMPLE_OCR_RESULT,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+        + "\n",
         encoding="utf-8",
     )
     (SAMPLE_OUTPUTS / "paddleocr_vl_result.md").write_text(
@@ -129,6 +145,42 @@ def main() -> None:
     )
     (SAMPLE_OUTPUTS / "receipt_result.xlsx").write_bytes(
         receipt_to_xlsx_bytes(SAMPLE_RECEIPT)
+    )
+    (SAMPLE_OUTPUTS / "golden_receipt_ocr.txt").write_text(
+        GOLDEN_RECEIPT_OCR_TEXT,
+        encoding="utf-8",
+    )
+    golden_receipt = {
+        **GOLDEN_RECEIPT,
+        "provenance": {
+            "fixture_type": "human_verified_transcription_fixture",
+            "input_file": "taebaek_restaurant_2025_redacted.png",
+            "input_sha256": (
+                "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f"
+            ),
+            "engine": "not_executed",
+            "engine_version": "not_applicable",
+            "target_technology": "PaddleOCR Korean",
+            "recorded_at": "2026-07-28",
+            "reviewer": "course maintainer",
+            "disclaimer": "현재 실행에서 모델을 호출한 결과가 아닙니다.",
+        },
+    }
+    (SAMPLE_OUTPUTS / "golden_receipt.json").write_text(
+        json.dumps(golden_receipt, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (SAMPLE_OUTPUTS / "golden_receipt_result.xlsx").write_bytes(
+        receipt_to_xlsx_bytes(
+            golden_receipt,
+            source_text=GOLDEN_RECEIPT_OCR_TEXT,
+            review_record={
+                "decision": "APPROVED",
+                "reviewer": "course maintainer",
+                "reviewed_at": "2026-07-28T00:00:00+09:00",
+                "note": "공개 비식별 원본과 대조한 교육용 정답",
+            },
+        )
     )
 
     fields = {
@@ -150,7 +202,8 @@ def main() -> None:
     }
     pipeline_trace = {
         "source_document": "taebaek_restaurant_2025_redacted.png",
-        "source_mode": "교재 제작자가 원본에서 확인한 교육용 준비 결과",
+        "source_mode": "human_verified_transcription_fixture",
+        "provenance": golden_receipt["provenance"],
         "schema_fields": list(fields),
         "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
         "fields": fields,
@@ -168,7 +221,7 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print("합성 영수증과 mock 결과를 생성했습니다.")
+    print("합성 영수증과 출처가 표시된 준비 결과를 생성했습니다.")
 
 
 if __name__ == "__main__":

@@ -1,151 +1,100 @@
 # 3교시. 문서 구조 이해 및 추출 결과 정제
 
-> OCR 원문을 지우지 않고 상호명·날짜 같은 키-값과 품목처럼 반복되는 행을 다시 묶습니다.
->
-> **핵심 메시지:** 문서 자동화의 핵심은 글자를 읽은 뒤 업무에 필요한 관계와 반복 행을 다시 구성하는 것입니다.
+> **이번 교시의 한 문장:** 읽힌 글자를 키-값과 반복 행으로 재구성해야 업무 데이터가 됩니다.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/03_document_structure.ipynb)
+[Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/03_document_structure.ipynb)
 
-## 1. 학습 목표
+## 60분 뒤 남길 것
 
-- 키-값과 반복 항목의 차이를 설명할 수 있다.
-- OCR 원문을 보존하면서 공백·빈 줄·읽기 순서를 정리할 수 있다.
-- 품목을 한 줄에 한 항목씩 반복 행으로 재구성할 수 있다.
+- 2교시 `ocr_result.json`을 우선 불러옵니다.
+- 원문은 그대로 보존하고 공백과 구조만 정리합니다.
+- `course_outputs/clean_receipt.json`을 만듭니다.
 
-## 2. 이번 교시의 결과물
+## 개념 10%: 관계를 복원한다
 
-- `clean_receipt.json`: `raw_text`, `cleaned_lines`, `groups`, `change_log`가 포함된 파일
+영수증에는 서로 다른 구조가 섞여 있습니다.
 
-## 3. 시작하기 전에
+- 키-값: `거래일시 → 2025-10-04`
+- 반복 행: `품목명 → 단가 → 수량 → 금액`
+- 합계: 여러 품목을 요약하는 값
 
-### 선수 지식
+OCR이 반환한 줄 순서는 사람이 읽는 순서와 다를 수 있습니다. 정제는 빈칸과 표기를 정리하는 일이며, 원문에 없는 상호명이나 금액을 새로 만드는 일이 아닙니다.
 
-- 문자열의 `strip()`, `splitlines()`를 본 적이 있으면 충분하다.
-
-### 준비 파일
-
-- 2교시의 `ocr_result.json` 또는 교재에 포함된 완성 복구본
-- [OCR 결과 텍스트](../sample_outputs/ocr_result.txt)
-- [3교시 Colab 노트북](../colab/03_document_structure.ipynb)
-
-Excel·Word·PPT 원본에는 셀·문단·도형 구조가 남아 있을 수 있고, 텍스트 PDF는 글자를 직접 선택할 수 있습니다. 표 캡처·사진·스캔은 픽셀만 남으므로 OCR이나 VLM을 검토합니다. 이번 시간에는 이 차이를 비교한 뒤 영수증의 키-값과 반복 품목 행을 직접 정리합니다.
-
-## 4. 핵심 개념
-
-### 4.1 키-값과 반복 항목은 구조가 다릅니다
-
-- `거래일자: 2026-07-27`은 하나의 키와 값입니다.
-- 품목은 같은 구조가 여러 줄 반복되는 목록입니다.
-- 합계는 문서에서 한 번 나타나는 중요 필드입니다.
+> 쉬운 비유: OCR 텍스트는 장바구니에 섞인 물건이고, 정제는 물건을 종류별 바구니에 나누는 작업입니다. 없는 물건을 넣지는 않습니다.
 
 ![영수증을 헤더, 날짜, 반복 품목, 합계로 나눈 구조 지도](assets/03/02_structure_map.svg)
 
-### 4.2 OCR 줄 순서가 읽기 순서와 다를 수 있다
+![공개 한국 영수증 원본 위에 헤더, 날짜, 반복 품목, 합계 영역을 표시한 교육용 주석](assets/03/03_receipt_regions.png)
 
-복잡한 문서에서는 위아래나 좌우 순서가 섞일 수 있습니다. 특히 표 캡처는 행과 열 정보가 사라져 글자를 읽은 뒤 관계를 다시 만들어야 합니다. 이번 시간에는 영수증의 반복 품목 행까지만 직접 정리하고, 복잡한 표는 준비된 결과에서 구조만 확인합니다.
-
-### 4.3 정제는 없는 값을 만들지 않습니다
-
-> **쉬운 비유**
-> OCR 텍스트는 장바구니에 섞인 물건이고 정제는 물건을 종류별 바구니에 나누는 작업과 같습니다.
-
-비유의 한계: 실제 복잡한 표는 단순 줄 나누기만으로 복원되지 않을 수 있습니다.
+위 색상 상자는 실제 OCR이 검출한 바운딩 박스가 아니라, 사람이 문서 구조를 구분하기 위한 교육용 주석입니다.
 
 ![불규칙한 공백이 있는 OCR 원문과 정제 결과 비교](assets/03/01_clean_before_after.svg)
 
-원문을 덮어쓰지 않고 다음 세 가지를 함께 보존합니다.
+## 실습 90%
 
-- `raw_text`: PaddleOCR이 읽은 원문
-- `cleaned_lines`: 공백과 빈 줄을 정리한 결과
-- `change_log`: 무엇을 바꿨는지 기록
+### 1. 이전 교시 결과를 불러옵니다
 
-## 5. 전체 실습 흐름
+새 Colab 런타임이면 업로드 창에서 2교시에 내려받은 `ocr_result.json`을 선택합니다. 같은 런타임에 파일이 남아 있으면 자동으로 읽습니다.
 
 ```text
-2교시 OCR 결과 또는 완성 복구본
-  → 줄 단위 분리
-  → 공백 정리
-  → 헤더·날짜·품목·합계 분류
-  → 원문과 변경 기록 함께 저장
+입력 모드: PREVIOUS_LESSON
 ```
 
-## 6. 단계별 실습
+파일이 없거나 3분 안에 복구해야 하면 `USE_PREPARED_INPUT=True`로 바꿔 공개 영수증의 검수된 텍스트로 독립 실행합니다.
 
-### 실습 1. 원문을 보존하며 줄 정리하기
-
-노트북에 제공된 `normalize_line()`에서 공백을 정리하는 핵심 한 줄을 읽고 합성 OCR 텍스트에 적용합니다.
-
-```python
-import re
-
-def normalize_line(line):
-    original = line
-    cleaned = re.sub(r"\s+", " ", line.strip())
-    changes = []
-    if original != cleaned:
-        changes.append(f"공백 정리: {original!r} → {cleaned!r}")
-    return cleaned, changes
+```text
+입력 모드: PREPARED_FALLBACK
 ```
 
-준비된 `group_receipt_lines()`를 실행해 줄을 헤더·날짜·품목·합계 영역으로 나눕니다.
+### 2. 원문과 정제문을 함께 남깁니다
 
-**기대 결과**
+정제 함수는 각 줄의 양쪽 공백과 연속 공백을 정리합니다. 변경이 있었다면 `before`와 `after`를 기록합니다.
 
-- 품목 그룹에 연필과 노트 두 줄이 들어갑니다.
-- `raw_text`가 그대로 남습니다.
-- 불규칙한 공백을 바꿨다면 `change_log`에 기록됩니다.
+```json
+{
+  "raw_text": "원문 전체",
+  "cleaned_lines": ["정리된 줄"],
+  "change_log": [
+    {"before": "합계   금액 76,000", "after": "합계 금액 76,000"}
+  ]
+}
+```
 
-**준비 결과 경로**
+### 3. 네 영역으로 묶습니다
 
-파일을 찾지 못하면 `준비 텍스트 사용`을 선택하고 `SAMPLE_OCR_TEXT`를 같은 함수에 입력합니다. 정제 단계는 건너뛰지 않습니다.
+```text
+header: 상호명
+date: 거래 일시
+items: 반복 품목
+total: 합계
+other: 아직 분류하지 않은 줄
+```
 
-## 7. 실습 결과 확인
+`other`가 생겨도 억지로 필드에 넣지 않습니다. 다음 단계의 검토 대상으로 남깁니다.
 
-- `raw_text`가 정제 전 모습 그대로 남아 있는가?
-- 공백과 빈 줄 외의 값을 추측해서 바꾸지 않았는가?
-- 상호명·날짜·합계와 반복 품목이 서로 다른 그룹에 들어갔는가?
-- `clean_receipt.json`을 Colab에서 내려받았는가?
+### 4. 결과를 확인합니다
 
-## 8. 문제 해결
+```text
+원문 줄: 10
+품목 후보 줄: 5
+CHECKPOINT 1/1 PASS: course_outputs/clean_receipt.json
+```
 
-| 증상 | 원인 | 해결 방법 |
-| --- | --- | --- |
-| 품목 그룹이 비어 있음 | `×`와 `개` 조건 누락 | 샘플 줄에 두 문자가 있는지 확인 |
-| 원문과 정제 결과가 모두 바뀜 | 같은 변수를 덮어씀 | `raw_text`와 `cleaned_lines`를 분리 |
-| 외부 파일이 없음 | Colab에 업로드하지 않음 | 내장 `SAMPLE_OCR_TEXT` 사용 |
+`clean_receipt.json`은 자동 다운로드되며 4교시 입력으로 사용합니다.
 
-## 9. 형성평가
+## 통과 기준
 
-1. 원문에서 찾지 못한 상호명을 정제 단계에서 추측해도 되는가?
-2. 품목이 단순 키-값과 다른 이유는 무엇인가?
+- `raw_text`가 수정되지 않고 남아 있습니다.
+- `cleaned_lines`와 `change_log`가 구분되어 있습니다.
+- 품목 후보가 반복 행으로 분리되었습니다.
+- 원문에 없는 값을 만들지 않았습니다.
 
-<details>
-<summary>정답 보기</summary>
+## 표 캡처를 처리할 때 기억할 점
 
-1. 안 됩니다. 정제는 원문 표현을 정돈하는 단계입니다.
-2. 같은 구조의 품목이 여러 줄 반복되기 때문입니다.
+표 캡처에는 실제 셀 정보가 없습니다. 글자는 읽혀도 어느 행과 열이 만나는지 다시 복원해야 합니다. 그래서 품목명을 금액과 잘못 연결하는 오류가 자주 생깁니다.
 
-</details>
-
-## 10. 핵심 요약
-
-- 문서는 키-값과 반복 항목으로 나누어 볼 수 있습니다.
-- 정제는 공백과 구조를 정리하는 일입니다.
-- 원문과 변경 기록을 함께 남깁니다.
-
-## 11. 완료 체크리스트
-
-- [ ] 네 문서 영역을 구분했다.
-- [ ] 원문과 정제 결과를 함께 보존했다.
-- [ ] `clean_receipt.json`을 만들었다.
-
-## 12. 다음 교시 예고
-
-4교시에서는 PaddleOCR-VL이 표와 제목을 표현하는 방법을 보고, 그 결과를 업무용 JSON으로 바꿉니다.
+다음 교시에는 같은 영수증을 업무 JSON 초안으로 만들고 각 값에 원본 근거를 붙입니다.
 
 ## 참고 자료
 
-- [Amazon Textract 문서 분석 구조](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-analyzing.html)
-- [Amazon Textract 표 구조](https://docs.aws.amazon.com/textract/latest/dg/how-it-works-tables.html)
-- [Google Document AI 응답 처리](https://docs.cloud.google.com/document-ai/docs/handle-response)
-- [과정 참고자료와 적용 범위](../docs/course_references.md)
+공식 근거는 [과정 참고자료와 적용 범위](../docs/course_references.md)의 3교시 표에서 확인할 수 있습니다.

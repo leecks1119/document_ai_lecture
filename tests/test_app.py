@@ -12,6 +12,8 @@ def test_streamlit_app_builds_without_browser():
     assert not app.exception
     assert app.title[0].value == "영수증 Document AI 미니 앱"
     assert len(app.file_uploader) == 1
+    assert "최대 5MB" in app.file_uploader[0].label
+    assert app.file_uploader[0].proto.max_upload_size_mb == 5
 
 
 def test_streamlit_sample_path_shows_result():
@@ -20,7 +22,7 @@ def test_streamlit_sample_path_shows_result():
 
     assert not app.exception
     assert app.success
-    assert "MOCK" in app.success[0].value
+    assert "PREPARED REPLAY" in app.success[0].value
     assert len(app.checkbox) == 1
     assert len(app.get("download_button")) == 0
 

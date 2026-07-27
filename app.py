@@ -7,6 +7,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from tempfile import NamedTemporaryFile
+from datetime import datetime, timezone
 
 import pandas as pd
 import streamlit as st
@@ -19,14 +20,16 @@ st.set_page_config(page_title="영수증 Document AI", layout="wide")
 st.title("영수증 Document AI 미니 앱")
 st.caption("한 번에 문서 한 장 · 원문 대조 후 Excel 저장")
 st.warning(
-    "카드번호·승인번호·전화번호 등 식별정보를 먼저 가리세요. "
-    "개인 문서는 외부 AI API에 전송하지 않습니다."
+    "Google Colab도 외부 클라우드입니다. 조직 승인 없는 개인·회사 문서는 "
+    "업로드하지 마세요. 필수 실습은 공개·합성 샘플로 진행합니다."
 )
 
 uploaded_file = st.file_uploader(
-    "영수증 이미지 또는 PDF 한 장",
+    "영수증 이미지 또는 PDF 한 장 · 최대 5MB",
     type=["png", "jpg", "jpeg", "pdf"],
     accept_multiple_files=False,
+    max_upload_size=5,
+    help="PNG, JPG, JPEG, PDF만 허용합니다. 수업에서는 한 번에 5MB 이하 한 장만 처리합니다.",
 )
 processor = st.radio(
     "처리 경로",
@@ -93,15 +96,29 @@ if result:
                 hide_index=True,
             )
 
+        reviewer = st.text_input(
+            "검토자 ID 또는 교육용 이름",
+            value="learner",
+            key="reviewer",
+        )
         review_complete = st.checkbox(
             "원본 영수증과 추출값을 직접 대조했고 이 결과를 승인합니다.",
             key="review_complete",
         )
-        if validation["valid"] and review_complete:
+        if validation["valid"] and review_complete and reviewer.strip():
+            review_record = {
+                "decision": "APPROVED",
+                "reviewer": reviewer.strip(),
+                "reviewed_at": datetime.now(timezone.utc).astimezone().isoformat(
+                    timespec="seconds"
+                ),
+                "note": "원본 영수증과 상호명·날짜·품목·총액 대조 완료",
+            }
             xlsx_bytes = receipt_to_xlsx_bytes(
                 result["data"],
                 source_text=result["ocr_text"],
-                review_status="사람 확인 완료",
+                review_status="APPROVED",
+                review_record=review_record,
             )
             st.download_button(
                 "검증된 Excel 다운로드",
@@ -114,5 +131,7 @@ if result:
             )
         elif validation["errors"]:
             st.warning("검증 오류가 남아 있어 Excel 다운로드를 차단했습니다.")
+        elif review_complete and not reviewer.strip():
+            st.info("승인 기록에 남길 검토자 ID를 입력하세요.")
         else:
             st.info("원본을 확인하고 승인해야 Excel을 다운로드할 수 있습니다.")

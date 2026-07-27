@@ -22,17 +22,11 @@ LESSON_FILES = [
 ]
 
 REQUIRED_SECTIONS = [
-    "## 1. 학습 목표",
-    "## 2. 이번 교시의 결과물",
-    "## 3. 시작하기 전에",
-    "## 4. 핵심 개념",
-    "## 5. 전체 실습 흐름",
-    "## 6. 단계별 실습",
-    "## 7. 실습 결과 확인",
-    "## 8. 문제 해결",
-    "## 9. 형성평가",
-    "## 10. 핵심 요약",
-    "## 11. 완료 체크리스트",
+    "## 60분 뒤 남길 것",
+    "## 개념 10%",
+    "## 실습 90%",
+    "## 통과 기준",
+    "## 참고 자료",
 ]
 
 
@@ -46,12 +40,6 @@ def local_links(markdown: str) -> list[str]:
     ]
 
 
-def section(markdown: str, start: str, end: str) -> str:
-    """두 2단계 제목 사이의 본문을 반환한다."""
-
-    return markdown.split(start, 1)[1].split(end, 1)[0]
-
-
 def validate_lesson(path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -59,38 +47,18 @@ def validate_lesson(path: Path) -> None:
     limit = 360 if path.name.startswith("01_") else 230
     assert len(lines) <= limit, f"{path.name}: 초보자 교재 분량이 {limit}줄을 넘음"
     assert all(section in text for section in REQUIRED_SECTIONS), path.name
-    assert any(
-        term in text.lower() for term in ("mock", "준비 결과", "복구본")
-    ), f"{path.name}: 완성 복구 경로 없음"
-    assert "Open In Colab" in text, f"{path.name}: Colab 배지 없음"
-
-    artifact_section = section(
-        text,
-        "## 2. 이번 교시의 결과물",
-        "## 3. 시작하기 전에",
-    )
-    artifacts = re.findall(r"^- ", artifact_section, flags=re.MULTILINE)
-    assert len(artifacts) == 1, f"{path.name}: 주 산출물은 정확히 1개"
-
-    concept_section = section(text, "## 4. 핵심 개념", "## 5. 전체 실습 흐름")
-    concepts = re.findall(r"^### 4\.\d+ ", concept_section, flags=re.MULTILINE)
-    if path.name.startswith("01_"):
-        assert 3 <= len(concepts) <= 6, f"{path.name}: 1교시 핵심 개념 범위 오류"
-    else:
-        assert len(concepts) == 3, f"{path.name}: 핵심 개념은 정확히 3개"
-
-    practice_section = section(text, "## 6. 단계별 실습", "## 7. 실습 결과 확인")
-    practices = re.findall(r"^### 실습 ", practice_section, flags=re.MULTILINE)
-    assert len(practices) == 1, f"{path.name}: 기본 실습은 정확히 1개"
+    assert "Colab 실습 열기" in text, f"{path.name}: Colab 링크 없음"
+    assert "course_outputs/" in text, f"{path.name}: 산출물 경로 없음"
+    assert "이번 교시의 한 문장" in text, f"{path.name}: 핵심 메시지 없음"
 
     image_links = [
         link
         for link in re.findall(r"!\[[^\]]+\]\(([^)]+)\)", text)
         if not link.startswith("http")
     ]
-    expected_minimum = 3 if path.name.startswith("01_") else 0
+    expected_minimum = 3 if path.name.startswith("01_") else 2
     assert len(image_links) >= expected_minimum, (
-        f"{path.name}: 1교시는 교육 이미지가 최소 3개 필요"
+        f"{path.name}: 실제 문서·화면·도식 이미지가 부족함"
     )
 
     for link in local_links(text):
@@ -107,8 +75,6 @@ def validate_lesson(path: Path) -> None:
 
     instructor_only_phrases = [
         "강사가",
-        "학습자는",
-        "학습자가",
         "교재 제작자",
         "60분 운영표",
         "RUN_PADDLEOCR_VL",

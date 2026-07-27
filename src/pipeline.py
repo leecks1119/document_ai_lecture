@@ -5,9 +5,10 @@ from __future__ import annotations
 from pathlib import Path
 
 from .export import receipt_to_xlsx_bytes
-from .extract import mock_extract
+from .extract import extract_receipt_from_text
 from .ocr import extract_with_paddleocr, ocr_text_from_result
 from .sample_data import (
+    GOLDEN_RECEIPT_OCR_TEXT,
     MISSING_STORE_RECEIPT,
     SAMPLE_OCR_TEXT,
     WRONG_TOTAL_RECEIPT,
@@ -32,6 +33,15 @@ def validate_upload(file_path: str | Path | None) -> list[str]:
         return ["PNG, JPEG, PDF 파일만 사용할 수 있습니다."]
     if path.stat().st_size > MAX_FILE_SIZE:
         return ["수업에서는 5MB 이하 파일만 사용합니다."]
+    if path.suffix.lower() == ".pdf":
+        try:
+            import fitz
+
+            with fitz.open(path) as document:
+                if document.page_count != 1:
+                    return ["필수 실습은 PDF 한 페이지만 처리합니다."]
+        except ImportError:
+            pass
     return []
 
 
@@ -41,6 +51,7 @@ def process_document(
     use_sample: bool = False,
     processor: str = "ocr",
     human_approved: bool = False,
+    review_record: dict | None = None,
 ) -> dict:
     """문서를 처리한다.
 
@@ -50,11 +61,22 @@ def process_document(
     """
 
     if use_sample:
-        ocr_text = SAMPLE_OCR_TEXT
-        mode = (
-            "MOCK PaddleOCR + MOCK VLM + MOCK 추출 — 업로드 문서를 읽지 않고 "
-            "합성 샘플을 사용했습니다."
-        )
+        ocr_text = GOLDEN_RECEIPT_OCR_TEXT
+        extraction_mode = "prepared_fixture_rule_extraction"
+        mode = "PREPARED REPLAY — 공개 한국 영수증의 검수된 준비 결과"
+        provenance = {
+            "fixture_type": "human_verified_transcription_fixture",
+            "input_file": "taebaek_restaurant_2025_redacted.png",
+            "input_sha256": (
+                "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f"
+            ),
+            "engine": "not_executed",
+            "engine_version": "not_applicable",
+            "target_technology": "PaddleOCR Korean",
+            "recorded_at": "2026-07-28",
+            "reviewer": "course maintainer",
+            "disclaimer": "현재 실행에서 모델을 호출한 결과가 아닙니다.",
+        }
     else:
         errors = validate_upload(file_path)
         if errors:
@@ -71,10 +93,30 @@ def process_document(
                 mode = (
                     "LIVE PaddleOCR 3.7 / PP-OCRv5 Korean + 규칙 추출"
                 )
+                extraction_mode = "live_ocr_rule_extraction"
+                provenance = {
+                    "fixture_type": "live_inference",
+                    "input_file": Path(file_path).name,
+                    "engine": "PaddleOCR",
+                    "engine_version": "3.7 / PP-OCRv5 Korean",
+                    "recorded_at": "",
+                    "reviewer": "",
+                    "disclaimer": "",
+                }
             elif processor == "vlm":
                 vlm_result = parse_with_paddleocr_vl(Path(file_path))
                 ocr_text = vlm_text_from_result(vlm_result)
                 mode = "LIVE PaddleOCR-VL 1.6 + 규칙 추출"
+                extraction_mode = "live_vlm_rule_extraction"
+                provenance = {
+                    "fixture_type": "live_inference",
+                    "input_file": Path(file_path).name,
+                    "engine": "PaddleOCR-VL",
+                    "engine_version": "1.6",
+                    "recorded_at": "",
+                    "reviewer": "",
+                    "disclaimer": "",
+                }
             else:
                 return {
                     "ok": False,
@@ -90,12 +132,23 @@ def process_document(
                 "can_continue_with_sample": True,
             }
 
-    extracted = mock_extract(ocr_text)
-    extracted["source_mode"] = "mock_extraction"
+    extracted = extract_receipt_from_text(
+        ocr_text,
+        source_mode=extraction_mode,
+    )
+    extracted["provenance"] = provenance
     validation = validate_receipt(extracted)
+    if review_record is None:
+        review_record = {
+            "decision": "APPROVED" if human_approved else "PENDING",
+            "reviewer": "learner" if human_approved else "",
+            "reviewed_at": "",
+            "note": "",
+        }
+    decision = review_record.get("decision", "PENDING")
     review_status = (
-        "APPROVED"
-        if validation["valid"] and human_approved
+        decision
+        if validation["valid"] and decision in {"APPROVED", "CHANGED"}
         else "PENDING_REVIEW"
         if validation["valid"]
         else "BLOCKED_BY_VALIDATION"
@@ -104,9 +157,10 @@ def process_document(
         receipt_to_xlsx_bytes(
             extracted,
             source_text=ocr_text,
-            review_status="사람 확인 완료",
+            review_status=review_status,
+            review_record=review_record,
         )
-        if review_status == "APPROVED"
+        if review_status in {"APPROVED", "CHANGED"}
         else None
     )
 
@@ -117,6 +171,7 @@ def process_document(
         "data": extracted,
         "validation": validation,
         "review_status": review_status,
+        "review_record": review_record,
         "xlsx_bytes": xlsx_bytes,
     }
 

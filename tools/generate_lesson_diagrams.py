@@ -152,6 +152,7 @@ def comparison_diagram(
     *,
     left_color: str = "#EAF1F8",
     right_color: str = "#DDF3EE",
+    show_arrow: bool = True,
 ) -> str:
     body = [
         f'<rect x="95" y="165" width="450" height="330" rx="26" fill="{left_color}" stroke="{COLORS["line"]}" stroke-width="2"/>',
@@ -178,10 +179,11 @@ def comparison_diagram(
             anchor="start",
             gap=48,
         ),
-        arrow(565, 330, 635),
         f'<rect x="180" y="525" width="840" height="58" rx="18" fill="{COLORS["navy"]}"/>',
         text_lines(600, 563, [footer], size=23, color=COLORS["white"]),
     ]
+    if show_arrow:
+        body.insert(-2, arrow(565, 330, 635))
     return svg_frame(title, description, "".join(body))
 
 
@@ -219,6 +221,58 @@ def three_way_comparison_diagram(
         ]
     )
     return svg_frame(title, description, "".join(body))
+
+
+def validation_gate_diagram() -> str:
+    """valid·warning·error가 병렬 판정이고 승인은 별도임을 보여 준다."""
+
+    body = [
+        f'<rect x="65" y="260" width="180" height="100" rx="22" fill="#EAF1F8" stroke="{COLORS["line"]}" stroke-width="2"/>',
+        text_lines(155, 300, ["규칙 검사"], size=27),
+        text_lines(155, 335, ["JSON 입력"], size=18, weight=400, color=COLORS["gray"]),
+        f'<line x1="245" y1="310" x2="310" y2="310" stroke="{COLORS["navy"]}" stroke-width="5"/>',
+    ]
+    branches = [
+        (165, COLORS["green"], "valid", "차단 오류 없음"),
+        (270, COLORS["amber"], "warnings", "확인 필요"),
+        (375, COLORS["red"], "errors", "수정 필요"),
+    ]
+    for y, color, label, note in branches:
+        body.extend(
+            [
+                f'<polyline points="310,310 310,{y + 40} 365,{y + 40}" fill="none" stroke="{color}" stroke-width="5"/>',
+                f'<rect x="365" y="{y}" width="210" height="80" rx="20" fill="{COLORS["white"]}" stroke="{color}" stroke-width="4"/>',
+                text_lines(470, y + 32, [label], size=25, color=color),
+                text_lines(470, y + 61, [note], size=17, weight=400, color=COLORS["gray"]),
+            ]
+        )
+    body.extend(
+        [
+            f'<line x1="575" y1="205" x2="675" y2="250" stroke="{COLORS["teal"]}" stroke-width="5"/>',
+            f'<line x1="575" y1="310" x2="675" y2="290" stroke="{COLORS["teal"]}" stroke-width="5"/>',
+            f'<rect x="675" y="220" width="220" height="100" rx="22" fill="{COLORS["mint"]}" stroke="{COLORS["teal"]}" stroke-width="3"/>',
+            text_lines(785, 262, ["사람 원본 확인"], size=24),
+            text_lines(785, 294, ["승인 또는 수정"], size=17, weight=400, color=COLORS["gray"]),
+            arrow(900, 270, 940),
+            f'<rect x="940" y="230" width="205" height="80" rx="22" fill="{COLORS["navy"]}"/>',
+            text_lines(1042, 280, ["승인 후 Excel"], size=24, color=COLORS["white"]),
+            f'<line x1="575" y1="415" x2="675" y2="415" stroke="{COLORS["red"]}" stroke-width="5"/>',
+            f'<rect x="675" y="377" width="220" height="76" rx="22" fill="#FFF0E8" stroke="{COLORS["red"]}" stroke-width="3"/>',
+            text_lines(785, 424, ["수정 · 재검사"], size=23, color=COLORS["red"]),
+            text_lines(
+                600,
+                555,
+                ["valid=true도 사람 승인을 대신하지 않습니다."],
+                size=23,
+                color=COLORS["red"],
+            ),
+        ]
+    )
+    return svg_frame(
+        "검증 세 갈래와 별도 승인 게이트",
+        "검증 결과가 valid, warnings, errors로 갈라지고 valid 경로도 사람 원본 확인 뒤에만 Excel로 가는 그림",
+        "".join(body),
+    )
 
 
 DIAGRAMS = {
@@ -269,7 +323,7 @@ DIAGRAMS = {
         ["# 상호명", "거래일자 문단", "Markdown 품목 표", "합계 강조"],
         "업무 JSON",
         ['"store_name"', '"date"', '"items": [...]', '"total_amount"'],
-        "모델의 구조화 결과도 업무 스키마 변환과 원문 검증이 필요합니다.",
+        "PREPARED 결과는 provenance를 남기고, 값은 원문 근거와 함께 검증합니다.",
     ),
     "04/02_three_checks.svg": flow_diagram(
         "VLM 결과의 세 가지 확인",
@@ -302,16 +356,16 @@ DIAGRAMS = {
         "화면보다 먼저 각 Python 함수의 반환값을 확인합니다.",
     ),
     "06/01_live_mock_paths.svg": flow_diagram(
-        "기본 경로와 명시적 mock 경로",
-        "업로드 처리 오류 후 사용자가 샘플로 계속을 선택하는 흐름",
+        "LIVE 오류와 명시적 복구 경로",
+        "업로드 LIVE 처리 오류 후 사용자가 준비 결과 버튼을 선택하는 흐름",
         [
             ("업로드", "파일 확인"),
-            ("처리기", "OCR·VLM"),
-            ("오류 표시", "자동 전환 금지"),
-            ("샘플 선택", "사용자 결정"),
-            ("MOCK 결과", "항상 표시"),
+            ("LIVE 처리", "PaddleOCR"),
+            ("LIVE_ERROR", "오류 보존"),
+            ("복구 선택", "사용자 결정"),
+            ("PREPARED", "크게 표시"),
         ],
-        "관련 없는 mock 결과를 실제 업로드의 결과처럼 보여 주지 않습니다.",
+        "준비 결과를 실제 업로드 파일의 결과처럼 보여 주지 않습니다.",
     ),
     "06/02_status_steps.svg": comparison_diagram(
         "OCR과 VLM 선택 기준",
@@ -321,17 +375,9 @@ DIAGRAMS = {
         "PaddleOCR-VL",
         ["표·제목·복잡한 배치", "Markdown·레이아웃", "선택 멀티모달 경로"],
         "오류 영향이 큰 값은 어느 경로든 사람 검토로 보냅니다.",
+        show_arrow=False,
     ),
-    "07/01_validation_signal.svg": flow_diagram(
-        "검증 결과 신호등",
-        "정상은 저장, 경고는 확인, 오류는 수정으로 이어지는 흐름",
-        [
-            ("valid", "저장 가능"),
-            ("warnings", "사람 확인"),
-            ("errors", "수정 후 재검사"),
-        ],
-        "검증은 정답을 선언하는 일이 아니라 문제를 눈에 보이게 만드는 일입니다.",
-    ),
+    "07/01_validation_signal.svg": validation_gate_diagram(),
     "07/02_json_to_excel.svg": comparison_diagram(
         "JSON 품목이 Excel 행으로",
         "JSON의 연필과 노트 품목 배열이 Excel의 두 행으로 변환되는 그림",
@@ -345,7 +391,7 @@ DIAGRAMS = {
         "사람 검토가 포함된 최종 흐름",
         "문서 추출과 검증 뒤 담당자가 확인해야 Excel이 확정되는 흐름",
         [
-            ("문서", "합성 입력"),
+            ("문서", "승인된 비식별"),
             ("추출", "OCR·VLM"),
             ("검증", "규칙 확인"),
             ("사람 확인", "승인·수정"),

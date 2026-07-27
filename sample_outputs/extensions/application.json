@@ -1,0 +1,16 @@
+{
+  "document_type": "application",
+  "application_id": "EDU-2026-014",
+  "applicant_name": "김하늘",
+  "department": "업무혁신팀",
+  "requested_program": "Document AI 업무 자동화",
+  "requested_date": "2026-08-18",
+  "manager_approval": "승인",
+  "privacy_consent": true,
+  "_provenance": {
+    "fixture_type": "synthetic_training_document",
+    "created_at": "2026-07-28",
+    "contains_personal_data": false,
+    "reviewer": "course maintainer"
+  }
+}

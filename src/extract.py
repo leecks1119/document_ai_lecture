@@ -40,6 +40,23 @@ RECEIPT_SCHEMA: dict[str, Any] = {
                 },
             },
         },
+        "adjustments": {
+            "type": "object",
+            "properties": {
+                "discount": {"type": "integer"},
+                "tax": {"type": "integer"},
+                "service": {"type": "integer"},
+                "rounding": {"type": "integer"},
+            },
+        },
+        "tax_breakdown": {
+            "type": ["object", "null"],
+            "description": "품목 가격에 이미 포함된 공급가액·부가세 표시",
+        },
+        "evidence": {"type": "object"},
+        "raw_values": {"type": "object"},
+        "cleaned_values": {"type": "object"},
+        "provenance": {"type": "object"},
         "source_mode": {"type": "string"},
     },
 }
@@ -72,11 +89,33 @@ def _to_int(value: str) -> int:
     return int(value.replace(",", ""))
 
 
-def mock_extract(ocr_text: str) -> dict:
-    """수업용 합성 영수증을 규칙으로 구조화한다.
+def _normalize_date(value: str) -> str:
+    parts = re.split(r"[-./]", value)
+    return f"{int(parts[0]):04d}-{int(parts[1]):02d}-{int(parts[2]):02d}"
 
-    이 함수는 생성형 AI 호출 결과의 *형태*를 연습하기 위한 mock이다.
-    실제 모델 호출이나 일반적인 영수증 인식 성능을 흉내 내지 않는다.
+
+def _find_store_name(lines: list[str]) -> tuple[str | None, int | None]:
+    ignored = re.compile(
+        r"^(?:\[?영수증\]?|거래|사업자|대표|주소|전화|상품명|품명|상\s*품)",
+        re.IGNORECASE,
+    )
+    for index, line in enumerate(lines, start=1):
+        candidate = line.lstrip("# ").strip()
+        if candidate and not ignored.search(candidate):
+            return candidate, index
+    return None, None
+
+
+def extract_receipt_from_text(
+    ocr_text: str,
+    *,
+    source_mode: str = "rule_extraction",
+) -> dict:
+    """초보자 실습용 최소 규칙으로 영수증 텍스트를 구조화한다.
+
+    이 함수는 범용 영수증 AI가 아니다. 한국 영수증에서 자주 보이는 날짜,
+    합계, `품명 단가 수량 금액` 표기와 수업용 표기를 다루며, 읽지 못한 값은
+    추측하지 않고 ``None``으로 남긴다.
     """
 
     lines = [line.strip() for line in ocr_text.splitlines() if line.strip()]
@@ -88,13 +127,27 @@ def mock_extract(ocr_text: str) -> dict:
                 "date": None,
                 "total_amount": None,
                 "items": [],
-                "source_mode": "mock",
+                "source_mode": source_mode,
             }
         )
         return empty
 
-    date_match = re.search(r"\d{4}-\d{2}-\d{2}", ocr_text)
-    total_match = re.search(r"합계\s*:\s*([\d,]+)원", ocr_text)
+    date_match = re.search(r"\b(\d{4}[-./]\d{1,2}[-./]\d{1,2})\b", ocr_text)
+    total_match = re.search(
+        r"(?:합\s*계(?:\s*금액)?|결제\s*금액|총\s*액)\s*[:：]?\s*"
+        r"(?P<amount>[\d,]+)[ \t]*원?",
+        ocr_text,
+        re.IGNORECASE,
+    )
+    supply_match = re.search(
+        r"(?:부가세\s*)?과세물품가액\s*[:：]?\s*(?P<amount>[\d,]+)",
+        ocr_text,
+    )
+    vat_match = re.search(
+        r"^부가세(?!\s*과세물품가액)\s*[:：]?\s*(?P<amount>[\d,]+)",
+        ocr_text,
+        re.MULTILINE,
+    )
     item_pattern = re.compile(
         r"(?P<name>.+?)\s+(?P<quantity>\d+)개\s*[×x]\s*"
         r"(?P<unit>[\d,]+)원\s*=\s*(?P<line>[\d,]+)원"
@@ -103,30 +156,116 @@ def mock_extract(ocr_text: str) -> dict:
         r"^\|\s*(?P<name>[^|]+?)\s*\|\s*(?P<quantity>\d+)\s*\|"
         r"\s*(?P<unit>[\d,]+)원\s*\|\s*(?P<line>[\d,]+)원\s*\|$"
     )
+    receipt_column_pattern = re.compile(
+        r"^(?P<name>.+?)\s+(?P<unit>[\d,]+)\s+"
+        r"(?P<quantity>\d+)\s+(?P<line>[\d,]+)\s*원?$"
+    )
 
     items = []
-    for line in lines:
+    item_evidence = []
+    for line_number, line in enumerate(lines, start=1):
         match = item_pattern.search(line)
         if not match:
             match = markdown_item_pattern.search(line)
+        if not match:
+            match = receipt_column_pattern.search(line)
         if match:
-            items.append(
+            item = {
+                "name": match.group("name").strip(),
+                "quantity": int(match.group("quantity")),
+                "unit_price": _to_int(match.group("unit")),
+                "line_total": _to_int(match.group("line")),
+            }
+            items.append(item)
+            item_evidence.append(
                 {
-                    "name": match.group("name").strip(),
-                    "quantity": int(match.group("quantity")),
-                    "unit_price": _to_int(match.group("unit")),
-                    "line_total": _to_int(match.group("line")),
+                    "raw_value": line,
+                    "line": line_number,
+                    "normalized_value": item,
                 }
             )
 
+    store_name, store_line = _find_store_name(lines)
+    normalized_date = _normalize_date(date_match.group(1)) if date_match else None
+    total_amount = _to_int(total_match.group("amount")) if total_match else None
+    supply_amount = (
+        _to_int(supply_match.group("amount")) if supply_match else None
+    )
+    vat_amount = _to_int(vat_match.group("amount")) if vat_match else None
+    total_line = next(
+        (
+            index
+            for index, line in enumerate(lines, start=1)
+            if total_match and total_match.group(0) in line
+        ),
+        None,
+    )
+
     return {
         "document_type": "receipt",
-        "store_name": lines[0].lstrip("# ").strip() if lines else None,
-        "date": date_match.group(0) if date_match else None,
-        "total_amount": _to_int(total_match.group(1)) if total_match else None,
+        "store_name": store_name,
+        "date": normalized_date,
+        "total_amount": total_amount,
         "items": items,
-        "source_mode": "mock",
+        "adjustments": {
+            "discount": 0,
+            "tax": 0,
+            "service": 0,
+            "rounding": 0,
+        },
+        "tax_breakdown": {
+            "mode": "included_in_item_prices",
+            "supply_amount": supply_amount,
+            "vat": vat_amount,
+            "payable_total": total_amount,
+        }
+        if supply_amount is not None and vat_amount is not None
+        else None,
+        "evidence": {
+            "store_name": {
+                "raw_value": store_name,
+                "line": store_line,
+            },
+            "date": {
+                "raw_value": date_match.group(0) if date_match else None,
+                "line": next(
+                    (
+                        index
+                        for index, line in enumerate(lines, start=1)
+                        if date_match and date_match.group(0) in line
+                    ),
+                    None,
+                ),
+            },
+            "total_amount": {
+                "raw_value": total_match.group(0) if total_match else None,
+                "line": total_line,
+            },
+            "items": item_evidence,
+        },
+        "raw_values": {
+            "store_name": store_name,
+            "date": date_match.group(0) if date_match else None,
+            "total_amount": (
+                total_match.group("amount") if total_match else None
+            ),
+        },
+        "cleaned_values": {
+            "store_name": store_name,
+            "date": normalized_date,
+            "total_amount": total_amount,
+        },
+        "source_mode": source_mode,
     }
+
+
+def mock_extract(ocr_text: str) -> dict:
+    """이전 교재 코드와의 호환을 위한 명시적 합성 fixture 별칭."""
+
+    return extract_receipt_from_text(
+        ocr_text,
+        source_mode="synthetic_fixture_rule_extraction",
+    )
 
 
 def validate_schema(data: dict) -> list[str]:

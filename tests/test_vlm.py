@@ -5,8 +5,10 @@ from src.vlm import load_mock_vlm, vlm_text_from_result
 def test_mock_vlm_is_labeled_and_contains_layout_blocks():
     result = load_mock_vlm()
 
-    assert result["model"] == "PaddleOCR-VL-1.6"
-    assert result["source_mode"] == "mock_vlm"
+    assert result["target_technology"] == "PaddleOCR-VL-1.6"
+    assert result["executed_model"] is None
+    assert result["source_mode"] == "synthetic_fixture"
+    assert "호출한 결과가 아닙니다" in result["provenance"]["disclaimer"]
     assert result["pages"][0]["blocks"][2]["label"] == "table"
 
 

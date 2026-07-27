@@ -1,167 +1,101 @@
 # 6교시. OCR 및 정보 추출 기능 연동
 
-> 파일에서 OCR 또는 준비 텍스트를 얻고, 추출 함수에 연결해 영수증 한 장이 JSON이 되는 한 줄 흐름을 완성합니다.
->
-> **핵심 메시지:** 입력 형식과 업무 위험에 맞는 가장 단순한 처리 경로를 고르고, 실제 처리와 준비 결과 사용 여부를 숨기지 않아야 합니다.
+> **이번 교시의 한 문장:** 파일에서 JSON까지 단계를 연결하면 실제 처리와 실패 위치를 구분할 수 있습니다.
 
-[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/06_ocr_ai_integration.ipynb)
+[Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/06_ocr_ai_integration.ipynb)
 
-## 1. 학습 목표
+## 60분 뒤 남길 것
 
-- `파일 → OCR 또는 준비 텍스트 → 추출 함수 → JSON` 흐름을 연결할 수 있다.
-- 입력 형식에 따라 네이티브 파서·PDF 텍스트층·OCR·VLM 중 첫 경로를 고를 수 있다.
-- 실제 경로와 준비 결과 경로의 상태·오류를 구분해 표시할 수 있다.
+- 업로드 파일을 실제 PaddleOCR 함수에 연결합니다.
+- `LIVE`, `LIVE_ERROR`, `PREPARED_FALLBACK`을 화면에서 구분합니다.
+- 오류가 나도 관련 없는 결과로 조용히 바꾸지 않습니다.
+- `course_outputs/app_06.py`를 만듭니다.
 
-## 2. 이번 교시의 결과물
+## 개념 10%: 가장 단순한 경로부터 선택합니다
 
-- `app_06.py`: 영수증 한 장의 판독 결과를 JSON에 연결하는 Streamlit 앱
+| 입력 | 먼저 검토할 경로 | 어려운 점 |
+| --- | --- | --- |
+| 선명한 영수증 사진 | 한국어 OCR + 규칙 | 날짜·합계 표기 변형 |
+| 복잡한 표·레이아웃 | 문서 VLM + 스키마 | 비용·지연·환각 |
+| Excel | 셀·수식 직접 읽기 | 병합·숨김·서식 |
+| Word | 문단·표·그림 직접 읽기 | 머리글·텍스트박스·변경 추적 |
+| PDF | 텍스트층 확인 후 OCR | 스캔 혼합·암호·문자맵 |
+| PPT | 도형·표·이미지 직접 읽기 | 그룹·읽기 순서·노트 |
+| 표 캡처 | OCR + 표 구조 복원 | 행·열 관계가 픽셀로 사라짐 |
 
-## 3. 시작하기 전에
-
-### 선수 지식
-
-- 함수 호출과 `if` 조건문의 목적을 이해하면 충분하다.
-
-### 준비 파일
-
-- 5교시의 기본 Streamlit 앱 또는 교재에 포함된 완성 복구본
-- [합성 영수증](../sample_docs/receipt_sample.png)
-- [6교시 Colab 노트북](../colab/06_ocr_ai_integration.ipynb)
-- 노트북에 포함된 독립 실행 완성 복구본
-
-이번 시간에는 사진 영수증의 OCR 결과 또는 준비 텍스트를 JSON 함수에 연결하는 한 경로만 직접 완성합니다. Excel·Word·PPT 원본, 텍스트 PDF, 표 캡처와 사진의 처리 차이는 준비된 선택 예시에서 확인합니다.
-
-`app_06.py`에는 준비 데이터, 처리 함수, Streamlit 화면을 함께 저장합니다. 파일을 저장한 뒤 AppTest에서 오류 없이 열리는지 확인합니다.
-
-## 4. 핵심 개념
-
-### 4.1 쉬운 문서는 OCR부터 시작합니다
-
-- Excel·Word·PPT 원본: 네이티브 구조 파서 우선
-- 텍스트가 선택되는 PDF: 텍스트층 우선
-- 표 캡처·사진·스캔: PaddleOCR 우선
-- 제목·표·여러 영역의 시각 관계가 중요함: 문서 VLM 검토
-- 오류 영향이 큰 값: 원문 대조와 사람 확인
-
-모든 문서를 이미지로 바꾸거나 무조건 큰 VLM으로 처리하는 것이 정답은 아닙니다.
+OCR과 VLM은 고정된 순서가 아니라 문서와 위험에 따라 선택하는 경로입니다.
 
 ![단순 문서는 OCR, 복잡한 배치는 VLM, 중요한 값은 사람 검토로 이어지는 선택 지도](assets/06/02_status_steps.svg)
 
-### 4.2 작은 함수는 오류 위치를 보여 줍니다
+## 실습 90%
 
-```text
-validate_upload()
-  → extract_with_paddleocr() 또는 parse_with_paddleocr_vl()
-  → extract_prepared_result()
-  → validate_receipt()
-```
+### 1. 앱의 실제 처리 함수를 확인합니다
 
-각 단계의 입력과 출력이 작으면 파일·모델·변환 중 어디서 문제가 생겼는지 찾기 쉽습니다.
-
-### 4.3 준비 결과는 직접 선택합니다
-
-> **쉬운 비유**
-> 문서 파이프라인은 환승 노선과 같습니다. OCR과 VLM은 다른 노선이고 상태 표시는 현재 탄 노선을 알려 주는 안내판입니다.
-
-비유의 한계: 이번 과정은 한 문서의 한 줄 흐름만 다룹니다. 실제 업무 시스템에는 추가 운영 기능이 필요할 수 있습니다.
-
-![오류를 표시한 뒤 사용자가 샘플 경로를 선택하는 흐름](assets/06/01_live_mock_paths.svg)
-
-업로드 처리에 실패하면 먼저 오류를 확인합니다. 계속하려면 직접 **샘플로 계속**을 선택합니다.
-
-## 5. 전체 실습 흐름
-
-```text
-파일 형식과 사용 가능한 원본 확인
-  → 사진 영수증에서 OCR 또는 준비 텍스트 선택
-  → 추출 함수에 연결
-  → 상태·중간 결과·JSON 확인
-  → app_06.py 저장
-  → AppTest에서 파일 입력·두 버튼·준비 결과 확인
-```
-
-## 6. 단계별 실습
-
-### 실습 1. 처리기 선택과 준비 결과 경로 확인하기
+`run_live_ocr(uploaded)`는 업로드된 바이트를 임시 파일로 저장하고 PaddleOCR을 실행합니다.
 
 ```python
-vlm_result = process_document(processor="vlm", use_sample=True)
-ocr_result = process_document(processor="ocr", use_sample=True)
-
-assert vlm_result["status"] == "준비 결과: PaddleOCR-VL + 추출"
-assert ocr_result["status"] == "준비 결과: PaddleOCR + 추출"
-```
-
-실제 업로드 경로에서는 `processor`에 따라 공통 파이프라인의 OCR 또는 VLM 함수가 호출됩니다.
-
-```python
-live_result = process_document(
-    "receipt_sample.png",
-    processor="ocr",
-    use_sample=False,
+engine = PaddleOCR(
+    lang="korean",
+    ocr_version="PP-OCRv5",
+    device="cpu",
 )
 ```
 
-**기대 결과**
+### 2. 세 상태를 일부러 구분합니다
 
-- 두 준비 상태에 어떤 처리기를 대신 사용했는지 표시됩니다.
-- 파일 없이 실제 경로를 실행하면 오류만 반환하고 관련 없는 JSON은 표시하지 않습니다.
-- `app_06.py`가 다른 저장소 모듈 없이 import되고 AppTest에서 예외가 없습니다.
+```text
+LIVE
+  업로드 파일에 실제 OCR을 실행하고 JSON 생성
 
-**준비 결과 경로**
+LIVE_ERROR
+  파일 없음·모델 오류·파싱 오류를 표시
+  Excel이나 준비 결과로 조용히 넘어가지 않음
 
-모델 설치가 어렵다면 `use_sample=True`를 직접 선택합니다. 전체 시도가 3분을 넘으면 실행을 중지하고 필요한 셀을 위에서 아래로 다시 실행합니다. 오류가 난 뒤 자동으로 준비 결과를 반환하는 코드는 사용하지 않습니다.
+PREPARED_FALLBACK
+  사용자가 공개 샘플 준비 결과 버튼을 직접 선택
+```
 
-## 7. 실습 결과 확인
+![실제 처리 오류를 표시한 뒤 사용자가 준비 결과를 선택하는 흐름](assets/06/01_live_mock_paths.svg)
 
-- 파일에서 판독 원문을 얻은 뒤 JSON 추출 함수가 실행되는가?
-- 실제 처리와 준비 결과의 상태가 화면에 구분되어 보이는가?
-- 오류가 발생했을 때 관련 없는 샘플 결과로 조용히 바뀌지 않는가?
-- AppTest에서 파일 입력 한 개와 `업로드 처리`·`샘플로 계속` 버튼 두 개가 확인되는가?
-- 통합 코드를 Colab에서 실행하고 내려받았는가?
+### 3. 준비 결과 경로로 화면을 완주합니다
 
-## 8. 문제 해결
+AppTest는 네트워크 없이 준비 결과 버튼을 눌러 다음을 확인합니다.
 
-| 증상 | 원인 | 해결 방법 |
-| --- | --- | --- |
-| 파일 없이 오류 | 업로드하지 않음 | 오류 확인 후 `샘플로 계속` 선택 |
-| PaddleOCR 실행 오류 | 환경 준비 또는 다운로드 문제 | 실행 중지 후 준비 결과 선택 |
-| 준비 결과도 실행되지 않음 | 셀 실행 순서 문제 | 필요한 셀을 위에서 아래 재실행 |
-| 파일 저장 오류 | 이전 파일과 이름 충돌 | 전체 정답 `app_06.py`를 다시 저장 |
-| AppTest 예외 | 들여쓰기·변수 오류 | 전체 정답과 해당 줄 비교 |
+- 실행 모드
+- OCR 원문
+- 구조화 JSON
+- 오류 없는 앱 화면
 
-## 9. 형성평가
+정상 결과:
 
-1. 단순한 한 줄 영수증은 어느 경로부터 시작하는가?
-2. 준비 결과 사용 사실을 상태에 표시하는 이유는 무엇인가?
+```text
+CHECKPOINT 1/1 PASS: 앱 연결·모드 표시·JSON 출력
+```
 
-<details>
-<summary>정답 보기</summary>
+### 4. Colab에서 LIVE 경로를 시도합니다
 
-1. 단순한 사진 영수증은 먼저 OCR 경로를 검토합니다.
-2. 실제 업로드 처리 결과로 오해하지 않도록 하기 위해서입니다.
+2교시 설치가 유지된 런타임에서는 공개 영수증을 업로드해 `업로드 파일 LIVE 처리`를 누릅니다. 파일명, 실행 모드, OCR 원문, JSON이 모두 바뀌어야 실제 연결입니다.
 
-</details>
+실제 앱의 준비 결과 화면은 아래와 같습니다. 이 화면에는 반드시 `PREPARED REPLAY`가 표시되어야 하며, LIVE 실행 결과로 해석하면 안 됩니다.
 
-## 10. 핵심 요약
+![PREPARED REPLAY 상태를 명시한 실제 앱 화면](assets/screens/app_prepared_result.png)
 
-- 문서 구조에 따라 OCR·VLM·사람 검토를 고릅니다.
-- 작은 함수를 연결하면 오류 위치를 찾기 쉽습니다.
-- 준비 결과는 직접 선택하고 상태에 표시합니다.
+## 통과 기준
 
-## 11. 완료 체크리스트
+- `app_06.py`에 `run_live_ocr`가 있습니다.
+- 실제 파일 오류가 `LIVE_ERROR`로 보입니다.
+- 준비 결과는 사용자가 버튼으로 선택한 경우에만 표시됩니다.
+- AppTest에서 `PREPARED_FALLBACK`과 JSON이 확인됩니다.
 
-- [ ] OCR과 VLM 선택 기준을 설명했다.
-- [ ] 실제와 준비 결과 상태를 구분했다.
-- [ ] `app_06.py`를 만들었다.
-- [ ] Colab AppTest에서 독립 실행을 확인했다.
+## 막혔을 때
 
-## 12. 다음 교시 예고
+- PaddleOCR 미설치 오류면 2교시 설치 셀을 다시 실행합니다.
+- 모델 다운로드가 3분을 넘으면 중지하고 준비 결과 버튼을 선택합니다.
+- 업로드 없이 LIVE 버튼을 누르면 `INPUT_ERROR`가 정상입니다.
+- 오류 문구를 지우거나 다른 문서 결과로 바꾸지 않습니다.
 
-7교시에서는 JSON의 필수값과 품목 합계를 검증한 뒤 `receipt_result.xlsx`로 저장합니다.
+다음 교시에는 JSON을 규칙으로 검증하고 원본을 승인한 뒤에만 Excel을 만듭니다.
 
 ## 참고 자료
 
-- [PaddleOCR 빠른 시작](https://www.paddleocr.ai/latest/en/quick_start.html)
-- [PaddleOCR-VL 파이프라인](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)
-- [과정 참고자료와 적용 범위](../docs/course_references.md)
+공식 근거는 [과정 참고자료와 적용 범위](../docs/course_references.md)의 6교시 표에서 확인할 수 있습니다.

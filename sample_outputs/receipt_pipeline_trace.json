@@ -1,6 +1,17 @@
 {
   "source_document": "taebaek_restaurant_2025_redacted.png",
-  "source_mode": "교재 제작자가 원본에서 확인한 교육용 준비 결과",
+  "source_mode": "human_verified_transcription_fixture",
+  "provenance": {
+    "fixture_type": "human_verified_transcription_fixture",
+    "input_file": "taebaek_restaurant_2025_redacted.png",
+    "input_sha256": "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f",
+    "engine": "not_executed",
+    "engine_version": "not_applicable",
+    "target_technology": "PaddleOCR Korean",
+    "recorded_at": "2026-07-28",
+    "reviewer": "course maintainer",
+    "disclaimer": "현재 실행에서 모델을 호출한 결과가 아닙니다."
+  },
   "schema_fields": [
     "net_amount",
     "tax_amount",
