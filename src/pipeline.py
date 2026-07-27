@@ -75,6 +75,11 @@ def process_document(
     extracted = mock_extract(ocr_text)
     extracted["source_mode"] = "mock_extraction"
     validation = validate_receipt(extracted)
+    csv_bytes = (
+        receipt_to_csv_bytes(extracted)
+        if validation["valid"]
+        else None
+    )
 
     return {
         "ok": True,
@@ -82,7 +87,7 @@ def process_document(
         "ocr_text": ocr_text,
         "data": extracted,
         "validation": validation,
-        "csv_bytes": receipt_to_csv_bytes(extracted),
+        "csv_bytes": csv_bytes,
     }
 
 

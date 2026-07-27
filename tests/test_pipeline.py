@@ -33,3 +33,31 @@ def test_upload_rejects_files_over_course_limit(tmp_path):
     path.write_bytes(b"0" * (MAX_FILE_SIZE + 1))
 
     assert validate_upload(path) == ["수업에서는 5MB 이하 파일만 사용합니다."]
+
+
+def test_invalid_live_ocr_result_does_not_create_csv(tmp_path, monkeypatch):
+    path = tmp_path / "receipt.png"
+    path.write_bytes(b"synthetic image placeholder")
+    monkeypatch.setattr(
+        "src.pipeline.extract_with_easyocr",
+        lambda _: [
+            {
+                "page": 1,
+                "box": [[0, 0], [1, 0], [1, 1], [0, 1]],
+                "text": text,
+                "confidence": 0.9,
+            }
+            for text in (
+                "샘플문구점",
+                "거래일자: 2026-07-27",
+                "연필 2개 × 1,000원 = 2,000원",
+                "합계: 2,00o원",
+            )
+        ],
+    )
+
+    result = process_document(path)
+
+    assert result["ok"]
+    assert not result["validation"]["valid"]
+    assert result["csv_bytes"] is None
