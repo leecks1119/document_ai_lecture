@@ -13,7 +13,7 @@ def test_explicit_sample_path_is_labeled():
     result = process_document(use_sample=True)
 
     assert result["ok"]
-    assert "MOCK OCR + MOCK 추출" in result["status"]
+    assert "MOCK PaddleOCR + MOCK VLM + MOCK 추출" in result["status"]
     assert result["validation"]["valid"]
 
 
@@ -39,7 +39,7 @@ def test_invalid_live_ocr_result_does_not_create_csv(tmp_path, monkeypatch):
     path = tmp_path / "receipt.png"
     path.write_bytes(b"synthetic image placeholder")
     monkeypatch.setattr(
-        "src.pipeline.extract_with_easyocr",
+        "src.pipeline.extract_with_paddleocr",
         lambda _: [
             {
                 "page": 1,
@@ -61,3 +61,31 @@ def test_invalid_live_ocr_result_does_not_create_csv(tmp_path, monkeypatch):
     assert result["ok"]
     assert not result["validation"]["valid"]
     assert result["csv_bytes"] is None
+
+
+def test_live_vlm_path_uses_paddleocr_vl_markdown(tmp_path, monkeypatch):
+    path = tmp_path / "receipt.png"
+    path.write_bytes(b"synthetic image placeholder")
+    monkeypatch.setattr(
+        "src.pipeline.parse_with_paddleocr_vl",
+        lambda _: {
+            "model": "PaddleOCR-VL-1.6",
+            "pages": [
+                {
+                    "page": 1,
+                    "markdown": (
+                        "# 샘플문구점\n거래일자: 2026-07-27\n"
+                        "| 연필 | 2 | 1,000원 | 2,000원 |\n"
+                        "**합계: 2,000원**"
+                    ),
+                    "blocks": [],
+                }
+            ],
+        },
+    )
+
+    result = process_document(path, processor="vlm")
+
+    assert result["ok"]
+    assert result["validation"]["valid"]
+    assert "PaddleOCR-VL 1.6" in result["status"]

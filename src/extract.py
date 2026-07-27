@@ -99,10 +99,16 @@ def mock_extract(ocr_text: str) -> dict:
         r"(?P<name>.+?)\s+(?P<quantity>\d+)개\s*[×x]\s*"
         r"(?P<unit>[\d,]+)원\s*=\s*(?P<line>[\d,]+)원"
     )
+    markdown_item_pattern = re.compile(
+        r"^\|\s*(?P<name>[^|]+?)\s*\|\s*(?P<quantity>\d+)\s*\|"
+        r"\s*(?P<unit>[\d,]+)원\s*\|\s*(?P<line>[\d,]+)원\s*\|$"
+    )
 
     items = []
     for line in lines:
         match = item_pattern.search(line)
+        if not match:
+            match = markdown_item_pattern.search(line)
         if match:
             items.append(
                 {
@@ -115,7 +121,7 @@ def mock_extract(ocr_text: str) -> dict:
 
     return {
         "document_type": "receipt",
-        "store_name": lines[0] if lines else None,
+        "store_name": lines[0].lstrip("# ").strip() if lines else None,
         "date": date_match.group(0) if date_match else None,
         "total_amount": _to_int(total_match.group(1)) if total_match else None,
         "items": items,

@@ -13,7 +13,7 @@ def test_gradio_demo_builds_without_launching():
 def test_sample_handler_labels_mock_output():
     status, ocr_text, data, rows, csv_path = run_sample()
 
-    assert "MOCK OCR + MOCK 추출" in status
+    assert "MOCK PaddleOCR + MOCK VLM + MOCK 추출" in status
     assert "샘플문구점" in ocr_text
     assert data["total_amount"] == 5000
     assert len(rows) == 2

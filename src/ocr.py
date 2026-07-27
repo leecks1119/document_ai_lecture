@@ -1,4 +1,4 @@
-"""2교시: 준비된 OCR 결과와 선택 EasyOCR 경로."""
+"""2교시: 준비된 결과와 PaddleOCR 3.7 선택 경로."""
 
 from __future__ import annotations
 
@@ -21,44 +21,65 @@ def ocr_text_from_result(result: list[dict]) -> str:
     return "\n".join(item["text"] for item in result)
 
 
-def extract_with_easyocr(
+def extract_with_paddleocr(
     image_path: str | Path,
-    languages: tuple[str, ...] = ("ko", "en"),
+    *,
+    lang: str = "korean",
+    ocr_version: str = "PP-OCRv5",
 ) -> list[dict]:
-    """선택 실습: EasyOCR 결과를 공통 형식으로 바꾼다.
+    """PaddleOCR 3.x 결과를 수업의 공통 형식으로 바꾼다.
 
-    EasyOCR가 설치되지 않았거나 모델 다운로드가 막히면 예외를 그대로
+    PP-OCRv6는 현재 한국어 모델을 제공하지 않으므로 한국어 영수증에는
+    PP-OCRv5 Korean을 명시한다. 설치나 모델 다운로드가 막히면 예외를 그대로
     전달한다. 호출하는 쪽에서 오류를 먼저 보여 준 뒤 사용자가 명시적으로
     mock 경로를 선택해야 한다.
     """
 
     try:
-        import easyocr
+        from paddleocr import PaddleOCR
     except ImportError as exc:
         raise RuntimeError(
-            "EasyOCR가 설치되지 않았습니다. '샘플로 계속'을 선택하세요."
+            "PaddleOCR가 설치되지 않았습니다. '샘플로 계속'을 선택하세요."
         ) from exc
 
     path = Path(image_path)
     if not path.is_file():
         raise ValueError(f"이미지 파일을 찾을 수 없습니다: {path}")
 
-    reader = easyocr.Reader(list(languages), gpu=False)
+    pipeline = PaddleOCR(
+        lang=lang,
+        ocr_version=ocr_version,
+        use_doc_orientation_classify=False,
+        use_doc_unwarping=False,
+        use_textline_orientation=False,
+        device="cpu",
+    )
 
     with TemporaryDirectory(prefix="docai_ocr_") as temp_dir:
         image_paths = _prepare_image_paths(path, Path(temp_dir))
         result: list[dict] = []
         for page_number, image_path in enumerate(image_paths, start=1):
-            raw_page = reader.readtext(str(image_path))
-            result.extend(
-                {
-                    "page": page_number,
-                    "box": [[int(x), int(y)] for x, y in box],
-                    "text": text,
-                    "confidence": float(confidence),
-                }
-                for box, text, confidence in raw_page
-            )
+            for page_result in pipeline.predict(str(image_path)):
+                payload = getattr(page_result, "json", page_result)
+                if callable(payload):
+                    payload = payload()
+                page_data = payload.get("res", payload)
+                texts = page_data.get("rec_texts", [])
+                scores = page_data.get("rec_scores", [])
+                boxes = page_data.get("rec_polys", [])
+                for box, text, confidence in zip(boxes, texts, scores):
+                    points = box.tolist() if hasattr(box, "tolist") else box
+                    result.append(
+                        {
+                            "page": page_number,
+                            "box": [
+                                [int(point[0]), int(point[1])]
+                                for point in points
+                            ],
+                            "text": str(text),
+                            "confidence": float(confidence),
+                        }
+                    )
         return result
 
 

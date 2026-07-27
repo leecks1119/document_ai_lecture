@@ -40,6 +40,39 @@ SAMPLE_OCR_RESULT = [
     },
 ]
 
+SAMPLE_VLM_MARKDOWN = """# 샘플문구점
+
+거래일자: 2026-07-27
+
+| 품목 | 수량 | 단가 | 금액 |
+| --- | ---: | ---: | ---: |
+| 연필 | 2 | 1,000원 | 2,000원 |
+| 노트 | 1 | 3,000원 | 3,000원 |
+
+**합계: 5,000원**
+"""
+
+SAMPLE_VLM_RESULT = {
+    "model": "PaddleOCR-VL-1.6",
+    "source_mode": "mock_vlm",
+    "pages": [
+        {
+            "page": 1,
+            "markdown": SAMPLE_VLM_MARKDOWN,
+            "blocks": [
+                {"label": "title", "content": "샘플문구점", "order": 1},
+                {"label": "text", "content": "거래일자: 2026-07-27", "order": 2},
+                {
+                    "label": "table",
+                    "content": "| 품목 | 수량 | 단가 | 금액 |",
+                    "order": 3,
+                },
+                {"label": "text", "content": "합계: 5,000원", "order": 4},
+            ],
+        }
+    ],
+}
+
 SAMPLE_RECEIPT = {
     "document_type": "receipt",
     "store_name": "샘플문구점",

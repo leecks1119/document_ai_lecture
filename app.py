@@ -15,7 +15,7 @@ COURSE_NOTICE = """
 ### 교육용 미니 앱
 
 - 합성 문서만 사용하세요. Colab에서 만든 Gradio 공유 주소는 공개될 수 있습니다.
-- **업로드 문서 처리**는 EasyOCR가 설치된 선택 경로입니다.
+- **업로드 문서 처리**는 PaddleOCR 또는 PaddleOCR-VL이 설치된 선택 경로입니다.
 - **샘플로 계속**은 업로드 문서를 읽지 않는 명시적인 mock 경로입니다.
 """
 
@@ -61,10 +61,10 @@ def _present(result: dict) -> tuple[str, str, dict, list[dict], str | None]:
     )
 
 
-def run_uploaded(file_path: str | None):
-    """선택 실습: 업로드 문서를 실제 EasyOCR로 처리한다."""
+def run_uploaded(file_path: str | None, processor: str):
+    """선택 실습: 업로드 문서를 실제 PaddleOCR 계열로 처리한다."""
 
-    return _present(process_document(file_path))
+    return _present(process_document(file_path, processor=processor))
 
 
 def run_sample():
@@ -83,6 +83,14 @@ def build_demo() -> gr.Blocks:
             file_types=[".png", ".jpg", ".jpeg", ".pdf"],
             type="filepath",
         )
+        processor = gr.Radio(
+            choices=[
+                ("PaddleOCR · PP-OCRv5 Korean", "ocr"),
+                ("PaddleOCR-VL 1.6 · 멀티모달", "vlm"),
+            ],
+            value="ocr",
+            label="문서 처리 방식 · 선택 실습",
+        )
         with gr.Row():
             live_button = gr.Button("업로드 문서 처리 · 선택")
             sample_button = gr.Button("샘플로 계속 · 기본", variant="primary")
@@ -94,7 +102,11 @@ def build_demo() -> gr.Blocks:
         download = gr.DownloadButton(label="검증된 CSV 다운로드")
 
         outputs = [status, ocr_text, json_output, table_output, download]
-        live_button.click(run_uploaded, inputs=file_input, outputs=outputs)
+        live_button.click(
+            run_uploaded,
+            inputs=[file_input, processor],
+            outputs=outputs,
+        )
         sample_button.click(run_sample, outputs=outputs)
 
     return demo

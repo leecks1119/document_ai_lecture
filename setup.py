@@ -14,7 +14,11 @@ setup(
         "PyMuPDF==1.28.0",
     ],
     extras_require={
-        "ocr": ["easyocr==1.7.2"],
+        "ocr": ["paddleocr==3.7.0", "paddlepaddle>=3.2.1,<3.3"],
+        "vlm": [
+            "paddleocr[doc-parser]==3.7.0",
+            "transformers>=5.8,<6",
+        ],
         "api": ["openai==2.48.0"],
     },
     python_requires=">=3.12,<3.13",

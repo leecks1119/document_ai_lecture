@@ -6,13 +6,14 @@ from pathlib import Path
 
 from .export import receipt_to_csv_bytes
 from .extract import mock_extract
-from .ocr import extract_with_easyocr, load_mock_ocr, ocr_text_from_result
+from .ocr import extract_with_paddleocr, ocr_text_from_result
 from .sample_data import (
     MISSING_STORE_RECEIPT,
     SAMPLE_OCR_TEXT,
     WRONG_TOTAL_RECEIPT,
 )
 from .validate import validate_receipt
+from .vlm import parse_with_paddleocr_vl, vlm_text_from_result
 
 
 ALLOWED_EXTENSIONS = {".png", ".jpg", ".jpeg", ".pdf"}
@@ -38,17 +39,19 @@ def process_document(
     file_path: str | Path | None = None,
     *,
     use_sample: bool = False,
+    processor: str = "ocr",
 ) -> dict:
     """문서를 처리한다.
 
     `use_sample=True`는 사용자가 '샘플로 계속'을 명시적으로 선택한 경우다.
-    업로드나 EasyOCR가 실패해도 자동으로 관련 없는 mock 결과를 반환하지 않는다.
+    업로드나 PaddleOCR/PaddleOCR-VL가 실패해도 자동으로 관련 없는 mock
+    결과를 반환하지 않는다.
     """
 
     if use_sample:
         ocr_text = SAMPLE_OCR_TEXT
         mode = (
-            "MOCK OCR + MOCK 추출 — 업로드 문서를 읽지 않고 "
+            "MOCK PaddleOCR + MOCK VLM + MOCK 추출 — 업로드 문서를 읽지 않고 "
             "합성 샘플을 사용했습니다."
         )
     else:
@@ -61,13 +64,27 @@ def process_document(
                 "can_continue_with_sample": True,
             }
         try:
-            ocr_result = extract_with_easyocr(Path(file_path))
-            ocr_text = ocr_text_from_result(ocr_result)
-            mode = "LIVE EasyOCR + MOCK 추출 — JSON 구조화는 수업용 규칙입니다."
+            if processor == "ocr":
+                ocr_result = extract_with_paddleocr(Path(file_path))
+                ocr_text = ocr_text_from_result(ocr_result)
+                mode = (
+                    "LIVE PaddleOCR 3.7 / PP-OCRv5 Korean + 규칙 추출"
+                )
+            elif processor == "vlm":
+                vlm_result = parse_with_paddleocr_vl(Path(file_path))
+                ocr_text = vlm_text_from_result(vlm_result)
+                mode = "LIVE PaddleOCR-VL 1.6 + 규칙 추출"
+            else:
+                return {
+                    "ok": False,
+                    "status": "처리 방식 오류",
+                    "errors": ["processor는 'ocr' 또는 'vlm'이어야 합니다."],
+                    "can_continue_with_sample": True,
+                }
         except Exception as exc:
             return {
                 "ok": False,
-                "status": "OCR 오류",
+                "status": "문서 처리 오류",
                 "errors": [str(exc)],
                 "can_continue_with_sample": True,
             }
