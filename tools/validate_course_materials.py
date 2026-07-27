@@ -105,6 +105,17 @@ def validate_lesson(path: Path) -> None:
     for term in banned:
         assert term not in text, f"{path.name}: 필수 범위 밖 용어 {term}"
 
+    instructor_only_phrases = [
+        "강사가",
+        "학습자는",
+        "학습자가",
+        "교재 제작자",
+        "60분 운영표",
+        "RUN_PADDLEOCR_VL",
+    ]
+    for phrase in instructor_only_phrases:
+        assert phrase not in text, f"{path.name}: 강사용 표현이 학생 교재에 남음 {phrase}"
+
     if lesson_number in {"02", "04", "06"}:
         assert "PaddleOCR" in text, f"{path.name}: 최신 처리 경로 설명 없음"
 
@@ -114,13 +125,20 @@ def validate_repository_links() -> None:
         "README.md",
         "docs/environment.md",
         "docs/troubleshooting.md",
-        "docs/instructor_guide.md",
+        "docs/course_references.md",
+        "instructor/course_operation.md",
+        "instructor/environment_and_models.md",
+        "instructor/recovery_and_safety.md",
     ]:
         path = ROOT / relative_path
         text = path.read_text(encoding="utf-8")
         for link in local_links(text):
             target = (path.parent / link).resolve()
             assert target.exists(), f"{relative_path}: 링크 대상 없음 {link}"
+
+    reference_text = (ROOT / "docs/course_references.md").read_text(encoding="utf-8")
+    official_links = set(re.findall(r"https://[^)\s]+", reference_text))
+    assert len(official_links) >= 10, "과정 참고자료는 공식·1차 출처 10개 이상 필요"
 
 
 def main() -> None:

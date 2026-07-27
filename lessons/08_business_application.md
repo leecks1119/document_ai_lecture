@@ -27,10 +27,8 @@
 - 7교시의 `receipt_result.xlsx` 또는 교재에 포함된 완성 복구본
 - [적용 카드 템플릿](../sample_outputs/business_application_card_template.md)
 - [8교시 Colab 노트북](../colab/08_business_application.ipynb)
-- 저장소의 `src/pipeline.py`
 
-이번 교시에는 새 OCR·VLM·UI 코드를 추가하지 않는다.
-강사가 제공하는 견적서·신청서·거래명세서의 비식별 실물 샘플과 완성 코드를 비교하되, 학습자는 세 문서 중 하나만 선택한다. 발주서는 이번 과정의 예시와 선택지에서 제외한다.
+이번 교시에는 새 OCR·VLM·UI 코드를 추가하지 않습니다. 준비된 비식별 견적서·신청서·거래명세서를 비교하고 그중 한 문서만 PoC 후보로 선택합니다. 발주서는 이번 입문 과정에서 다루지 않습니다.
 
 ## 4. 핵심 개념
 
@@ -44,7 +42,7 @@
 
 ### 4.2 데이터가 어디로 가는지 확인한다
 
-Colab 파일은 영구 저장소가 아니며 공개 웹앱 주소는 외부에서 접근될 수 있다. 실제 업무 적용 전에는 다음을 확인한다.
+Colab 파일은 영구 저장소가 아니며 공개 웹앱 주소는 외부에서 접근될 수 있습니다. 실제 회사 문서를 사용하기 전에는 업무 담당자나 보안 담당자에게 다음을 확인하세요.
 
 - 필요한 개인정보만 처리하는가?
 - 외부 API 전송이 조직에서 허용되는가?
@@ -76,7 +74,7 @@ Colab 파일은 영구 저장소가 아니며 공개 웹앱 주소는 외부에�
 
 ### 실습 1. 한 장짜리 적용 카드 작성하기
 
-먼저 제공된 점검 함수를 한 번 실행한다.
+먼저 제공된 점검 함수를 한 번 실행합니다.
 
 ```python
 results = run_smoke_test()
@@ -84,9 +82,9 @@ assert all(results.values())
 results
 ```
 
-이 함수는 새 코드를 가르치기 위한 것이 아니라 이전 단계가 연결됐는지 확인하기 위한 완성 코드다.
+`run_smoke_test()`는 1~7교시의 입력·추출·검증·Excel 단계가 연결돼 있는지 확인합니다. 코드를 수정하지 말고 결과만 확인합니다.
 
-그다음 학습자의 유일한 제작물인 적용 카드를 작성한다.
+실행 결과를 확인한 뒤 이번 시간의 결과물인 적용 카드를 작성합니다.
 
 | 항목 | 예시 |
 | --- | --- |
@@ -103,9 +101,9 @@ results
 - `run_smoke_test()` 네 항목이 모두 `True`다.
 - `poc_candidate_card.md`에 선택 문서·바뀌는 필드·검증 규칙·중단 조건이 작성된다.
 
-**mock 대체 경로**
+**준비 결과 경로**
 
-앱이나 노트북 실행이 어려우면 제공된 정상·누락·mock 결과 설명을 읽고 카드에서 문제 지점과 검토자를 표시한다.
+실행이 어렵다면 준비된 정상·누락·준비 결과를 비교하고 적용 카드에 문제 지점과 사람 검토자를 표시합니다.
 
 ## 7. 실습 결과 확인
 
@@ -149,10 +147,11 @@ results
 
 ## 12. 과정 마무리
 
-영수증 한 장으로 완성한 원리를 이해했다면 견적서·신청서·거래명세서에도 같은 다섯 단계를 적용할 수 있다. 다만 실제 회사 문서로 바꾸기 전에는 조직의 개인정보·보안·승인 기준과 PoC 중단 조건을 먼저 확인한다.
+이제 영수증에서 사용한 `입력 → 추출 → 구조화 → 검증 → Excel` 흐름을 선택한 회사 문서에 대입해 봅니다. 실제 문서로 시험하기 전에는 개인정보·보안·승인 기준과 PoC 중단 조건을 먼저 확인합니다.
 
 ## 참고 자료
 
 - [NIST AI RMF 1.0](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10)
-- [NIST Generative AI Profile](https://www.nist.gov/itl/ai-risk-management-framework)
+- [NIST Generative AI Profile](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf)
 - [개인정보보호위원회 생성형 AI 개인정보 처리 안내서](https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS074&mCode=C020010000&nttId=11410)
+- [과정 참고자료와 적용 범위](../docs/course_references.md)

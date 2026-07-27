@@ -16,7 +16,7 @@
 
 - `receipt_pipeline_trace.json`: 영수증 한 장이 전체 과정에서 어떻게 바뀌는지 기록한 추적 파일
 
-`receipt_result.xlsx`는 강사가 최종 목적지로만 미리 보여 준다. 학습자가 검증과 사람 확인을 적용해 Excel을 직접 만드는 시점은 7교시다.
+완성된 `receipt_result.xlsx`의 모습을 먼저 확인합니다. 검증과 사람 확인을 적용해 직접 Excel을 만드는 실습은 7교시에서 진행합니다.
 
 ## 3. 시작하기 전에
 
@@ -29,13 +29,13 @@
 
 - [식별정보를 가린 한국 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 - [1교시 Colab 노트북](../colab/01_document_ai_overview.ipynb)
-- 강사가 제공하는 완성 `receipt_result.xlsx` 미리보기
+- 준비된 `receipt_result.xlsx` 미리보기
 
 ![개인정보와 거래 식별 영역을 가린 2025년 태백 음식점 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 
-이 자료는 2025-10-04 발행된 실제 한국 영수증이다. [Wikimedia Commons 원본](https://commons.wikimedia.org/wiki/File:Receipt_taebaek_restaurant_IMG_2614_modified.jpg)은 Public Domain(`PD-ineligible`)으로 표시돼 있다. 수업용 PNG는 전화번호·거래 식별 영역을 추가로 가리고 메타데이터를 제거했다.
+이 자료는 2025-10-04 발행된 실제 한국 영수증을 식별정보가 보이지 않도록 가린 교육용 샘플입니다. [Wikimedia Commons 원본](https://commons.wikimedia.org/wiki/File:Receipt_taebaek_restaurant_IMG_2614_modified.jpg)은 Public Domain(`PD-ineligible`)으로 표시돼 있습니다.
 
-1교시에는 OCR·VLM 모델을 설치하지 않는다. 교재 제작자가 원본을 보고 확인한 **준비 결과**로 데이터의 이동 경로를 추적한다. 실제 OCR은 2교시에서 실행한다.
+이번 시간에는 OCR·VLM 모델을 설치하지 않습니다. 원본과 대조해 둔 **준비 결과**로 값이 이동하는 경로를 추적합니다. 실제 OCR은 2교시에서 실행합니다.
 
 ## 4. 핵심 개념
 
@@ -103,7 +103,7 @@ Document AI와 IDP는 시장에서 같은 뜻처럼 쓰이기도 한다. 이 구
 
 ## 5. 전체 실습 흐름
 
-아래 0~12는 외워야 할 새 용어 13개가 아니라, 하루 동안 계속 돌아올 **전체 참조 지도**다. 문서 종류와 제품에 따라 일부 단계는 합쳐지거나 순서가 되돌아갈 수 있다.
+아래 0~12는 외워야 할 새 용어 13개가 아니라, 하루 동안 계속 돌아올 **전체 참조 지도**입니다. 문서 종류와 제품에 따라 일부 단계는 합쳐지거나 순서가 달라질 수 있습니다.
 
 ![업무 목표부터 운영 평가까지 이어지는 Document AI 전체 참조 지도](assets/01/02_enterprise_pipeline.svg)
 
@@ -121,7 +121,7 @@ Document AI와 IDP는 시장에서 같은 뜻처럼 쓰이기도 한다. 이 구
 | 9 | 처리 결정 | 자동 확정, 사람 검토, 처리 불가 중 무엇인가? | `AUTO_ACCEPT`·`REVIEW`·`REJECT` |
 | 10 | 사람 검토 | 담당자가 원본 근거를 보고 승인·수정·반려했는가? | 사람의 결정과 기록 |
 | 11 | 내보내기·업무 연결 | 승인된 값을 Excel·업무 시스템에 어떻게 전달하는가? | 사용 가능한 업무 데이터 |
-| 12 | 관측·평가·개선 | 어떤 문서·필드에서 자주 틀리는가? | 품질·비용·수정률과 개선안 |
+| 12 | 결과 확인·개선 | 어떤 문서·필드에서 자주 틀리는가? | 오류 기록과 다음 개선 항목 |
 
 보안·개인정보·접근 통제·감사 기록·보존·삭제 정책은 특정 한 단계가 아니라 **0~12 전체를 가로지른다.**
 
@@ -133,13 +133,13 @@ Document AI와 IDP는 시장에서 같은 뜻처럼 쓰이기도 한다. 이 구
 | `REVIEW` | 값은 있으나 모호하거나 정책상 사람 확인이 필요함 | 원본과 후보 값을 검토자에게 표시 |
 | `REJECT` | 입력 품질이 부족하거나 필수 근거가 없거나 지원하지 않는 문서임 | 재촬영·재접수·수동 처리 |
 
-사람 검토는 없는 근거를 만들어 내는 단계가 아니다. 원본과 추출 후보를 비교해 승인·수정·반려하고 그 이유를 남기는 단계다.
+사람 검토에서는 원본과 추출 후보를 비교해 승인·수정·반려하고 그 이유를 남깁니다. 원문에 없는 근거를 새로 만들지 않습니다.
 
 ## 6. 단계별 실습
 
 ### 실습 1. 영수증 한 장의 처리 흔적 완성하기
 
-먼저 완성 Excel의 두 시트와 원본 영수증을 2~3분 비교한다. 그다음 Colab에서 준비된 추적 데이터의 빈칸 세 곳을 채운다.
+먼저 완성 Excel의 두 시트와 원본 영수증을 비교합니다. 그다음 Colab에서 준비된 추적 데이터의 빈칸 세 곳을 직접 채웁니다.
 
 ![영수증 원문에서 근거·정규화·검증·사람 확인을 거쳐 Excel로 가는 흐름](assets/01/03_receipt_evidence_flow.svg)
 
@@ -177,7 +177,7 @@ TRACE["human_decision"] = "APPROVED_AFTER_SOURCE_CHECK"
 TRACE["next_step"] = "7교시에서 receipt_result.xlsx 생성"
 ```
 
-이 값과 근거 문구는 교재 제작자가 원본에서 확인한 **교육용 준비 결과**다. 모델이 생성한 신뢰도나 좌표처럼 가장하지 않는다.
+`TRACE`는 원본과 대조해 둔 **교육용 준비 결과**입니다. 실제 OCR·VLM 실행 결과가 아니므로 준비 결과 표시를 그대로 유지합니다.
 
 ```python
 import json
@@ -195,20 +195,7 @@ with open("receipt_pipeline_trace.json", "w", encoding="utf-8") as file:
 
 **완성 복구본**
 
-이미지 표시나 빈칸 실행이 막히면 노트북에 내장된 비식별 축소 이미지와 완성 `PREPARED_TRACE`를 사용한다. 준비 결과를 실제 OCR·VLM 출력이라고 말하지 않는다.
-
-### 60분 운영표
-
-| 시간 | 수업 운영 |
-| --- | --- |
-| 0~4분 | 완성 Excel과 원본을 비교해 최종 목적지 확인 |
-| 4~10분 | OCR·Multimodal AI·VLM·Document AI·IDP 정의 |
-| 10~20분 | 용어 관계도에서 선택·조합 관계 표시 |
-| 20~30분 | 영수증을 0~12 지도에 대입해 입력·출력 표시 |
-| 30~34분 | 강사 연속 시연과 완성 Excel 두 시트 확인 |
-| 34~52분 | Colab에서 원문·정규화·근거·검증·처리 결정 추적 |
-| 52~57분 | 결과 비교와 완성 복구본으로 재실행 |
-| 57~60분 | 형성평가와 2~8교시 연결 |
+이미지 표시나 빈칸 실행이 막히면 노트북의 비식별 축소 이미지와 완성 `PREPARED_TRACE`를 사용합니다. 준비 결과를 실제 OCR·VLM 출력이라고 표시하지 않습니다.
 
 ## 7. 실습 결과 확인
 
@@ -271,4 +258,4 @@ with open("receipt_pipeline_trace.json", "w", encoding="utf-8") as file:
 - [PaddleOCR PP-OCRv5 다국어 모델](https://www.paddleocr.ai/latest/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html)
 - [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
 
-기술 버전과 운영 근거는 2026-07-27 기준 공식 문서를 확인했다. 2024년 이후 널리 알려진 사례는 문제 구조와 설명 방식에만 참고하고, 버전·성능·가격·보안 정책은 최신 공식 문서로 다시 확인한다.
+전체 출처와 교시별 적용 범위는 [과정 참고자료](../docs/course_references.md)에서 확인할 수 있습니다.

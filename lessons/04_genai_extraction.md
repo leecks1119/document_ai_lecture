@@ -1,6 +1,6 @@
 # 4교시. 멀티모달·생성형 AI 기반 핵심 정보 추출
 
-> 강사의 비식별 문서 VLM 시연을 한 번 보고, 학습자는 준비된 구조 초안에서 근거가 있는 값만 업무용 JSON으로 옮깁니다.
+> 비식별 문서의 VLM 처리 예를 확인한 뒤, 준비된 구조 초안에서 원문 근거가 있는 값만 업무용 JSON으로 옮깁니다.
 >
 > **핵심 메시지:** VLM은 복잡한 문서 구조의 초안을 빠르게 만들 수 있지만, 원문에 없는 값을 만들 수 있으므로 검증 전에는 확정 데이터가 아닙니다.
 
@@ -26,18 +26,18 @@
 
 - 3교시의 `clean_receipt.json` 또는 교재에 포함된 완성 복구본
 - [비식별 한국 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
-- [PaddleOCR-VL mock Markdown](../sample_outputs/paddleocr_vl_result.md)
-- [PaddleOCR-VL mock 블록](../sample_outputs/paddleocr_vl_result.json)
-- [mock 추출 결과](../sample_outputs/extracted_result.json)
+- [PaddleOCR-VL 준비 Markdown](../sample_outputs/paddleocr_vl_result.md)
+- [PaddleOCR-VL 준비 블록](../sample_outputs/paddleocr_vl_result.json)
+- [준비 추출 결과](../sample_outputs/extracted_result.json)
 - [4교시 Colab 노트북](../colab/04_genai_extraction.ipynb)
 
-실제 PaddleOCR-VL 1.6 또는 상용 VLM 호출은 강사가 비식별 샘플로 한 번만 시연한다. 학습자 API 키나 과금은 사용하지 않는다. 학습자는 준비된 결과로 같은 JSON 구조화와 원문 대조를 수행한다.
+이번 시간에는 API 키나 과금 없이 준비된 VLM 구조 초안을 사용합니다. 초안의 각 값을 원본과 비교하고, 찾을 수 없는 값은 `null`로 바꿉니다.
 
 ## 4. 핵심 개념
 
 ### 4.1 VLM은 이미지와 문서 구조를 함께 본다
 
-OCR은 주로 글자와 위치를 반환한다. VLM(Vision-Language Model)은 이미지와 언어를 함께 처리해 제목, 문단, 표 같은 관계를 표현한다.
+OCR 결과에서는 주로 인식 텍스트와 위치를 확인합니다. VLM(Vision-Language Model)은 이미지와 지시문을 함께 받아 제목·문단·표를 포함한 구조 초안을 만들 수 있습니다. 일부 VLM은 글자 인식도 함께 시도하지만 결과는 반드시 원본과 비교합니다.
 
 > **쉬운 비유**
 > OCR은 종이에 적힌 낱말을 받아 적는 사람이고, 문서 VLM은 제목과 표의 칸까지 살펴 초안을 정리하는 사람이다.
@@ -67,7 +67,7 @@ PaddleOCR-VL은 Markdown과 레이아웃 블록을 반환할 수 있다. 회사 
 ## 5. 전체 실습 흐름
 
 ```text
-강사의 문서 VLM 시연 1회 관찰
+비식별 문서의 VLM 처리 전후 비교
   → 준비된 VLM 구조 초안 읽기
   → 제목·표·합계 찾기
   → 네 필드의 JSON으로 변환
@@ -82,7 +82,7 @@ PaddleOCR-VL은 Markdown과 레이아웃 블록을 반환할 수 있다. 회사 
 노트북이 제공하는 `SAMPLE_VLM_MARKDOWN`에는 제목, 날짜, 품목 표, 합계가 있다.
 
 ```python
-receipt = mock_extract(SAMPLE_VLM_MARKDOWN)
+receipt = extract_prepared_result(SAMPLE_VLM_MARKDOWN)
 
 assert receipt["store_name"] == "샘플문구점"
 assert receipt["total_amount"] == 5000
@@ -103,17 +103,9 @@ assert len(receipt["items"]) == 2
 }
 ```
 
-**mock 대체 경로**
+**준비 결과 경로**
 
-모델을 실행하지 않아도 준비된 Markdown을 동일한 변환 함수에 넣는다. 결과의 `source_mode`가 `mock_vlm`인지 확인한다.
-
-**선택: 실제 PaddleOCR-VL 1.6 실행**
-
-```python
-RUN_PADDLEOCR_VL = False
-```
-
-Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과가 곧 업무 정답이라는 뜻은 아니므로 반드시 합성 원본과 비교한다.
+준비된 Markdown을 같은 변환 함수에 넣습니다. 결과의 `source_mode`가 `prepared_vlm`인지 확인해 실제 실행 결과와 구분합니다. 실행이 3분을 넘으면 중지하고 필요한 셀을 위에서 아래로 다시 실행합니다. 계속 실패하면 오류 화면을 닫지 말고 강사에게 알립니다.
 
 ## 7. 실습 결과 확인
 
@@ -127,7 +119,7 @@ Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과
 | 증상 | 원인 | 해결 방법 |
 | --- | --- | --- |
 | 품목이 비어 있음 | Markdown 표 구분자 처리 오류 | `|`로 나눈 셀 네 개 확인 |
-| 실제 모델이 느림 | 모델 다운로드·메모리 사용 | 선택 셀 중지 후 mock 경로 사용 |
+| 변환 실행이 멈춤 | 셀 실행 순서 또는 입력 누락 | 준비 결과 셀부터 위에서 아래 재실행 |
 | JSON은 맞지만 값이 다름 | 원문 근거 검사 누락 | 합성 영수증과 날짜·총액 비교 |
 
 ## 9. 형성평가
@@ -151,7 +143,7 @@ Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과
 
 ## 11. 완료 체크리스트
 
-- [ ] OCR과 문서 VLM의 차이를 설명했다.
+- [ ] OCR 결과와 VLM 구조 초안의 차이를 설명했다.
 - [ ] Markdown 표를 네 필드의 JSON으로 바꿨다.
 - [ ] `receipt.json`을 만들었다.
 
@@ -163,3 +155,5 @@ Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과
 
 - [PaddleOCR-VL 1.6 모델 설명](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
 - [PaddleOCR-VL 파이프라인 사용법](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)
+- [JSON Schema 소개](https://json-schema.org/understanding-json-schema/about)
+- [과정 참고자료와 적용 범위](../docs/course_references.md)

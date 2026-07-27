@@ -1,4 +1,7 @@
-# 강사용 운영 가이드
+# 강사용 과정 운영안
+
+> 이 문서는 수강생에게 배포하지 않는 강사용 자료다. 수강생 안내는 루트
+> `README.md`와 `lessons/`의 교재를 기준으로 한다.
 
 ## 강의 전 준비
 
@@ -10,6 +13,7 @@
 - [ ] 개인 영수증의 카드·승인·현금영수증·전화·회원 식별정보 가림 안내
 - [ ] 공개 웹앱 주소와 외부 API에 개인 영수증을 올리지 않는다고 안내
 - [ ] 실제 OCR은 3분 시도 후 준비 결과로 전환하고, VLM 실제 호출은 강사 시연 1회임을 안내
+- [ ] 교시별 강사 노트의 시연 입력·기대 결과·복구 지점을 확인
 
 ## 매 교시 운영 리듬
 
@@ -45,6 +49,15 @@
 5. 해당 교시의 산출물이 생성되면 다음 단계로 진행한다.
 
 mock 사용 사실은 반드시 화면과 설명에서 공개한다.
+
+수강생에게는 다음 자가복구 문장을 그대로 안내한다.
+
+```text
+3분이 지나면 실행을 중지합니다.
+→ 준비 결과를 선택합니다.
+→ 필요한 셀을 위에서 아래로 다시 실행합니다.
+→ 계속 실패하면 오류 화면을 닫지 말고 강사에게 알립니다.
+```
 
 ## 시간이 부족할 때
 
@@ -90,3 +103,16 @@ Colab과 공개 웹앱 주소, 외부 API의 데이터 처리 조건을 확인�
 - [ ] 개인 영수증의 셀 출력과 런타임 파일 삭제
 - [ ] `receipt_result.xlsx` 다운로드와 오류 결과 차단 확인
 - [ ] 8교시 PoC 카드에 사람 검토자·삭제 기준·중단 조건이 있음
+
+## 함께 보는 강사용 자료
+
+- [환경·모델 운영](environment_and_models.md)
+- [복구·안전 대응](recovery_and_safety.md)
+- [1교시 강사 노트](lesson_notes/01_document_ai_overview.md)
+- [2교시 강사 노트](lesson_notes/02_ocr_basic.md)
+- [3교시 강사 노트](lesson_notes/03_document_structure.md)
+- [4교시 강사 노트](lesson_notes/04_genai_extraction.md)
+- [5교시 강사 노트](lesson_notes/05_streamlit_basic.md)
+- [6교시 강사 노트](lesson_notes/06_ocr_ai_integration.md)
+- [7교시 강사 노트](lesson_notes/07_validation_export.md)
+- [8교시 강사 노트](lesson_notes/08_business_application.md)

@@ -50,7 +50,7 @@ SAMPLE_RECEIPT = {
         {"name": "연필", "quantity": 2, "unit_price": 1000, "line_total": 2000},
         {"name": "노트", "quantity": 1, "unit_price": 3000, "line_total": 3000},
     ],
-    "source_mode": "mock",
+    "source_mode": "prepared",
 }
 
 SAMPLE_OCR_RESULT = [
@@ -143,8 +143,12 @@ def intro(
         **결과물:** `{artifact}`
 
         - 모든 필수 실습은 Google Colab에서 진행합니다.
-        - 학습자 API 키나 결제가 필요 없습니다.
-        - 실행이 막히면 교재에 포함된 완성 복구본으로 같은 실습을 계속합니다.
+        - API 키나 결제가 필요 없습니다.
+        - 식별정보를 가린 교육용 샘플 한 장만 사용합니다.
+        - 개인·회사 문서를 외부 API에 보내거나 공개 Streamlit 주소를 만들지 않습니다.
+        - 실행이 3분을 넘으면 중지하고 준비 결과를 선택합니다.
+        - 필요한 셀을 위에서 아래로 다시 실행하고, 계속 실패하면 강사에게 알립니다.
+        - 실습이 끝나면 Colab 출력과 런타임 파일을 삭제하고 런타임을 종료합니다.
         """
     )
 
@@ -216,7 +220,7 @@ def notebook_01() -> dict:
         ),
         markdown(
             """
-            ## 강사가 먼저 보여 줄 최종 목적지
+            ## 먼저 확인할 최종 목적지
 
             완성 `receipt_result.xlsx`에는 원문·최종값·검토 상태와 품목 행이 남습니다.
             1교시에는 파일을 직접 만들지 않고 목적지만 확인합니다. 실제 생성은 7교시입니다.
@@ -307,7 +311,7 @@ def notebook_01() -> dict:
             """
             PREPARED_TRACE = {
                 "source_document": "taebaek_restaurant_2025_redacted.png",
-                "source_mode": "교재 제작자가 원본에서 확인한 교육용 준비 결과",
+                "source_mode": "원본과 대조한 교육용 준비 결과",
                 "schema_fields": ["net_amount", "tax_amount", "total_amount"],
                 "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
                 "fields": {
@@ -453,7 +457,7 @@ def notebook_02() -> dict:
             ## 기본 실습. PaddleOCR 3.7 + PP-OCRv5 Korean
 
             한국어 인식은 `lang="korean"`과 `PP-OCRv5`를 사용합니다.
-            강사 안내에 따라 아래 값을 `True`로 바꿉니다. 설치·다운로드·실행이
+            아래 값을 `True`로 바꾸어 실행합니다. 설치·다운로드·실행이
             3분 안에 끝나지 않으면 중지하고 준비 결과로 같은 원본 대조 실습을 계속합니다.
             """
         ),
@@ -636,7 +640,7 @@ def notebook_03() -> dict:
         ),
         markdown(
             """
-            ## mock 대체 경로
+            ## 준비 결과 경로
 
             외부 `ocr_text.txt`가 없어도 내장 `SAMPLE_OCR_TEXT`를 같은 함수에 넣습니다.
             정제 단계를 건너뛰지 않습니다.
@@ -695,7 +699,7 @@ def notebook_04() -> dict:
                 return int(value.replace(",", ""))
 
 
-            def mock_extract(vlm_markdown):
+            def extract_prepared_result(vlm_markdown):
                 lines = [
                     line.strip()
                     for line in vlm_markdown.splitlines()
@@ -752,7 +756,7 @@ def notebook_04() -> dict:
                     "date": date_match.group(0) if date_match else None,
                     "total_amount": to_int(total_match.group(1)) if total_match else None,
                     "items": items,
-                    "source_mode": "mock_vlm",
+                    "source_mode": "prepared_vlm",
                 }
             """
         ),
@@ -762,7 +766,7 @@ def notebook_04() -> dict:
             print("PaddleOCR-VL 형태의 Markdown 중간 결과:")
             print(SAMPLE_VLM_MARKDOWN)
 
-            receipt = mock_extract(SAMPLE_VLM_MARKDOWN)
+            receipt = extract_prepared_result(SAMPLE_VLM_MARKDOWN)
 
             assert receipt["date"] == "2026-07-27"
             assert receipt["total_amount"] == 5000
@@ -778,48 +782,10 @@ def notebook_04() -> dict:
         ),
         markdown(
             """
-            ## 선택 실습. PaddleOCR-VL 1.6
+            ## 준비 결과 사용 확인
 
-            문서 전용 멀티모달 모델은 다운로드와 더 많은 메모리가 필요합니다.
-            Colab 런타임에서만 선택적으로 실행하며, 기본 mock 실습은 이미 완료됐습니다.
-            """
-        ),
-        code(
-            """
-            RUN_PADDLEOCR_VL = False
-
-            if RUN_PADDLEOCR_VL:
-                import subprocess
-
-                subprocess.check_call(
-                    [
-                        sys.executable,
-                        "-m",
-                        "pip",
-                        "install",
-                        "-q",
-                        "paddleocr[doc-parser]==3.7.0",
-                        "transformers>=5.8,<6",
-                    ]
-                )
-                from paddleocr import PaddleOCRVL
-
-                image_path = OUTPUT_DIR / "receipt_sample.png"
-                Image.open(
-                    io.BytesIO(base64.b64decode(SAMPLE_IMAGE_BASE64))
-                ).convert("RGB").save(image_path)
-
-                pipeline = PaddleOCRVL(
-                    pipeline_version="v1.6",
-                    engine="transformers",
-                    use_doc_orientation_classify=False,
-                    use_doc_unwarping=False,
-                )
-                live_pages = list(pipeline.predict(str(image_path)))
-                for page in live_pages:
-                    print(page.markdown)
-            else:
-                print("선택 PaddleOCR-VL 셀을 건너뛰고 mock 결과로 완료했습니다.")
+            `source_mode`가 `prepared_vlm`인지 확인합니다. 실제 VLM 실행이 아니라
+            원본과 대조해 둔 교육용 중간 결과이므로 각 값을 원본과 다시 비교합니다.
             """
         ),
         markdown(
@@ -966,10 +932,10 @@ def notebook_06() -> dict:
                         else SAMPLE_OCR_TEXT
                     )
                     data = dict(SAMPLE_RECEIPT)
-                    data["source_mode"] = f"MOCK {{processor}} prepared result"
+                    data["source_mode"] = f"prepared_{{processor}}"
                     return {{
                         "ok": True,
-                        "status": f"MOCK {{processor.upper()}} + 준비 결과",
+                        "status": f"준비 결과: {{processor.upper()}} + 추출",
                         "document_text": document_text,
                         "data": data,
                     }}
@@ -1034,7 +1000,7 @@ def notebook_06() -> dict:
             6,
             "OCR 및 정보 추출 기능 연동",
             "app_06.py",
-            "오류를 숨기지 않고 실제·mock 경로를 연결합니다.",
+            "오류를 숨기지 않고 실제·준비 결과 경로를 연결합니다.",
         ),
         runtime_cell(),
         code(STREAMLIT_SETUP),
@@ -1045,7 +1011,7 @@ def notebook_06() -> dict:
 
             1. 단계를 작은 함수로 나눕니다.
             2. 오류와 사용 모드를 화면에 표시합니다.
-            3. mock은 사용자가 명시적으로 선택합니다.
+            3. 준비 결과는 직접 선택합니다.
             """
         ),
         code(
@@ -1056,9 +1022,9 @@ def notebook_06() -> dict:
                 return []
 
 
-            def mock_extract(ocr_text):
+            def extract_prepared_result(ocr_text):
                 data = dict(SAMPLE_RECEIPT)
-                data["source_mode"] = "mock_extraction"
+                data["source_mode"] = "prepared_extraction"
                 return data
 
 
@@ -1075,9 +1041,9 @@ def notebook_06() -> dict:
                         SAMPLE_VLM_MARKDOWN if processor == "vlm" else SAMPLE_OCR_TEXT
                     )
                     status = (
-                        "MOCK PaddleOCR-VL + MOCK 추출"
+                        "준비 결과: PaddleOCR-VL + 추출"
                         if processor == "vlm"
-                        else "MOCK PaddleOCR + MOCK 추출"
+                        else "준비 결과: PaddleOCR + 추출"
                     )
                 else:
                     errors = validate_upload(file_path)
@@ -1102,11 +1068,11 @@ def notebook_06() -> dict:
                     "ok": True,
                     "status": status,
                     "document_text": document_text,
-                    "data": mock_extract(document_text),
+                    "data": extract_prepared_result(document_text),
                 }
             """
         ),
-        markdown("## 실습. 오류 경로와 명시적 mock 경로 확인"),
+        markdown("## 실습. 오류 경로와 명시적 준비 결과 경로 확인"),
         code(
             """
             error_result = process_document()
@@ -1115,7 +1081,7 @@ def notebook_06() -> dict:
 
             sample_result = process_document(processor="vlm", use_sample=True)
             assert sample_result["ok"]
-            assert "MOCK" in sample_result["status"]
+            assert "준비 결과" in sample_result["status"]
             assert sample_result["data"]["total_amount"] == 5000
 
             print(error_result["status"], "→ 사용자가 샘플 선택")
@@ -1142,15 +1108,15 @@ def notebook_06() -> dict:
 
             app_test.button(key="run_sample").click().run(timeout=20)
             assert app_test.success
-            assert "MOCK" in app_test.success[0].value
+            assert "준비 결과" in app_test.success[0].value
             print("독립 실행 Streamlit 앱 검사 완료")
             """
         ),
         markdown(
             """
-            ## mock 대체 경로
+            ## 준비 결과 경로
 
-            필수 경로 자체가 명시적인 mock 실습입니다. 실제 모델 오류 뒤에 자동 전환하지 않고
+            필수 경로 자체가 명시적인 준비 결과 실습입니다. 실제 모델 오류 뒤에 자동 전환하지 않고
             오류를 확인한 뒤 처리기를 골라 `process_document(use_sample=True)`를 실행합니다.
             """
         ),
@@ -1159,7 +1125,7 @@ def notebook_06() -> dict:
             ## 확인
 
             - 오류 결과에 관련 없는 JSON이 없는가?
-            - mock 상태가 화면에 분명히 표시되는가?
+            - 준비 결과 상태가 화면에 분명히 표시되는가?
             - 사용자가 직접 샘플 경로를 선택했는가?
             """
         ),
@@ -1176,6 +1142,24 @@ def notebook_07() -> dict:
             "필수값과 품목 합계를 확인하고 검증된 결과만 Excel로 저장합니다.",
         ),
         runtime_cell(),
+        code(
+            """
+            import importlib.util
+            import subprocess
+
+            if importlib.util.find_spec("openpyxl") is None:
+                subprocess.check_call(
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "-q",
+                        "openpyxl==3.1.5",
+                    ]
+                )
+            """
+        ),
         code(
             f"""
             from copy import deepcopy
@@ -1366,43 +1350,63 @@ def notebook_07() -> dict:
                 source_text=SAMPLE_OCR_TEXT,
             )
             assert not not_approved_path.exists()
+            print("미승인 차단 확인:", not not_approved_path.exists())
+            """
+        ),
+        markdown(
+            """
+            ## 원본을 확인한 뒤 직접 승인하기
 
-            HUMAN_APPROVED = True  # 원본과 추출값을 직접 대조한 뒤에만 True
+            1. 원본에서 상호명·날짜·총액을 확인합니다.
+            2. 값이 모두 같을 때만 아래 셀의 `False`를 `True`로 바꿉니다.
+            3. 셀을 다시 실행해 `receipt_result.xlsx`를 만듭니다.
+
+            전체 정답을 불러와도 승인값은 `False`로 시작합니다.
+            """
+        ),
+        code(
+            """
+            HUMAN_APPROVED = False
             output_path = OUTPUT_DIR / "receipt_result.xlsx"
-            assert save_reviewed_excel(
-                SAMPLE_RECEIPT,
-                normal,
-                human_approved=HUMAN_APPROVED,
-                output_path=output_path,
-                source_text=SAMPLE_OCR_TEXT,
-            )
 
-            saved = load_workbook(output_path)
-            assert saved.sheetnames == ["검토_요약", "품목", "원문"]
-            assert [cell.value for cell in saved["검토_요약"][1]] == [
-                "field",
-                "raw_value",
-                "cleaned_value",
-                "final_value",
-                "review_status",
-            ]
-            print("저장 완료:", output_path, saved.sheetnames)
+            if not HUMAN_APPROVED:
+                print("원본 확인 전입니다. Excel을 만들지 않습니다.")
+            else:
+                assert save_reviewed_excel(
+                    SAMPLE_RECEIPT,
+                    normal,
+                    human_approved=HUMAN_APPROVED,
+                    output_path=output_path,
+                    source_text=SAMPLE_OCR_TEXT,
+                )
+                saved = load_workbook(output_path)
+                assert saved.sheetnames == ["검토_요약", "품목", "원문"]
+                assert [cell.value for cell in saved["검토_요약"][1]] == [
+                    "field",
+                    "raw_value",
+                    "cleaned_value",
+                    "final_value",
+                    "review_status",
+                ]
+                print("저장 완료:", output_path, saved.sheetnames)
             """
         ),
         code(
             """
             RUN_COLAB_DOWNLOAD = False
 
-            if RUN_COLAB_DOWNLOAD:
+            if RUN_COLAB_DOWNLOAD and output_path.exists():
                 from google.colab import files
                 files.download(str(output_path))
+            elif RUN_COLAB_DOWNLOAD:
+                print("원본 확인과 사람 승인을 먼저 완료하세요.")
             else:
                 print("자동 다운로드를 건너뛰었습니다. Colab 파일 영역에서 받을 수 있습니다.")
             """
         ),
         markdown(
             """
-            ## mock 대체 경로
+            ## 준비 결과 경로
 
             이전 앱 없이 내장 `SAMPLE_RECEIPT`를 같은 검증·Excel 함수에 전달합니다.
             """
@@ -1444,7 +1448,7 @@ def notebook_08() -> dict:
                 wrong_total = deepcopy(SAMPLE_RECEIPT)
                 wrong_total["total_amount"] = 6000
                 return {{
-                    "mock_path_works": SAMPLE_RECEIPT["source_mode"] == "mock",
+                    "prepared_path_works": SAMPLE_RECEIPT["source_mode"] == "prepared",
                     "normal_result_is_valid": validate_receipt(SAMPLE_RECEIPT)["valid"],
                     "missing_required_is_blocked": not validate_receipt(missing)["valid"],
                     "wrong_total_is_blocked": not validate_receipt(wrong_total)["valid"],
@@ -1497,7 +1501,7 @@ def notebook_08() -> dict:
         ),
         markdown(
             """
-            ## mock 대체 경로
+            ## 준비 결과 경로
 
             앱이 열리지 않아도 `run_smoke_test()` 결과와 제공 카드 템플릿으로 실습을 완료합니다.
 

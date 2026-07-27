@@ -10,7 +10,7 @@
 
 웹앱은 Streamlit 1.60.0으로 구현했다. Colab에서는 공개 서버나 터널을 열지 않고 `streamlit.testing.v1.AppTest`로 검사한다. 최종 Excel은 검증 규칙을 통과하고 사람이 원본을 확인한 뒤에만 생성한다.
 
-실제 OCR·VLM 모델 셀은 다운로드와 런타임 자원이 필요한 선택 경로다. 이번 자동 검증은 모든 오프라인·준비 결과 경로를 실행했으며 실제 모델 추론까지 실행했다고 주장하지 않는다.
+2교시에는 실제 OCR 선택 셀이 있고, 4교시 수강생 필수 경로는 준비된 VLM 결과를 사용한다. 실제 VLM은 강사용 시연으로 분리했다. 이번 자동 검증은 모든 오프라인·준비 결과 경로를 실행했으며 실제 모델 추론까지 실행했다고 주장하지 않는다.
 
 ## 자동 검증 결과
 
@@ -25,6 +25,9 @@
 | 교시별 주 산출물 | 정확히 1개 |
 | 노트북 저장 출력 | 0개 |
 | Git 관리 대상 README | 루트 1개 |
+| 공식·1차 참고자료 | 21개 검토, 18개 채택, 3개 조건부 채택 |
+| 학생·강사 자료 분리 | 학생 교재 8개, 강사용 교시 노트 8개 |
+| 최종 교육 운영 검수 | 99/100, P0 0건, P1 0건, 승인 |
 
 사용한 명령:
 
@@ -46,13 +49,7 @@
 | 최종 확정 | 검증 규칙 + 사람 승인 | 둘 중 하나라도 없으면 Excel 다운로드 차단 |
 | 최종 파일 | `receipt_result.xlsx` | 검토 요약·품목·원문 시트 생성 |
 
-근거:
-
-- [Google Cloud Document AI 개요](https://cloud.google.com/document-ai/docs/overview)
-- [AWS Intelligent Document Processing 설명](https://aws.amazon.com/what-is/intelligent-document-processing/)
-- [PP-OCRv5 다국어 인식](https://www.paddleocr.ai/latest/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html)
-- [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
-- [Streamlit AppTest](https://docs.streamlit.io/develop/api-reference/app-testing/st.testing.v1.apptest)
+근거와 교시별 적용 범위는 [과정 참고자료](course_references.md)에 21개 자료로 정리했다.
 
 ## 한국 실물 영수증
 
@@ -73,7 +70,7 @@
 | 7 | `receipt_result.xlsx` |
 | 8 | `poc_candidate_card.md` |
 
-2교시의 `RUN_PADDLEOCR`와 4교시의 `RUN_PADDLEOCR_VL`은 기본값이 `False`다. 검증기는 선택 셀을 건너뛴 상태로 각 노트북을 새 임시 폴더에서 위에서 아래로 실행한다.
+2교시의 `RUN_PADDLEOCR`은 기본값이 `False`다. 4교시의 실제 VLM 실행 설정·GPU·비용은 강사용 자료로 분리하고, 수강생 노트북은 `prepared_vlm`으로 표시된 준비 결과만 사용한다. 검증기는 각 노트북을 새 임시 폴더에서 위에서 아래로 실행한다.
 
 ## 확인한 실패·보호 경로
 

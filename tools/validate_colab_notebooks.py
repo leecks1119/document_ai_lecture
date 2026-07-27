@@ -38,10 +38,6 @@ def validate_structure(path: Path, notebook: dict) -> None:
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
     assert "RUN_PADDLEOCR = False" in source or path.name != "02_ocr_basic.ipynb"
-    assert (
-        "RUN_PADDLEOCR_VL = False" in source
-        or path.name != "04_genai_extraction.ipynb"
-    )
     assert "OPENAI_API_KEY" not in source, f"{path}: do not embed key names in required path"
     assert "easyocr" not in source.lower(), f"{path}: EasyOCR must not appear"
     assert "gradio" not in source.lower(), f"{path}: Gradio must not appear"
@@ -51,8 +47,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "PaddleOCR" in source
         assert 'lang="korean"' in source
     if path.name == "04_genai_extraction.ipynb":
-        assert "PaddleOCRVL" in source
-        assert 'pipeline_version="v1.6"' in source
+        assert '"source_mode": "prepared_vlm"' in source
+        assert "RUN_PADDLEOCR_VL" not in source
     if path.name == "06_ocr_ai_integration.ipynb":
         assert "streamlit.testing.v1" in source
         assert "영수증 Document AI 연결 앱" in source
@@ -60,6 +56,9 @@ def validate_structure(path: Path, notebook: dict) -> None:
     if path.name == "07_validation_export.ipynb":
         assert "human_approved" in source
         assert "validation[\"valid\"]" in source
+        assert source.count("HUMAN_APPROVED = False") == 1
+        assert "HUMAN_APPROVED = True" not in source
+        assert "원본을 확인한 뒤 직접 승인하기" in source
         assert '"검토_요약", "품목", "원문"' in source
         assert "raw_value" in source
         assert "cleaned_value" in source
@@ -86,6 +85,16 @@ def execute_mock_path(path: Path, notebook: dict) -> None:
                     ) from exc
 
             artifact = Path("course_outputs") / EXPECTED_ARTIFACTS[path.name]
+            if path.name == "07_validation_export.ipynb":
+                assert namespace["HUMAN_APPROVED"] is False
+                assert not artifact.exists(), "미승인 상태에서 Excel이 생성됨"
+                assert namespace["save_reviewed_excel"](
+                    namespace["SAMPLE_RECEIPT"],
+                    namespace["normal"],
+                    human_approved=True,
+                    output_path=artifact,
+                    source_text=namespace["SAMPLE_OCR_TEXT"],
+                ), "검증기가 사람 승인 상태를 주입해도 Excel 생성 실패"
             assert artifact.is_file(), f"{path}: missing {artifact.name}"
             assert artifact.stat().st_size > 0, f"{path}: empty {artifact.name}"
         finally:

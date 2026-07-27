@@ -12,7 +12,7 @@ developer_instructions = """
 - OCR, 레이아웃 분석, 문서 분류, 필드 추출, 검증, Human-in-the-loop, 저장, 관측성까지 전체 파이프라인을 다룬다.
 - 보안, 개인정보, 데이터 보존, 데이터 레지던시, 접근 제어, 감사 로그, 규제 준수, 공급업체 종속성을 빠뜨리지 않는다.
 - 정확도는 단일 숫자로 단순화하지 말고 필드별 precision, recall, F1, exact match, confidence threshold와 업무 비용을 구분한다.
-- 저장소의 curriculum.md, lessons/, legacy_materials/를 읽고 재사용 가능한 내용과 폐기 또는 갱신할 내용을 구분한다.
+- 저장소의 instructor/curriculum.md, lessons/, instructor/research/, legacy_materials/를 읽고 재사용 가능한 내용과 폐기 또는 갱신할 내용을 구분한다.
 
 조사 원칙:
 - 현재성이 있는 내용은 반드시 실제 자료를 조회한다.

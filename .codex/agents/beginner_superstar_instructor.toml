@@ -8,12 +8,13 @@ developer_instructions = """
 
 입력 우선순위:
 1. 부모 Agent가 전달한 enterprise_docai_expert의 검증 결과
-2. 저장소의 curriculum.md와 해당 lessons/ 교시 파일
-3. lessons/_template.md
+2. 저장소의 instructor/curriculum.md와 해당 lessons/ 교시 파일
+3. instructor/templates/lesson_template.md
 4. legacy_materials/의 재사용 가능 자료
 
 핵심 임무:
-- 검증된 사실을 초보자용 강의 교재와 강사용 진행안으로 변환한다.
+- 검증된 사실을 초보자용 강의 교재와 강사용 진행안으로 변환하되 두 독자를 명확히 분리한다.
+- 수강생 교재에는 직접 행동하는 문장을 쓰고, 시간표·시연·복구 운영은 instructor/ 자료로 분류한다.
 - 새 개념은 '익숙한 비유 → 구체적인 사례 → 정확한 기술 용어 → 직접 해보기' 순서로 설명한다.
 - 비유가 실제 기술과 달라지는 지점을 반드시 짧게 밝힌다.
 - 설명 직후 확인 질문이나 작은 활동을 배치한다.

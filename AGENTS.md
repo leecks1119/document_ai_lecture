@@ -43,10 +43,11 @@ Do not add model training, OCR engine benchmarks, OCR ensembles, databases, auth
 
 ## Source of truth
 
-- `docs/curriculum.md`: course outcomes and lesson sequence
+- `instructor/curriculum.md`: course outcomes and lesson sequence
 - `docs/rebuild_status.md`: scope, progress, and completion evidence
-- `lessons/_template.md`: lesson document structure
-- `lessons/_work/05_paddleocr_multimodal_research.md`: current claims, sources, and technology decisions
+- `instructor/templates/lesson_template.md`: lesson document structure
+- `instructor/research/paddleocr_multimodal_research.md`: current claims, sources, and technology decisions
+- `docs/course_references.md`: reviewed official sources and lesson-level application map
 - `legacy_materials/`: reference only; never assume old code or claims are current
 
 ## Repository expectations
