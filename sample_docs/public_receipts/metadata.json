@@ -1,0 +1,51 @@
+{
+  "korean_primary_sample": {
+    "file": "korea/taebaek_restaurant_2025_redacted.png",
+    "document": "실제 발행 한국 음식점 영수증",
+    "document_date": "2025-10-04",
+    "source_page": "https://commons.wikimedia.org/wiki/File:Receipt_taebaek_restaurant_IMG_2614_modified.jpg",
+    "source_file": "https://upload.wikimedia.org/wikipedia/commons/7/76/Receipt_taebaek_restaurant_IMG_2614_modified.jpg",
+    "source_author": "이태리집(태백시 소재)",
+    "uploader": "Choikwangmo25",
+    "license": "Public Domain (PD-ineligible, Wikimedia Commons file description)",
+    "source_sha1": "5986b28c087b81d4500bba855676247012b6cd13",
+    "source_sha256": "f7251ffaeab8a56aed534f1295058117b09c4b41c85bffcc7c1a7445c6d89433",
+    "derivative_sha256": "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f",
+    "modifications": [
+      "원본에 있던 모자이크 유지",
+      "전화번호와 내부 거래 식별 가능 영역 추가 가림",
+      "하단 결제 식별 정보 영역 제외",
+      "PNG 변환으로 JPEG comment와 내장 메타데이터 제거"
+    ],
+    "teaching_focus": "같은 한국 영수증으로 OCR, VLM, Document AI의 역할과 처리 과정 비교"
+  },
+  "international_supplement": {
+    "dataset": "CORD v2",
+    "publisher": "NAVER Clova",
+    "official_repository": "https://github.com/clovaai/cord",
+    "official_distribution": "https://huggingface.co/datasets/naver-clova-ix/cord-v2",
+    "license": "CC-BY-4.0",
+    "attribution": "CORD: A Consolidated Receipt Dataset for Post-OCR Parsing, Seunghyun Park et al.",
+    "modifications": "이미지 내용 변경 없음; 파일명만 수업용으로 변경",
+    "samples": [
+      {
+        "file": "cord_v2/cord_v2_test_000.jpg",
+        "split": "test",
+        "row": 0,
+        "sha256": "4e13b815b540420a4d68229494bd6259768c226a595114609970edae9a620aa9"
+      },
+      {
+        "file": "cord_v2/cord_v2_test_001.jpg",
+        "split": "test",
+        "row": 1,
+        "sha256": "636284664cfc357e05f7b10d67ddb380f828a1be0a20809514f9e7fc0c611a9f"
+      },
+      {
+        "file": "cord_v2/cord_v2_test_002.jpg",
+        "split": "test",
+        "row": 2,
+        "sha256": "bcf0c175181bfc6b2352ab8f452704b8f18e27fa51f2278bc5c41f6765179edb"
+      }
+    ]
+  }
+}
