@@ -2,12 +2,12 @@
 
 > 처음 배우는 사람을 위한 8시간 Google Colab 실습 과정
 
-![학습자가 합성 영수증을 OCR, 구조화, 검증, 표로 처리하는 과정](lessons/assets/course_cover.png)
+![합성 영수증이 OCR과 문서 VLM 경로를 거쳐 검증과 사람 확인으로 이어지는 과정](lessons/assets/course_cover_v2.png)
 
 이 과정은 OCR 라이브러리를 많이 비교하지 않는다. 개인정보가 없는 합성 영수증 한 장을 사용해 다음 흐름을 직접 완성한다.
 
 ```text
-필드 정의 → OCR 결과 확인 → 텍스트 정제 → JSON → Gradio → 검증 → CSV → 사람 검토
+필드 정의 → OCR/VLM 선택 → 문서 구조화 → JSON → Gradio → 검증 → CSV → 사람 검토
 ```
 
 ## 교육 대상
@@ -20,7 +20,7 @@
 
 - 교시마다 새 핵심 개념은 최대 3개다.
 - 기본 실습은 API 키와 OCR 모델 다운로드가 필요 없다.
-- 실제 EasyOCR는 선택 실습이다. 생성형 AI API는 연결 전 준비사항만 확인한다.
+- 실제 PaddleOCR와 PaddleOCR-VL은 다운로드가 필요한 선택 실습이다.
 - mock 결과에는 항상 `MOCK`이라고 표시한다.
 - 실제 개인정보·회사 문서·API 키를 저장소나 공개 Gradio 주소에 올리지 않는다.
 
@@ -31,7 +31,7 @@
 | 1 | [OCR보다 먼저 정할 것](lessons/01_document_ai_overview.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb) | `field_spec.json` |
 | 2 | [OCR 결과를 눈으로 확인하기](lessons/02_ocr_basic.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/02_ocr_basic.ipynb) | `ocr_text.txt` |
 | 3 | [OCR 초안을 정돈된 데이터로](lessons/03_document_structure.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/03_document_structure.ipynb) | `clean_receipt.json` |
-| 4 | [필요한 값만 JSON으로](lessons/04_genai_extraction.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb) | `receipt.json` |
+| 4 | [PaddleOCR-VL로 문서 구조 읽기](lessons/04_genai_extraction.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb) | `receipt.json` |
 | 5 | [Python 함수에 화면 붙이기](lessons/05_gradio_basic.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/05_gradio_basic.ipynb) | `app_05.py` |
 | 6 | [작은 함수들을 한 줄로 연결하기](lessons/06_ocr_ai_integration.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/06_ocr_ai_integration.ipynb) | `app_06.py` |
 | 7 | [틀린 값을 걸러 CSV로](lessons/07_validation_export.md) | [열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/07_validation_export.ipynb) | `receipt.csv` |
@@ -75,7 +75,7 @@ python tools/validate_colab_notebooks.py
 ## OCR 또는 설치가 실패했을 때
 
 - 2교시: 내장 `MOCK_OCR_RESULT` 사용
-- 3~4교시: 내장 OCR 텍스트와 mock JSON 사용
+- 3~4교시: 내장 OCR 텍스트와 mock VLM Markdown 사용
 - 5교시: Gradio 대신 처리 함수를 셀에서 직접 호출
 - 6교시: 오류를 확인한 뒤 `샘플로 계속` 선택
 - 7교시: 내장 JSON을 검증하고 Colab 파일 영역에서 CSV 다운로드
@@ -89,7 +89,7 @@ python tools/validate_colab_notebooks.py
 ├── colab/             # 독립 실행형 8교시 노트북
 ├── lessons/           # Notion 등록용 교재 Markdown과 이미지
 ├── sample_docs/       # 개인정보 없는 합성 영수증
-├── sample_outputs/    # OCR·JSON·CSV mock 결과
+├── sample_outputs/    # OCR·VLM·JSON·CSV mock 결과
 ├── src/               # 교재와 앱이 공유하는 작은 함수
 ├── prompts/           # Codex 실습 프롬프트
 ├── tests/             # 공통 함수와 앱 테스트
@@ -113,8 +113,8 @@ python tools/validate_colab_notebooks.py
 - 프롬프트에는 목표·맥락·제약조건·완료 기준을 쓴다.
 - 원문에 없는 값은 `null`로 처리한다.
 - API 키와 실제 개인정보는 프롬프트·노트북·Git에 기록하지 않는다.
-- 실제 API 호출은 이 입문 과정에 포함하지 않는다. 조직 승인과 데이터 처리 조건을 확인한 별도 환경에서 진행한다.
+- 실제 외부 서비스 연동은 이 입문 과정에 포함하지 않는다. 조직 승인과 데이터 처리 조건을 확인한 별도 환경에서 진행한다.
 
-## 과거 노트북
+## 과거 자료
 
-루트 `notebooks/`와 `docai_course/`는 과거 OCR 중심 과정의 참고 자료다. 2026 과정의 실행 기준은 `colab/`, `lessons/`, `src/`다.
+과거 OCR 엔진 비교 노트북과 패키지는 `legacy_materials/source_repo_2025/`에 보존한다. 최신 실행 코드로 사용하지 않는다. 2026 과정의 실행 기준은 `colab/`, `lessons/`, `src/`다.

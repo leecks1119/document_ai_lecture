@@ -1,178 +1,174 @@
-# 4교시. 필요한 값만 JSON으로 담기
+# 4교시. PaddleOCR-VL로 문서 구조 읽기
 
-> 스키마에 맞춰 영수증 값을 JSON으로 만들고 원문에 없는 값은 `null`로 처리합니다.
+> 문서 전용 멀티모달 모델의 중간 결과를 업무용 JSON으로 바꿉니다.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb)
 
 ## 1. 학습 목표
 
-- 영수증 JSON 스키마의 역할을 설명할 수 있다.
-- 원문에 없는 값을 `null`로 표시할 수 있다.
-- JSON 문법·자료형·원문 근거 검사를 구분할 수 있다.
+- OCR과 문서 전용 VLM의 차이를 설명할 수 있다.
+- PaddleOCR-VL의 Markdown 결과에서 제목·표·합계를 찾을 수 있다.
+- 중간 결과를 정해진 JSON으로 바꾸고 원문과 대조할 수 있다.
 
 ## 2. 이번 교시의 결과물
 
-- `receipt.json`: 네 필드와 품목 목록이 포함된 구조화 결과
+- `receipt.json`: VLM 중간 결과를 네 필드로 바꾼 업무용 JSON
 
 ## 3. 시작하기 전에
 
 ### 선수 지식
 
-- Python 딕셔너리와 JSON의 모양을 구분할 수 있으면 충분하다.
+- Python 딕셔너리와 Markdown 표의 모양을 알면 충분하다.
 
 ### 준비 파일
 
-- [OCR 결과 텍스트](../sample_outputs/ocr_result.txt)
+- [합성 영수증](../sample_docs/receipt_sample.png)
+- [PaddleOCR-VL mock Markdown](../sample_outputs/paddleocr_vl_result.md)
+- [PaddleOCR-VL mock 블록](../sample_outputs/paddleocr_vl_result.json)
 - [mock 추출 결과](../sample_outputs/extracted_result.json)
 - [4교시 Colab 노트북](../colab/04_genai_extraction.ipynb)
 
-필수 실습은 API 키가 필요 없다. 이번 입문 과정에서는 실제 생성형 AI를 호출하지 않고, 선택 셀에서 외부 API 연결 전 확인사항만 점검한다.
+기본 실습은 PaddleOCR-VL 형태의 준비된 Markdown을 사용한다. 실제 모델은 크고 다운로드 시간이 필요하므로 선택 실행한다.
 
 ## 4. 핵심 개념
 
-### 4.1 스키마는 데이터 설계도다
+### 4.1 VLM은 이미지와 문서 구조를 함께 본다
 
-스키마는 어떤 필드가 있고, 값의 자료형은 무엇이며, 어떤 필드가 필수인지 정한다.
+OCR은 주로 글자와 위치를 반환한다. VLM(Vision-Language Model)은 이미지와 언어를 함께 처리해 제목, 문단, 표 같은 관계를 표현한다.
 
 > **쉬운 비유**
-> JSON 스키마는 빈 신청서 양식이고 추출은 영수증에서 찾은 값을 각 칸에 옮겨 적는 일이다.
+> OCR은 종이에 적힌 낱말을 받아 적는 사람이고, 문서 VLM은 제목과 표의 칸까지 살펴 초안을 정리하는 사람이다.
 
-비유의 한계: 양식의 모든 칸이 채워졌다고 내용까지 정확하다는 뜻은 아니다.
+비유의 한계: VLM도 내용을 확정하는 담당자가 아니다. 보이지 않는 값을 만들거나 표의 숫자를 틀릴 수 있다.
 
-![영수증 네 영역에서 JSON 필드로 값이 이동하는 그림](assets/04/01_receipt_to_json.svg)
+![영수증이 PaddleOCR-VL을 거쳐 Markdown 구조로 바뀌는 흐름](assets/04/01_receipt_to_json.svg)
 
-### 4.2 원문에 없으면 `null`이다
+### 4.2 모델 결과와 업무 JSON은 다르다
 
-추출 시스템은 빈칸을 그럴듯한 값으로 채우면 안 된다.
+PaddleOCR-VL은 Markdown과 레이아웃 블록을 반환할 수 있다. 회사 시스템이 원하는 `store_name`, `date`, `items`, `total_amount`와는 모양이 다르므로 변환 규칙이 필요하다.
 
-```json
-{
-  "date": null
-}
+```text
+문서 이미지 → PaddleOCR-VL → Markdown·블록 → 업무 JSON
 ```
 
-`null`은 오류를 숨기지 않고 “이 값을 찾지 못했다”라고 표시하는 방법이다.
+### 4.3 스키마와 원문 검증은 여전히 필요하다
 
-### 4.3 형식과 사실성은 다른 검사다
+![VLM 중간 결과, JSON 스키마, 원문 근거를 차례로 확인하는 그림](assets/04/02_three_checks.svg)
 
-![JSON 문법, 자료형, 원문 근거의 세 단계 검사](assets/04/02_three_checks.svg)
+1. 구조: 필요한 네 필드가 있는가?
+2. 자료형: 총액은 정수이고 품목은 배열인가?
+3. 근거: 값이 실제 문서와 같은가?
 
-1. JSON 문법: 괄호와 쉼표가 올바른가?
-2. 자료형: 총액이 정수이고 품목이 배열인가?
-3. 원문 근거: 값이 실제 영수증과 같은가?
-
-JSON Schema는 앞의 두 검사를 도울 수 있지만 세 번째 검사를 보장하지 않는다.
+원문에서 찾지 못한 값은 추측하지 않고 `null`로 둔다.
 
 ## 5. 전체 실습 흐름
 
 ```text
-OCR 텍스트
-  → 추출 프롬프트 확인
-  → mock_extract 실행
-  → JSON 스키마 대조
-  → 원문과 총액 비교
+PaddleOCR-VL 형태의 Markdown 읽기
+  → 제목·표·합계 찾기
+  → 네 필드의 JSON으로 변환
+  → 자료형과 원문 근거 확인
   → receipt.json 저장
 ```
 
 ## 6. 단계별 실습
 
-### 실습 1. JSON 구조와 `null` 규칙 확인하기
+### 실습 1. Markdown 중간 결과를 JSON으로 바꾸기
 
-노트북에 제공된 날짜와 합계 필드의 스키마를 원문과 대조한다.
-
-```python
-RECEIPT_SCHEMA = {
-    "date": {"type": ["string", "null"]},
-    "total_amount": {"type": ["integer", "null"], "minimum": 0},
-}
-```
-
-제공된 `mock_extract()`는 수업용 합성 영수증만 규칙으로 처리한다. 생성형 AI의 성능을 흉내 내는 함수가 아니다.
+노트북이 제공하는 `SAMPLE_VLM_MARKDOWN`에는 제목, 날짜, 품목 표, 합계가 있다.
 
 ```python
-result = mock_extract(SAMPLE_OCR_TEXT)
-print(result["date"], result["total_amount"])
+receipt = mock_extract(SAMPLE_VLM_MARKDOWN)
+
+assert receipt["store_name"] == "샘플문구점"
+assert receipt["total_amount"] == 5000
+assert len(receipt["items"]) == 2
 ```
 
 **기대 결과**
 
-```text
-2026-07-27 5000
+```json
+{
+  "store_name": "샘플문구점",
+  "date": "2026-07-27",
+  "total_amount": 5000,
+  "items": [
+    {"name": "연필", "quantity": 2, "line_total": 2000},
+    {"name": "노트", "quantity": 1, "line_total": 3000}
+  ]
+}
 ```
 
 **mock 대체 경로**
 
-정규식 또는 스키마 패키지 오류가 나면 제공된 `extracted_result.json`을 읽고 필드와 원문을 눈으로 대조한다.
+모델을 실행하지 않아도 준비된 Markdown을 동일한 변환 함수에 넣는다. 결과의 `source_mode`가 `mock_vlm`인지 확인한다.
 
-### 선택 확인. API 연결 전 준비사항
+**선택: 실제 PaddleOCR-VL 1.6 실행**
 
-- 실제 호출 코드는 실행하지 않는다.
-- Colab Secrets 같은 비밀 저장 방식이 필요한 이유를 확인한다.
-- 실제 개인정보 문서를 보내지 않는다.
-- 조직 적용 전 데이터 보존·학습 이용·리전·계약 조건을 확인한다.
+```python
+RUN_PADDLEOCR_VL = False
+```
 
-준비사항 확인 셀의 기본값은 `CHECK_OPTIONAL_API_READINESS = False`다.
+Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과가 곧 업무 정답이라는 뜻은 아니므로 반드시 합성 원본과 비교한다.
 
 ## 7. Codex 활용
 
 ### 요청 목표
 
-추출 프롬프트가 없는 값을 추측하지 않도록 개선한다.
+VLM 중간 결과를 네 필드로만 변환하는 코드를 검토한다.
 
 ### 실습 프롬프트
 
 ```text
-목표: 영수증 OCR 텍스트를 JSON으로 추출하는 프롬프트를 검토해줘.
-맥락: store_name, date, items, total_amount 네 필드만 사용해.
-제약조건: 원문에 없는 값은 반드시 null, JSON 외 설명은 금지.
-완료 기준: 누락된 제약조건이 있으면 한 줄씩 제안해줘.
+목표: PaddleOCR-VL Markdown을 영수증 JSON으로 바꾸는 함수를 검토해줘.
+맥락: store_name, date, items, total_amount만 필요해.
+제약조건: 원문에 없는 값은 null, 새 필드를 추가하지 마.
+완료 기준: 표 파싱과 합계 변환에서 틀릴 수 있는 부분만 알려줘.
 ```
 
 ### 생성 결과 확인
 
-- 요청하지 않은 필드가 추가되지 않았는가?
-- 원문에 없는 값을 `null`로 처리하는가?
-- JSON 모양과 값의 정확성을 혼동하지 않는가?
+- Markdown과 업무 JSON을 같은 것으로 취급하지 않았는가?
+- 없는 값을 추측하지 않았는가?
 
 ## 8. 문제 해결
 
 | 증상 | 원인 | 해결 방법 |
 | --- | --- | --- |
-| JSON 오류 | 따옴표·쉼표 누락 | 제공된 mock JSON과 모양 비교 |
-| 날짜가 없음 | 원문에서 찾지 못함 | 추측하지 말고 `null` 유지 |
-| API 연결을 실습하고 싶음 | 입문 과정 범위 밖 | mock 결과로 학습을 완료하고 조직 승인 뒤 별도 실습 |
+| 품목이 비어 있음 | Markdown 표 구분자 처리 오류 | `|`로 나눈 셀 네 개 확인 |
+| 실제 모델이 느림 | 모델 다운로드·메모리 사용 | 선택 셀 중지 후 mock 경로 사용 |
+| JSON은 맞지만 값이 다름 | 원문 근거 검사 누락 | 합성 영수증과 날짜·총액 비교 |
 
 ## 9. 형성평가
 
-1. 원문에서 날짜를 찾지 못했다면 어떤 값을 넣는가?
-2. JSON Schema 검사를 통과하면 내용도 정확한가?
+1. PaddleOCR-VL의 Markdown이 바로 업무 JSON인가?
+2. 원문에서 날짜를 찾지 못했다면 무엇을 넣는가?
 
 <details>
 <summary>정답 보기</summary>
 
-1. `null`
-2. 아니다. 문법과 자료형이 맞아도 원문 근거는 별도로 확인해야 한다.
+1. 아니다. 업무 스키마에 맞게 변환하고 검증해야 한다.
+2. 추측하지 않고 `null`을 넣는다.
 
 </details>
 
 ## 10. 핵심 요약
 
-- 스키마는 추출 결과의 모양을 먼저 정한다.
-- 원문에 없는 값은 `null`로 둔다.
-- JSON 문법·자료형·원문 근거는 서로 다른 검사다.
+- 문서 VLM은 이미지와 배치를 함께 처리한다.
+- Markdown·레이아웃 결과는 업무 JSON 전의 중간 결과다.
+- 스키마·자료형·원문 근거를 따로 확인한다.
 
 ## 11. 완료 체크리스트
 
-- [ ] 영수증 JSON 스키마를 읽었다.
-- [ ] mock 결과와 원문을 비교했다.
+- [ ] OCR과 문서 VLM의 차이를 설명했다.
+- [ ] Markdown 표를 네 필드의 JSON으로 바꿨다.
 - [ ] `receipt.json`을 만들었다.
 
 ## 12. 다음 교시 예고
 
-5교시에서는 JSON 결과를 코드 출력이 아닌 Gradio 화면에 표시한다.
+5교시에서는 OCR과 VLM 처리기를 고를 수 있는 작은 Gradio 화면을 만든다.
 
 ## 참고 자료
 
-- [OpenAI Responses API](https://platform.openai.com/docs/api-reference/responses)
-- [OpenAI API 인증](https://platform.openai.com/docs/api-reference/authentication)
-- [JSON Schema 2020-12](https://json-schema.org/specification)
+- [PaddleOCR-VL 1.6 모델 설명](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
+- [PaddleOCR-VL 파이프라인 사용법](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)

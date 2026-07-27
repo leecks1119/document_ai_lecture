@@ -96,7 +96,7 @@ def build_demo() -> gr.Blocks:
             sample_button = gr.Button("샘플로 계속 · 기본", variant="primary")
 
         status = gr.Markdown()
-        ocr_text = gr.Textbox(label="OCR 텍스트", lines=7)
+        ocr_text = gr.Textbox(label="문서 인식 중간 결과", lines=9)
         json_output = gr.JSON(label="구조화 JSON")
         table_output = gr.Dataframe(label="품목 표", interactive=False)
         download = gr.DownloadButton(label="검증된 CSV 다운로드")

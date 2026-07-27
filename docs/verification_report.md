@@ -1,28 +1,59 @@
-# 2026 Document AI 교재 최종 검증 보고서
+# 2026 Document AI 교재 검증 보고서
 
 검증일: 2026-07-27  
 대상 브랜치: `document_ai_lecture_2026`
 
 ## 결론
 
-1~8교시 교재와 Colab 실습의 필수 mock 경로가 독립 실행되며, 각 교시는 핵심 개념 3개·기본 실습 1개·주 산출물 1개로 제한됐다. 시니어 교육담당 매니저 Agent의 최종 판정은 **승인 98/100, P0 0개, P1 0개**다.
+2026 과정의 활성 기술 스택을 `PaddleOCR 3.7 + PP-OCRv5 Korean`과 `PaddleOCR-VL 1.6`으로 교체했다. 1~8교시 교재와 Colab의 기본 mock 경로는 Python 3.12.11 환경에서 독립 실행됐다.
 
-## 자동 검증
+실제 OCR·VLM 모델 셀은 다운로드와 런타임 자원이 필요한 **선택 경로**다. 이번 로컬 검증에서 실제 추론까지 실행했다고 주장하지 않으며, 교육생의 필수 산출물은 준비된 동일 형식의 결과로 완성된다.
+
+## 자동 검증 결과
 
 | 검증 | 결과 |
 | --- | --- |
 | Python 구문 검사 | 통과 |
-| 단위·통합 테스트 | 22개 통과 |
-| Colab 노트북 독립 실행 | 8개 통과 |
+| 단위·통합 테스트 | 26개 통과 |
+| Colab 기본 경로 독립 실행 | 8개 통과 |
 | 교재 구조 검사 | 8개 통과 |
 | 교육 도식 연결 | 16개 통과 |
 | 로컬 파일 링크 | 통과 |
-| 핵심 개념 수 | 교시당 정확히 3개 |
-| 기본 실습 수 | 교시당 정확히 1개 |
-| 주 산출물 수 | 교시당 정확히 1개 |
+| 교시별 핵심 개념 | 정확히 3개 |
+| 교시별 기본 실습 | 정확히 1개 |
+| 교시별 주 산출물 | 정확히 1개 |
 | 노트북 저장 출력 | 0개 |
 
-Colab 검증기는 각 노트북을 별도 임시 폴더에서 위에서 아래로 실행하고 다음 산출물을 확인했다.
+사용한 명령:
+
+```bash
+.venv/bin/python -m pytest -q
+.venv/bin/python tools/validate_course_materials.py
+.venv/bin/python tools/validate_colab_notebooks.py
+.venv/bin/python -m compileall -q src app.py tools
+```
+
+## 기술 기준 확인
+
+| 항목 | 2026 과정 기준 | 확인 내용 |
+| --- | --- | --- |
+| 일반 OCR | PaddleOCR 3.7.0 | 2026-06-11 공개 버전으로 고정 |
+| 한국어 OCR | PP-OCRv5 Korean | `lang="korean"`, `ocr_version="PP-OCRv5"` |
+| 문서 멀티모달 | PaddleOCR-VL 1.6 | 이미지·레이아웃을 Markdown과 블록으로 처리 |
+| 업무 추출 | 명시적 변환 함수 | 모델 중간 결과를 바로 정답 JSON으로 취급하지 않음 |
+| 최종 확정 | 검증 규칙 + 사람 검토 | 필수값·품목 합계 오류가 있으면 CSV 저장 차단 |
+
+PP-OCRv6의 현재 공식 언어 범위에는 한국어가 없으므로 한국어 합성 영수증은 PP-OCRv5를 사용한다. PaddleOCR-VL은 VLM 구성 요소만 단독 호출하지 않고 레이아웃 분석이 포함된 전체 파이프라인 예제로 작성했다.
+
+근거:
+
+- [PaddleOCR 3.7.0 패키지](https://pypi.org/project/paddleocr/)
+- [PaddleOCR 3.x OCR 파이프라인](https://www.paddleocr.ai/main/en/version3.x/pipeline_usage/OCR.html)
+- [PP-OCRv5 다국어 인식](https://www.paddleocr.ai/latest/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html)
+- [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
+- [PaddleOCR-VL 파이프라인](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)
+
+## Colab 산출물 확인
 
 | 교시 | 확인 산출물 |
 | --- | --- |
@@ -35,28 +66,11 @@ Colab 검증기는 각 노트북을 별도 임시 폴더에서 위에서 아래�
 | 7 | `receipt.csv` |
 | 8 | `business_application_card.md` |
 
-검증 환경은 Python 3.12.11이며, 교재의 Colab 목표는 공식 `2026.04` 고정 런타임과 Python 3.12.x다. 실제 API 호출, 공개 Gradio 주소, 실제 개인정보는 필수 경로에 포함하지 않았다.
+2교시의 `RUN_PADDLEOCR`, 4교시의 `RUN_PADDLEOCR_VL`, 5교시의 `RUN_PUBLIC_DEMO`는 기본값이 모두 `False`다. 검증기는 선택 셀을 건너뛴 상태로 각 노트북을 새 임시 폴더에서 위에서 아래로 실행한다.
 
-## 선택 기능 실측
+## 실패 경로 확인
 
-### EasyOCR 1.7.2
-
-- 합성 PNG: 7개 영역 추출 성공
-- 합성 PDF: 11개 영역 추출 성공
-- 날짜와 한글 품목은 읽었으나 `5,000원`의 숫자 `0` 하나를 문자 `o`로 오인식
-- 검증 실패가 표시됐고 CSV 다운로드는 차단됨
-
-이 결과는 OCR 출력을 정답으로 취급하지 않고 원문 비교와 업무 규칙 검증을 수행해야 한다는 교재 설명과 일치한다.
-
-### Gradio 6.20.0
-
-- `127.0.0.1:7861` 로컬 HTTP 응답 확인
-- 공개 주소를 만들지 않아 `share_url`은 `None`
-- mock 실행 시 `MOCK OCR + MOCK 추출` 상태 표시 확인
-
-## 실패 경로
-
-자동 테스트에서 다음 입력을 거부하거나 안전하게 처리했다.
+자동 테스트에서 다음 입력을 거부하거나 오류 상태로 반환했다.
 
 - 파일 없음
 - 허용하지 않은 확장자
@@ -64,21 +78,17 @@ Colab 검증기는 각 노트북을 별도 임시 폴더에서 위에서 아래�
 - 손상 PDF
 - 암호 PDF
 - 3페이지 초과 PDF
+- 지원하지 않는 처리기 이름
+- OCR 또는 VLM 의존성 없음
 - 필수값 누락
 - 품목 합계 불일치
-- OCR 숫자·문자 오인식 뒤 CSV 차단
 
-## 출처와 링크
+오류 뒤 관련 없는 샘플을 자동 결과처럼 표시하지 않는다. 사용자가 `use_sample=True`를 명시적으로 선택해야 mock 경로가 실행된다.
 
-- 교재의 현재성 기준은 2026-07-27이다.
-- 교시별 핵심 사실은 공식 제품 문서, 표준, 정부·공공기관 자료에 연결했다.
-- 자동 HTTP 확인에서 공식 참고 링크 25개가 응답 코드 200을 반환했다.
-- OpenAI 공식 문서 2개는 자동 요청에 403을 반환해 링크 오류로 판정하지 않았으며, 실제 호출을 가르치는 필수 자료로 사용하지 않는다.
-- Colab 실행 링크는 브랜치를 원격 저장소에 올린 뒤 사용할 수 있다.
+## 운영 주의
 
-## 남은 운영 주의
-
-- 첫 EasyOCR 실행은 모델 다운로드 때문에 네트워크 상태에 영향을 받는다.
-- OCR 정확도는 문서 품질에 따라 달라지며 이 샘플 결과가 일반 성능을 뜻하지 않는다.
-- Gradio 공개 주소는 합성 문서에만 사용한다.
+- 실제 모델의 첫 실행은 패키지와 모델 다운로드에 영향을 받는다.
+- PaddleOCR-VL은 OCR보다 메모리와 실행 시간이 더 필요하므로 Colab에서 선택 실행한다.
+- 합성 영수증 한 장의 결과를 일반적인 정확도 수치로 사용하지 않는다.
+- Gradio 공개 주소에는 합성 문서만 사용한다.
 - 실제 조직 적용 전 개인정보, 외부 전송, 접근권한, 보존·삭제 기준을 별도로 승인받는다.

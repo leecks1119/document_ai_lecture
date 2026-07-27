@@ -14,6 +14,9 @@
 ```text
 legacy_materials/
 ├── README.md
+├── source_repo_2025/
+│   ├── notebooks/        # 과거 OCR 비교·앙상블 실습
+│   └── docai_course/     # 과거 Python 패키지
 ├── notion_archive/
 │   ├── 00_course_home.md
 │   ├── 01_development_environment.md
@@ -32,7 +35,8 @@ legacy_materials/
 └── review/
     ├── reusable_materials_review.md
     ├── curriculum_mapping.md
-    └── fact_check_backlog.md
+    ├── fact_check_backlog.md
+    └── superseded_2026_drafts/ # 기술 정정 전 작업 문서
 ```
 
 ## 판정 기준
@@ -49,6 +53,7 @@ legacy_materials/
 
 - 새 교재의 기준은 `docs/curriculum.md`와 `lessons/`다.
 - 이 폴더의 코드는 실행 가능한 최신 코드로 간주하지 않는다.
+- `source_repo_2025/`에는 구형 OCR 엔진과 앙상블 코드가 포함될 수 있다.
 - 수치, 제품 비교, 시장 순위, API 사용법은 2026-07-27 기준으로 다시 검증한다.
 - 실명, 회사명, 연락처, 주민등록번호 등 개인정보성 샘플은 모두 가상 데이터로 교체한다.
 - Cursor 중심 설명은 Codex 중심 워크플로로 다시 작성한다.

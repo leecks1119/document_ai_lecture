@@ -9,7 +9,8 @@
 | Python | 3.12.x |
 | 기본 하드웨어 | CPU |
 | UI | Gradio 6.20.0 |
-| 선택 OCR | EasyOCR 1.7.2 |
+| 선택 OCR | PaddleOCR 3.7.0 + PP-OCRv5 Korean |
+| 선택 문서 VLM | PaddleOCR-VL 1.6 |
 | 선택 PDF 변환 | PyMuPDF 1.28.0 |
 
 Colab은 관리형 환경이므로 로컬 Python의 패치 버전과 항상 같지 않다. 수업 시작 셀에서 실제 버전을 출력하고, 문제가 있으면 **런타임 → 런타임 유형 변경**에서 강사가 안내한 고정 런타임을 선택한다.
@@ -28,25 +29,25 @@ Colab은 관리형 환경이므로 로컬 Python의 패치 버전과 항상 같�
 
 노트북에 포함된 합성 영수증, OCR 결과, JSON으로 모든 산출물을 만든다.
 
-## 선택 EasyOCR
+## 선택 PaddleOCR
 
 2교시 선택 셀의 기본값은 다음과 같다.
 
 ```python
-RUN_OPTIONAL_EASYOCR = False
+RUN_PADDLEOCR = False
 ```
 
 강사가 모델 다운로드 가능 여부를 확인한 경우에만 `True`로 바꾼다. 사내망이나 교육장 네트워크에서 실패하면 즉시 `False`로 되돌리고 mock 결과를 사용한다.
 
-## 생성형 AI API 연결 전 준비 확인
+## 선택 PaddleOCR-VL
 
-4교시 준비 확인 셀의 기본값은 다음과 같다.
+4교시 선택 셀의 기본값은 다음과 같다.
 
 ```python
-CHECK_OPTIONAL_API_READINESS = False
+RUN_PADDLEOCR_VL = False
 ```
 
-이번 입문 과정은 실제 API를 호출하지 않는다. Secrets 같은 비밀 저장 방식, 조직 승인, 데이터 보존·학습 이용·리전·계약 조건을 확인한 뒤 별도 심화 과정에서 연결한다. 실제 개인정보 문서는 사용하지 않는다.
+문서 전용 멀티모달 모델은 OCR보다 다운로드와 메모리 사용량이 크다. 실제 실행은 Colab에서 선택하고, 필수 실습은 준비된 VLM Markdown으로 완료한다.
 
 ## Gradio와 공개 주소
 
@@ -69,10 +70,16 @@ python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
 
-실제 EasyOCR까지 확인할 때만 다음을 설치한다.
+실제 PaddleOCR까지 확인할 때만 다음을 설치한다.
 
 ```bash
 python -m pip install -r requirements-ocr.txt
+```
+
+PaddleOCR-VL까지 확인하려면 다음을 설치한다.
+
+```bash
+python -m pip install -r requirements-vlm.txt
 ```
 
 ## 수업 전 확인 명령

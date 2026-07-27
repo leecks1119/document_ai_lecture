@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import sys
+import time
 from pathlib import Path
 
 from PIL import Image, ImageDraw, ImageFilter, ImageFont
@@ -16,6 +17,8 @@ from src.sample_data import (
     SAMPLE_OCR_RESULT,
     SAMPLE_OCR_TEXT,
     SAMPLE_RECEIPT,
+    SAMPLE_VLM_MARKDOWN,
+    SAMPLE_VLM_RESULT,
 )
 
 
@@ -87,7 +90,14 @@ def main() -> None:
 
     receipt = create_receipt_image()
     receipt.save(SAMPLE_DOCS / "receipt_sample.png", optimize=True)
-    receipt.save(SAMPLE_DOCS / "receipt_sample.pdf", "PDF", resolution=150)
+    fixed_pdf_time = time.gmtime(0)
+    receipt.save(
+        SAMPLE_DOCS / "receipt_sample.pdf",
+        "PDF",
+        resolution=150,
+        creationDate=fixed_pdf_time,
+        modDate=fixed_pdf_time,
+    )
 
     low_quality = receipt.rotate(
         4,
@@ -103,6 +113,14 @@ def main() -> None:
     )
     (SAMPLE_OUTPUTS / "ocr_result.json").write_text(
         json.dumps(SAMPLE_OCR_RESULT, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    (SAMPLE_OUTPUTS / "paddleocr_vl_result.md").write_text(
+        SAMPLE_VLM_MARKDOWN,
+        encoding="utf-8",
+    )
+    (SAMPLE_OUTPUTS / "paddleocr_vl_result.json").write_text(
+        json.dumps(SAMPLE_VLM_RESULT, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
     (SAMPLE_OUTPUTS / "extracted_result.json").write_text(

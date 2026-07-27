@@ -42,7 +42,7 @@ Do not add model training, OCR engine benchmarks, OCR ensembles, databases, auth
 - `docs/curriculum.md`: course outcomes and lesson sequence
 - `docs/rebuild_status.md`: scope, progress, and completion evidence
 - `lessons/_template.md`: lesson document structure
-- `lessons/_work/01_research_brief.md`: claims, source, and technology decisions
+- `lessons/_work/05_paddleocr_multimodal_research.md`: current claims, sources, and technology decisions
 - `legacy_materials/`: reference only; never assume old code or claims are current
 
 ## Repository expectations
@@ -95,4 +95,4 @@ A lesson is complete only when:
 - No secrets or real personal information are committed.
 - The senior training manager reports no P0 findings and a score of at least 85.
 
-The full course is complete only when all eight lessons meet these conditions and the final Gradio mini app supports upload, OCR or mock text, JSON extraction, validation, and CSV export.
+The full course is complete only when all eight lessons meet these conditions and the final Gradio mini app supports upload, PaddleOCR or PaddleOCR-VL selection, visible mock paths, JSON extraction, validation, and CSV export.

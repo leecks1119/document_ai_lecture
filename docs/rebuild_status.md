@@ -5,8 +5,8 @@
 
 이 문서는 1~8교시 교재, Colab 실습, 이미지 자산의 범위와 완료 증거를 추적한다.
 
-> 2026-07-27 기술 정정: EasyOCR 중심 설계를 폐기하고 PaddleOCR 3.7,
-> PP-OCRv5 Korean, PaddleOCR-VL 1.6 기반으로 전면 교체 중이다.
+> 2026-07-27 기술 정정 완료: 활성 과정은 PaddleOCR 3.7,
+> PP-OCRv5 Korean, PaddleOCR-VL 1.6 기반이다.
 
 ## 범위 원칙
 
@@ -37,9 +37,9 @@
 | 1교시 | 추출 항목 정의서 | 샘플 영수증에서 필요한 필드 고르기 |
 | 2교시 | OCR 결과 텍스트 | 준비된 OCR 결과를 확인하고 텍스트 저장 |
 | 3교시 | 정제된 문서 데이터 | OCR 텍스트를 키-값과 품목 행으로 정리 |
-| 4교시 | 구조화 JSON | 스키마와 프롬프트로 mock 추출 결과 만들기 |
+| 4교시 | 구조화 JSON | VLM Markdown을 업무 JSON으로 변환 |
 | 5교시 | 기본 Gradio 화면 | 파일 입력과 결과 컴포넌트 연결 |
-| 6교시 | 통합 미니 앱 | 업로드 → OCR/mock → JSON 연결 |
+| 6교시 | 통합 미니 앱 | 업로드 → OCR/VLM/mock → JSON 연결 |
 | 7교시 | CSV | 필수값·품목 합계 검증 후 CSV 만들기 |
 | 8교시 | 업무 적용 카드 | 사람 검토가 포함된 적용 시나리오 설계 |
 
@@ -61,13 +61,13 @@
 | 저장소와 원 지시서 감사 | 완료 | 기존 코드·노트북·교재 골격 확인 |
 | Agent 설정 기준점 저장 | 완료 | 커밋 `d97de5a` |
 | 과거 Notion 자료 보존·재사용 검토 | 완료 | 커밋 `d125d1a` |
-| 2026-07-27 기술·출처 조사 | 완료 | `lessons/_work/01_research_brief.md`, 커밋 `70224df` |
-| 1~8교시 간결한 교재 설계 | 완료 | `lessons/_work/02_lesson_blueprint.md`, 커밋 `4f73c57` |
-| 분량·난이도·운영 검수 | 완료 | `lessons/_work/03_manager_review.md`, 커밋 `1417584` |
+| 초기 기술·출처 조사 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/01_research_brief.md` |
+| 초기 교재 설계 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/02_lesson_blueprint.md` |
+| 초기 분량·운영 검수 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/03_manager_review.md` |
 | Markdown·Colab·이미지 구현 | 완료 | 교재 8개, Colab 8개, 도식 16개 |
-| 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 테스트 22개 통과 |
+| 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 테스트 26개 통과 |
 | 최종 교육 품질 검수 | 완료 | 98/100, P0 0개, P1 0개 |
-| PaddleOCR·멀티모달 기술 정정 | 진행 중 | `lessons/_work/05_paddleocr_multimodal_research.md` |
+| PaddleOCR·멀티모달 기술 정정 | 완료 | 커밋 `301754b`, `d2f1c21`, `e0e12bb` 및 최종 교재 검증 |
 
 ## 커밋 원칙
 

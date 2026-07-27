@@ -50,7 +50,7 @@
 
 원문을 덮어쓰지 않고 다음 세 가지를 함께 보존한다.
 
-- `raw_text`: OCR가 반환한 원문
+- `raw_text`: PaddleOCR가 반환한 원문
 - `cleaned_lines`: 공백과 빈 줄을 정리한 결과
 - `change_log`: 무엇을 바꿨는지 기록
 
@@ -149,7 +149,7 @@ def normalize_line(line):
 
 ## 12. 다음 교시 예고
 
-4교시에서는 정리한 값을 정해진 JSON 구조에 넣고 없는 값은 `null`로 처리한다.
+4교시에서는 PaddleOCR-VL이 표와 제목을 표현하는 방법을 보고, 그 결과를 업무용 JSON으로 바꾼다.
 
 ## 참고 자료
 

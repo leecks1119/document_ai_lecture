@@ -12,7 +12,7 @@
 
 ## 2. 이번 교시의 결과물
 
-- `app_05.py`: 파일 입력, 버튼, OCR 텍스트, JSON 결과가 있는 기본 화면
+- `app_05.py`: 파일 입력, OCR·VLM 선택, 인식 결과, JSON이 있는 기본 화면
 
 ## 3. 시작하기 전에
 
@@ -35,7 +35,8 @@ Colab에서 만든 Gradio 공유 주소는 공개될 수 있다. 합성 문서�
 
 - `File`: 문서 입력
 - `Button`: 처리 시작 이벤트
-- `Textbox`: OCR 텍스트
+- `Radio`: PaddleOCR 또는 PaddleOCR-VL 선택
+- `Textbox`: 문서 인식 중간 결과
 - `JSON`: 구조화 결과
 
 ![Gradio 입력과 버튼이 Python 함수를 거쳐 텍스트와 JSON으로 연결되는 흐름](assets/05/01_component_flow.svg)
@@ -47,7 +48,7 @@ Colab에서 만든 Gradio 공유 주소는 공개될 수 있다. 합성 문서�
 ```python
 process_button.click(
     fn=show_mock_result,
-    inputs=file_input,
+    inputs=[file_input, processor],
     outputs=[status, ocr_output, json_output],
 )
 ```
@@ -78,9 +79,10 @@ show_mock_result() 직접 실행
 처리 함수는 완성 코드로 제공된다.
 
 ```python
-def show_mock_result(file_path):
-    status = "MOCK 결과 — 업로드 문서를 읽지 않았습니다."
-    return status, SAMPLE_OCR_TEXT, SAMPLE_JSON
+def show_mock_result(file_path, processor="PaddleOCR"):
+    status = f"MOCK {processor} 결과 — 업로드 문서를 읽지 않았습니다."
+    source = SAMPLE_VLM_MARKDOWN if processor == "PaddleOCR-VL" else SAMPLE_OCR_TEXT
+    return status, source, SAMPLE_JSON
 ```
 
 완성된 버튼 연결에서 함수·입력·출력 컴포넌트를 찾아본다.
@@ -88,7 +90,7 @@ def show_mock_result(file_path):
 ```python
 process_button.click(
     fn=show_mock_result,
-    inputs=file_input,
+    inputs=[file_input, processor],
     outputs=[status, ocr_output, json_output],
 )
 ```
@@ -122,7 +124,7 @@ show_mock_result(None)
 
 ```text
 목표: 제공된 Gradio Blocks 코드에서 처리 버튼을 show_mock_result에 연결해줘.
-맥락: 입력은 File 한 개, 출력은 상태·OCR Textbox·JSON 세 개야.
+맥락: 입력은 File과 처리기 Radio, 출력은 상태·중간 결과·JSON 세 개야.
 제약조건: CSS, 테마, 새 컴포넌트, 데이터베이스를 추가하지 마.
 완료 기준: button.click 코드와 확인 방법만 알려줘.
 ```
@@ -167,7 +169,7 @@ show_mock_result(None)
 
 ## 12. 다음 교시 예고
 
-6교시에서는 업로드 확인, OCR, JSON 구조화를 작은 함수로 연결하고 mock 선택을 명확히 표시한다.
+6교시에서는 업로드 확인, PaddleOCR·PaddleOCR-VL, JSON 변환을 작은 함수로 연결한다.
 
 ## 참고 자료
 

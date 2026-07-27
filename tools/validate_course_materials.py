@@ -92,9 +92,12 @@ def validate_lesson(path: Path) -> None:
     matching_notebooks = list(COLAB.glob(f"{lesson_number}_*.ipynb"))
     assert len(matching_notebooks) == 1, f"{path.name}: Colab 노트북 연결 오류"
 
-    banned = ["PaddleOCR", "Streamlit", "실제 주민등록번호"]
+    banned = ["EasyOCR", "Streamlit", "실제 주민등록번호"]
     for term in banned:
         assert term not in text, f"{path.name}: 필수 범위 밖 용어 {term}"
+
+    if lesson_number in {"02", "04", "06"}:
+        assert "PaddleOCR" in text, f"{path.name}: 최신 처리 경로 설명 없음"
 
 
 def validate_repository_links() -> None:

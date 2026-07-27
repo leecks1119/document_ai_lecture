@@ -95,7 +95,7 @@ CSV 생성과 수식 문자 보호 함수는 완성 코드로 제공된다.
 
 **mock 대체 경로**
 
-6교시 앱이 없어도 노트북에 포함된 `SAMPLE_RECEIPT`를 같은 함수에 전달한다. Gradio 다운로드가 안 되면 Colab의 `files.download()`를 사용한다.
+OCR·VLM 모델이 없어도 노트북의 `SAMPLE_RECEIPT`를 같은 검증 함수에 전달한다. Gradio 다운로드가 안 되면 Colab의 `files.download()`를 사용한다.
 
 ## 7. Codex 활용
 
