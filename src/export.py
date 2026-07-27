@@ -1,10 +1,13 @@
-"""7교시: 영수증 JSON을 안전한 CSV로 바꾼다."""
+"""7교시: 검증된 영수증 JSON을 안전한 Excel 파일로 바꾼다."""
 
 from __future__ import annotations
 
-import csv
 import io
 from typing import Any
+
+from openpyxl import Workbook
+from openpyxl.styles import Font, PatternFill
+from openpyxl.utils import get_column_letter
 
 
 FORMULA_PREFIXES = ("=", "+", "-", "@")
@@ -19,7 +22,7 @@ def safe_spreadsheet_text(value: Any) -> Any:
 
 
 def receipt_to_rows(data: dict) -> list[dict]:
-    """영수증의 반복 품목을 CSV의 여러 행으로 펼친다."""
+    """영수증의 반복 품목을 Excel의 여러 행으로 펼친다."""
 
     base = {
         "store_name": data.get("store_name"),
@@ -41,11 +44,60 @@ def receipt_to_rows(data: dict) -> list[dict]:
     return rows
 
 
-def receipt_to_csv_bytes(data: dict) -> bytes:
-    """Excel에서도 한글을 읽기 쉬운 UTF-8 BOM CSV 바이트를 반환한다."""
+def _write_table(sheet, columns: list[str], rows: list[dict]) -> None:
+    """작은 표를 쓰고 초보자용 기본 서식을 적용한다."""
 
-    rows = receipt_to_rows(data)
-    columns = [
+    sheet.append(columns)
+    for cell in sheet[1]:
+        cell.font = Font(bold=True, color="FFFFFF")
+        cell.fill = PatternFill("solid", fgColor="173B57")
+
+    for row in rows:
+        sheet.append([safe_spreadsheet_text(row.get(column)) for column in columns])
+
+    sheet.freeze_panes = "A2"
+    for index, column in enumerate(columns, start=1):
+        values = [str(column)]
+        values.extend(
+            str(sheet.cell(row=row, column=index).value or "")
+            for row in range(2, sheet.max_row + 1)
+        )
+        width = min(max(len(value) for value in values) + 2, 40)
+        sheet.column_dimensions[get_column_letter(index)].width = width
+
+
+def receipt_to_xlsx_bytes(
+    data: dict,
+    *,
+    source_text: str = "",
+    review_status: str = "사람 확인 완료",
+) -> bytes:
+    """원문·정제값·최종값·검토 상태가 남는 Excel 바이트를 반환한다."""
+
+    workbook = Workbook()
+    summary = workbook.active
+    summary.title = "검토_요약"
+
+    raw_values = data.get("raw_values") or {}
+    fields = ("store_name", "date", "total_amount")
+    summary_rows = [
+        {
+            "field": field,
+            "raw_value": raw_values.get(field, data.get(field)),
+            "cleaned_value": data.get(field),
+            "final_value": data.get(field),
+            "review_status": review_status,
+        }
+        for field in fields
+    ]
+    _write_table(
+        summary,
+        ["field", "raw_value", "cleaned_value", "final_value", "review_status"],
+        summary_rows,
+    )
+
+    items = workbook.create_sheet("품목")
+    item_columns = [
         "store_name",
         "date",
         "total_amount",
@@ -54,8 +106,14 @@ def receipt_to_csv_bytes(data: dict) -> bytes:
         "unit_price",
         "line_total",
     ]
-    buffer = io.StringIO(newline="")
-    writer = csv.DictWriter(buffer, fieldnames=columns)
-    writer.writeheader()
-    writer.writerows(rows)
-    return buffer.getvalue().encode("utf-8-sig")
+    _write_table(items, item_columns, receipt_to_rows(data))
+
+    source = workbook.create_sheet("원문")
+    source.append(["source_mode", safe_spreadsheet_text(data.get("source_mode", ""))])
+    source.append(["ocr_text", safe_spreadsheet_text(source_text)])
+    source.column_dimensions["A"].width = 18
+    source.column_dimensions["B"].width = 80
+
+    buffer = io.BytesIO()
+    workbook.save(buffer)
+    return buffer.getvalue()

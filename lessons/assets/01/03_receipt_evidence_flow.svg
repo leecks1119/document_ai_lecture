@@ -1,0 +1,65 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="760" viewBox="0 0 1440 760" role="img" aria-labelledby="title desc">
+  <title id="title">한국 영수증 한 장의 원본 근거부터 Excel까지</title>
+  <desc id="desc">영수증 원본에서 수동 확인한 교육용 텍스트 근거, 원본값과 정규화값, 합계 검증, 검토 라우팅, 사람 승인, Excel 출력으로 이어지는 예</desc>
+  <rect width="1440" height="760" fill="#F7FAFC"/>
+  <text x="64" y="72" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="36" font-weight="700" fill="#173B57">값 하나도 원본 근거에서 시작합니다</text>
+  <text x="64" y="110" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="20" fill="#667085">“76,000원”을 읽는 것과 업무 데이터 76000원을 승인하는 것은 다른 일입니다.</text>
+
+  <g font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif">
+    <rect x="64" y="175" width="190" height="360" rx="24" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="3"/>
+    <text x="159" y="216" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">1 · 원본</text>
+    <rect x="93" y="250" width="132" height="220" rx="8" fill="#FFFDF7" stroke="#AAB7C4" stroke-width="2"/>
+    <text x="111" y="285" font-size="13" fill="#667085">공급가액</text><text x="207" y="285" text-anchor="end" font-size="14" font-weight="700" fill="#173B57">69,094</text>
+    <text x="111" y="330" font-size="13" fill="#667085">부가세</text><text x="207" y="330" text-anchor="end" font-size="14" font-weight="700" fill="#173B57">6,906</text>
+    <rect x="103" y="360" width="112" height="50" rx="8" fill="#FFF2D6" stroke="#D89200" stroke-width="2"/>
+    <text x="111" y="391" font-size="14" font-weight="700" fill="#6D4B00">합계</text><text x="207" y="391" text-anchor="end" font-size="15" font-weight="700" fill="#6D4B00">76,000</text>
+    <text x="159" y="505" text-anchor="middle" font-size="15" fill="#667085">식별정보 가림</text>
+
+    <rect x="286" y="175" width="236" height="360" rx="24" fill="#EAF1F8" stroke="#4B779D" stroke-width="3"/>
+    <text x="404" y="216" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">2 · 원문 근거</text>
+    <text x="316" y="270" font-size="16" font-weight="700" fill="#173B57">raw_text</text>
+    <rect x="316" y="287" width="176" height="55" rx="10" fill="#FFFFFF"/><text x="404" y="322" text-anchor="middle" font-size="18" fill="#173B57">"합계 76,000"</text>
+    <text x="316" y="383" font-size="16" font-weight="700" fill="#173B57">evidence</text>
+    <rect x="316" y="400" width="176" height="82" rx="10" fill="#FFFFFF"/><text x="404" y="431" text-anchor="middle" font-size="15" fill="#516273">원본의 합계 행</text><text x="404" y="458" text-anchor="middle" font-size="15" fill="#516273">수동 확인 준비 결과</text>
+    <text x="404" y="508" text-anchor="middle" font-size="15" fill="#667085">모델 출력으로 가장하지 않음</text>
+
+    <rect x="554" y="175" width="238" height="360" rx="24" fill="#DDF3EE" stroke="#167D7F" stroke-width="3"/>
+    <text x="673" y="216" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">3 · 구조화·정규화</text>
+    <text x="584" y="270" font-size="15" font-weight="700" fill="#173B57">raw_value</text>
+    <rect x="584" y="285" width="178" height="50" rx="10" fill="#FFFFFF"/><text x="673" y="317" text-anchor="middle" font-size="17" fill="#173B57">"76,000원"</text>
+    <text x="584" y="379" font-size="15" font-weight="700" fill="#173B57">normalized_value</text>
+    <rect x="584" y="394" width="178" height="50" rx="10" fill="#FFFFFF"/><text x="673" y="426" text-anchor="middle" font-size="18" font-weight="700" fill="#167D7F">76000 · KRW</text>
+    <text x="673" y="486" text-anchor="middle" font-size="15" fill="#667085">원본값은 덮어쓰지 않음</text>
+
+    <rect x="824" y="175" width="238" height="360" rx="24" fill="#FFF2D6" stroke="#D89200" stroke-width="3"/>
+    <text x="943" y="216" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">4 · 검증·라우팅</text>
+    <rect x="854" y="269" width="178" height="94" rx="12" fill="#FFFFFF"/>
+    <text x="943" y="306" text-anchor="middle" font-size="18" fill="#173B57">69,094 + 6,906</text>
+    <text x="943" y="338" text-anchor="middle" font-size="20" font-weight="700" fill="#167D7F">= 76,000 ✓</text>
+    <text x="943" y="405" text-anchor="middle" font-size="16" fill="#516273">마스킹된 상호명</text>
+    <text x="943" y="434" text-anchor="middle" font-size="16" fill="#516273">→ 자동 확정 불가</text>
+    <rect x="876" y="466" width="134" height="48" rx="16" fill="#D89200"/>
+    <text x="943" y="497" text-anchor="middle" font-size="19" font-weight="700" fill="#FFFFFF">REVIEW</text>
+
+    <rect x="1094" y="175" width="282" height="360" rx="24" fill="#173B57"/>
+    <text x="1235" y="216" text-anchor="middle" font-size="22" font-weight="700" fill="#FFFFFF">5 · 사람 확인·Excel</text>
+    <text x="1235" y="273" text-anchor="middle" font-size="17" fill="#DDE7EF">원본과 근거를 확인</text>
+    <text x="1235" y="307" text-anchor="middle" font-size="17" fill="#DDE7EF">수정 이유와 검토자 기록</text>
+    <rect x="1132" y="345" width="206" height="110" rx="14" fill="#FFFFFF"/>
+    <text x="1154" y="378" font-size="15" font-weight="700" fill="#173B57">receipt_result.xlsx</text>
+    <text x="1154" y="409" font-size="14" fill="#516273">검토_요약 · 품목 · 원문</text>
+    <text x="1154" y="436" font-size="14" fill="#516273">review_status=approved</text>
+    <text x="1235" y="500" text-anchor="middle" font-size="16" font-weight="700" fill="#5ED0C6">검증 가능한 업무 데이터</text>
+  </g>
+
+  <g fill="none" stroke="#7B8794" stroke-width="5" stroke-linecap="round">
+    <path d="M254 355 H274"/><path d="M522 355 H542"/><path d="M792 355 H812"/><path d="M1062 355 H1082"/>
+  </g>
+  <g fill="#7B8794">
+    <polygon points="266,345 284,355 266,365"/><polygon points="534,345 552,355 534,365"/><polygon points="804,345 822,355 804,365"/><polygon points="1074,345 1092,355 1074,365"/>
+  </g>
+
+  <rect x="64" y="598" width="1312" height="105" rx="22" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="720" y="638" text-anchor="middle" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="20" font-weight="700" fill="#173B57">세 가지를 따로 남깁니다</text>
+  <text x="720" y="675" text-anchor="middle" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="18" fill="#516273">원문 근거 · 준비 결과의 원본값 · 업무에 맞게 정규화하고 사람이 승인한 최종값</text>
+</svg>

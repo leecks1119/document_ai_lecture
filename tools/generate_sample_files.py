@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFilter, ImageFont
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.export import receipt_to_csv_bytes
+from src.export import receipt_to_xlsx_bytes
 from src.sample_data import (
     SAMPLE_OCR_RESULT,
     SAMPLE_OCR_TEXT,
@@ -127,47 +127,44 @@ def main() -> None:
         json.dumps(SAMPLE_RECEIPT, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
-    (SAMPLE_OUTPUTS / "validated_result.csv").write_bytes(
-        receipt_to_csv_bytes(SAMPLE_RECEIPT)
+    (SAMPLE_OUTPUTS / "receipt_result.xlsx").write_bytes(
+        receipt_to_xlsx_bytes(SAMPLE_RECEIPT)
     )
 
-    technology_comparison = {
-        "input_document": "taebaek_restaurant_2025_redacted.png",
-        "example_label": "교육용 예시 — 실제 모델 실행 결과가 아님",
-        "comparisons": [
-            {
-                "technology": "OCR",
-                "input": "영수증 이미지 픽셀",
-                "process": ["텍스트 영역 탐지", "문자 인식"],
-                "output": "교육용 예시: 텍스트·좌표·신뢰도",
-                "cannot_guarantee": "업무 의미와 금액의 정확성",
-            },
-            {
-                "technology": "VLM",
-                "input": "영수증 이미지와 추출 지시",
-                "process": ["시각·배치 확인", "언어 관계 해석"],
-                "output": "교육용 예시: 표·Markdown·초안 JSON",
-                "cannot_guarantee": "관계와 값의 사실성",
-            },
-            {
-                "technology": "Document AI",
-                "input": "영수증과 업무 규칙",
-                "process": ["처리기 선택", "스키마", "검증", "사람 확인"],
-                "output": "검토 가능한 업무 데이터",
-                "cannot_guarantee": "검토 없는 완전 자동 정확성",
-            },
-        ],
-        "document_ai_workflow": [
-            "입력 품질",
-            "OCR·VLM·혼합",
-            "업무 스키마",
-            "규칙 검증",
-            "사람 확인",
-            "저장",
-        ],
+    fields = {
+        "net_amount": {
+            "raw_value": "69,094",
+            "normalized_value": 69094,
+            "evidence": "원본의 공급가액 행",
+        },
+        "tax_amount": {
+            "raw_value": "6,906",
+            "normalized_value": 6906,
+            "evidence": "원본의 부가세 행",
+        },
+        "total_amount": {
+            "raw_value": "76,000",
+            "normalized_value": 76000,
+            "evidence": "원본의 합계 행",
+        },
     }
-    (SAMPLE_OUTPUTS / "technology_comparison.json").write_text(
-        json.dumps(technology_comparison, ensure_ascii=False, indent=2) + "\n",
+    pipeline_trace = {
+        "source_document": "taebaek_restaurant_2025_redacted.png",
+        "source_mode": "교재 제작자가 원본에서 확인한 교육용 준비 결과",
+        "schema_fields": list(fields),
+        "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
+        "fields": fields,
+        "validation": {
+            "amount_math_ok": 69094 + 6906 == 76000,
+            "evidence_present": True,
+        },
+        "routing_decision": "REVIEW",
+        "routing_reason": "정책상 원본을 보는 사람 확인 필수",
+        "human_decision": "APPROVED_AFTER_SOURCE_CHECK",
+        "next_step": "7교시에서 receipt_result.xlsx 생성",
+    }
+    (SAMPLE_OUTPUTS / "receipt_pipeline_trace.json").write_text(
+        json.dumps(pipeline_trace, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 

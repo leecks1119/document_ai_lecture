@@ -4,13 +4,13 @@
 
 This repository contains materials and starter code for an eight-hour, beginner-friendly Document AI course.
 
-The course teaches learners to build a small document automation demo with OCR, structured JSON extraction, validation, CSV export, and Gradio. Google Colab is the primary hands-on environment.
+The course teaches learners to turn one real receipt into structured JSON, validate it, review it against the source, and download `receipt_result.xlsx` from a small Streamlit prototype. Every required exercise runs in Google Colab.
 
 ## Target audience
 
 - Beginner-level learners
 - Basic Python experience
-- Limited or no OCR, Document AI, Gradio, or AI coding tool experience
+- Limited or no OCR, Document AI, Streamlit, or document automation experience
 
 ## Course scope
 
@@ -22,20 +22,24 @@ Each lesson must stay small enough for one 60-minute class:
 - One primary learner artifact
 - Two or three purposeful visuals
 - No more than three formative-assessment questions
+- Lessons 2–8 use no more than six minutes of new concept explanation.
+- Lesson 1 may use up to 28 minutes to define the terminology and show the complete enterprise document-processing map once.
+- No more than 10–15 lines of learner-written code
 
 Do not add model training, OCR engine benchmarks, OCR ensembles, databases, authentication, production deployment, or large-scale cloud architecture to the required path.
 
 ## Development environment
 
-- Google Colab is the primary lab environment.
+- Google Colab is the only learner lab environment.
 - Use the documented fixed Colab runtime for final verification.
 - Keep local code compatible with Python 3.12.x.
-- Gradio is the primary UI.
-- PaddleOCR 3.7 with PP-OCRv5 Korean is the optional live OCR path.
-- PaddleOCR-VL 1.6 is the optional multimodal document parsing path.
+- Streamlit 1.60.0 is the web app framework.
+- PaddleOCR 3.7 with PP-OCRv5 Korean is the primary live OCR attempt in lesson 2.
+- If live OCR is not working within three minutes, switch to the clearly labeled prepared result.
+- PaddleOCR-VL 1.6 or one commercial VLM call is demonstrated once by the instructor with a de-identified sample.
 - Do not add EasyOCR back to the 2026 course.
 - Every lesson must remain completable with sample OCR text and mock JSON.
-- Real generative AI API calls are optional.
+- Learners do not need API keys and do not pay for API calls.
 
 ## Source of truth
 
@@ -49,13 +53,20 @@ Do not add model training, OCR engine benchmarks, OCR ensembles, databases, auth
 
 - Keep code and explanations beginner-friendly.
 - Prefer plain functions, descriptive names, small steps, and short comments.
-- Use one synthetic receipt example across the eight lessons.
+- Use one document per learner and one problem per learner.
+- The core input is a de-identified lunch, coffee, or photo-gallery receipt; always provide a licensed, redacted Korean receipt fallback.
 - Do not include real names, phone numbers, account numbers, API keys, or company documents.
 - Make mock use visible to learners; never present mock output as a live OCR or model result.
 - Preserve the original OCR text alongside cleaned and structured values.
 - Use `null` when the source does not contain a requested value.
 - Do not use OCR confidence alone for automatic approval.
-- Treat Gradio share links from Colab as potentially public.
+- Use Streamlit AppTest in Colab for the required UI verification path.
+- Do not require a public tunnel or local PC environment for learner exercises.
+- Do not upload personal receipts to public web app links or external APIs.
+- Keep the required path to one document at a time.
+- The final required export is `receipt_result.xlsx`, not CSV.
+- Instructor extension samples are quotation, application form, and transaction statement. Exclude purchase orders.
+- Prefer native structure parsers for Excel, Word, and PowerPoint originals; prefer the text layer for text PDFs; use OCR or VLM for scans, photos, and screenshots.
 - Avoid hardcoded API keys; use Colab Secrets or environment variables in optional exercises.
 
 ## Agent workflow
@@ -80,7 +91,7 @@ pytest
 
 When notebooks or their shared code change, also run the repository notebook validator and execute every offline/mock notebook path from top to bottom.
 
-When Gradio behavior changes, import the app successfully and verify that its demo object can be built without launching a public share link.
+When Streamlit behavior changes, run the app with `streamlit.testing.v1.AppTest` without launching a server.
 
 ## Done means
 
@@ -95,4 +106,4 @@ A lesson is complete only when:
 - No secrets or real personal information are committed.
 - The senior training manager reports no P0 findings and a score of at least 85.
 
-The full course is complete only when all eight lessons meet these conditions and the final Gradio mini app supports upload, PaddleOCR or PaddleOCR-VL selection, visible mock paths, JSON extraction, validation, and CSV export.
+The full course is complete only when all eight lessons meet these conditions and the final Streamlit mini app supports one-document upload, visible live/prepared-result paths, JSON extraction, validation, human review status, and safe `receipt_result.xlsx` export.

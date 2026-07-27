@@ -15,6 +15,15 @@ def test_explicit_sample_path_is_labeled():
     assert result["ok"]
     assert "MOCK PaddleOCR + MOCK VLM + MOCK 추출" in result["status"]
     assert result["validation"]["valid"]
+    assert result["review_status"] == "PENDING_REVIEW"
+    assert result["xlsx_bytes"] is None
+
+
+def test_human_approval_enables_xlsx():
+    result = process_document(use_sample=True, human_approved=True)
+
+    assert result["review_status"] == "APPROVED"
+    assert result["xlsx_bytes"]
 
 
 def test_smoke_test_covers_expected_paths():
@@ -35,7 +44,7 @@ def test_upload_rejects_files_over_course_limit(tmp_path):
     assert validate_upload(path) == ["수업에서는 5MB 이하 파일만 사용합니다."]
 
 
-def test_invalid_live_ocr_result_does_not_create_csv(tmp_path, monkeypatch):
+def test_invalid_live_ocr_result_does_not_create_xlsx(tmp_path, monkeypatch):
     path = tmp_path / "receipt.png"
     path.write_bytes(b"synthetic image placeholder")
     monkeypatch.setattr(
@@ -60,7 +69,7 @@ def test_invalid_live_ocr_result_does_not_create_csv(tmp_path, monkeypatch):
 
     assert result["ok"]
     assert not result["validation"]["valid"]
-    assert result["csv_bytes"] is None
+    assert result["xlsx_bytes"] is None
 
 
 def test_live_vlm_path_uses_paddleocr_vl_markdown(tmp_path, monkeypatch):

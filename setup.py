@@ -7,7 +7,8 @@ setup(
     url="https://github.com/leecks1119/document_ai_lecture",
     packages=["src"],
     install_requires=[
-        "gradio==6.20.0",
+        "streamlit==1.60.0",
+        "openpyxl>=3.1,<4",
         "jsonschema>=4.23,<5",
         "pandas>=2.0,<4",
         "Pillow>=10,<13",

@@ -1,20 +1,34 @@
-import pytest
+from pathlib import Path
+
+from streamlit.testing.v1 import AppTest
 
 
-gradio = pytest.importorskip("gradio")
-
-from app import build_demo, run_sample
+APP_PATH = Path(__file__).resolve().parents[1] / "app.py"
 
 
-def test_gradio_demo_builds_without_launching():
-    assert isinstance(build_demo(), gradio.Blocks)
+def test_streamlit_app_builds_without_browser():
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+
+    assert not app.exception
+    assert app.title[0].value == "영수증 Document AI 미니 앱"
+    assert len(app.file_uploader) == 1
 
 
-def test_sample_handler_labels_mock_output():
-    status, ocr_text, data, rows, csv_path = run_sample()
+def test_streamlit_sample_path_shows_result():
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.button(key="run_sample").click().run(timeout=20)
 
-    assert "MOCK PaddleOCR + MOCK VLM + MOCK 추출" in status
-    assert "샘플문구점" in ocr_text
-    assert data["total_amount"] == 5000
-    assert len(rows) == 2
-    assert csv_path
+    assert not app.exception
+    assert app.success
+    assert "MOCK" in app.success[0].value
+    assert len(app.checkbox) == 1
+    assert len(app.get("download_button")) == 0
+
+
+def test_streamlit_requires_human_approval_before_download():
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.button(key="run_sample").click().run(timeout=20)
+    app.checkbox(key="review_complete").check().run(timeout=20)
+
+    assert not app.exception
+    assert len(app.get("download_button")) == 1

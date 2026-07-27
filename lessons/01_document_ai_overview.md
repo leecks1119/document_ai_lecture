@@ -1,189 +1,274 @@
 # 1교시. 한국 영수증으로 구분하는 OCR·VLM·Document AI
 
-> 같은 영수증도 OCR은 글자를 읽고, VLM은 배치와 관계를 해석하며, Document AI는 검증과 사람 확인까지 연결합니다.
+> 영수증 한 장이 글자 인식에서 끝나지 않고, 근거를 확인할 수 있는 업무 데이터가 되는 전체 과정을 먼저 경험합니다.
+>
+> **핵심 메시지:** OCR·VLM은 문서를 읽고 구조화할 때 선택하거나 조합하는 기술이며, 실제 자동화에는 목표 정의부터 검증·사람 확인·업무 연결·운영 개선까지 필요합니다.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb)
 
 ## 1. 학습 목표
 
-- OCR·VLM·Document AI의 정의를 구분할 수 있다.
-- 세 방식의 입력·처리 과정·출력 차이를 설명할 수 있다.
-- 준비된 예시와 실제 모델 실행 결과를 구별할 수 있다.
+- OCR·Multimodal AI·VLM·Document AI·IDP를 이 과정의 기준으로 구분해 설명할 수 있다.
+- 문서 자동화의 0~12 전체 지도에서 각 단계의 입력·출력·확인 대상을 찾을 수 있다.
+- 실제 영수증의 원문·정규화 값·근거·검증·처리 결정을 연결할 수 있다.
 
 ## 2. 이번 교시의 결과물
 
-- `technology_comparison.json`: 세 기술의 역할과 처리 과정 비교표
+- `receipt_pipeline_trace.json`: 영수증 한 장이 전체 과정에서 어떻게 바뀌는지 기록한 추적 파일
+
+`receipt_result.xlsx`는 강사가 최종 목적지로만 미리 보여 준다. 학습자가 검증과 사람 확인을 적용해 Excel을 직접 만드는 시점은 7교시다.
 
 ## 3. 시작하기 전에
 
 ### 선수 지식
 
-- Python 딕셔너리와 리스트를 본 적이 있으면 충분하다.
+- Python 딕셔너리의 `"이름": 값` 모양을 읽을 수 있으면 충분하다.
+- 코드를 처음부터 작성하지 않는다. 빈칸, 힌트, 전체 정답을 모두 제공한다.
 
 ### 준비 파일
 
 - [식별정보를 가린 한국 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 - [1교시 Colab 노트북](../colab/01_document_ai_overview.ipynb)
+- 강사가 제공하는 완성 `receipt_result.xlsx` 미리보기
 
 ![개인정보와 거래 식별 영역을 가린 2025년 태백 음식점 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 
 이 자료는 2025-10-04 발행된 실제 한국 영수증이다. [Wikimedia Commons 원본](https://commons.wikimedia.org/wiki/File:Receipt_taebaek_restaurant_IMG_2614_modified.jpg)은 Public Domain(`PD-ineligible`)으로 표시돼 있다. 수업용 PNG는 전화번호·거래 식별 영역을 추가로 가리고 메타데이터를 제거했다.
 
+1교시에는 OCR·VLM 모델을 설치하지 않는다. 교재 제작자가 원본을 보고 확인한 **준비 결과**로 데이터의 이동 경로를 추적한다. 실제 OCR은 2교시에서 실행한다.
+
 ## 4. 핵심 개념
 
-### 4.1 OCR은 글자를 읽는다
+용어의 경계는 산업 표준 하나로 완전히 통일돼 있지 않고 공급자에 따라 일부 겹친다. 아래는 이 과정에서 일관되게 사용할 구분이다.
 
-**정의:** OCR(광학 문자 인식)은 이미지 픽셀에서 글자 영역을 찾고 문자를 인식하는 기술이다.
+### 4.1 OCR은 이미지에서 텍스트를 인식하는 기술이다
 
-```text
-픽셀 → 텍스트 영역 탐지 → 문자 인식 → 텍스트·좌표·신뢰도
-```
-
-OCR은 `합계`, `76,000` 같은 글자를 읽을 수 있다. 하지만 둘이 업무상 총액이라는 의미인지, 금액이 맞는지는 별도 검사다.
-
-### 4.2 VLM은 이미지 속 관계를 해석한다
-
-**정의:** VLM(시각 언어 모델)은 이미지와 지시문을 함께 받아 글자·배치·주변 관계를 언어로 표현하는 모델이다.
+OCR(Optical Character Recognition)은 사진·스캔처럼 픽셀로 된 문서에서 글자를 찾고 문자로 바꾼다.
 
 ```text
-이미지 + 지시 → 시각·배치와 언어 관계 해석 → 표·Markdown·답변·초안 JSON
+문서 이미지
+  → 글자가 있는 영역 찾기
+  → 영역의 문자 인식
+  → 인식 텍스트
 ```
 
-VLM은 품목명과 오른쪽 금액의 관계를 표로 정리하기 좋다. 다만 흐린 값을 추측하거나 행을 잘못 연결할 수 있으므로 결과가 곧 사실은 아니다.
-
-### 4.3 Document AI는 업무가 끝나도록 연결한다
-
-**정의:** Document AI는 단일 모델 이름이 아니라 문서를 검토 가능한 업무 데이터로 바꾸는 **시스템과 업무 흐름**이다.
+많은 OCR 시스템은 페이지, 좌표, 인식 신뢰도 같은 메타데이터도 함께 제공할 수 있다. 그러나 이것은 모든 OCR의 필수 출력은 아니다.
 
 ```text
-입력 품질 → OCR·VLM·혼합 선택 → 업무 스키마
-→ 규칙 검증 → 사람 확인 → 저장
+가능한 출력: "부가세 6,906", 페이지 1, 좌표, 신뢰도
+보장하지 않음: 6,906원이 실제 세액인지, 합계가 맞는지, 저장해도 되는지
 ```
 
-예를 들어 `69,094 + 6,906 = 76,000`인지 검사하고, 흐린 품목은 담당자에게 보낸 뒤 승인된 값만 저장한다.
+OCR의 신뢰도는 정답 확률이나 업무 승인 점수가 아니다. 원본 대조와 업무 규칙 검증은 별도로 필요하다.
+
+### 4.2 Multimodal AI는 상위 범주이고 VLM은 그중 한 종류다
+
+Multimodal AI는 이미지·텍스트·음성처럼 둘 이상의 데이터 형식을 함께 다루는 AI의 넓은 범주다. VLM(Vision-Language Model)은 그중 이미지와 언어를 함께 다루는 모델이다.
+
+```text
+Multimodal AI
+└── VLM: 이미지 + 지시문 → 설명·질의응답·표·초안 JSON 등
+```
+
+문서용 VLM은 영수증 이미지와 “상호명·날짜·합계를 JSON으로 정리해 줘”라는 지시를 함께 받아 구조 초안을 만들 수 있다. 모델에 따라 문자 인식, 표·레이아웃 해석, 질문 응답을 한 번에 시도할 수도 있다.
+
+VLM이 만든 값은 빨리 확인할 수 있는 **초안**이다. 흐린 숫자를 그럴듯하게 추측하거나, 표의 행을 잘못 연결하거나, 원문에 없는 값을 만들 수 있다. 따라서 원문 근거·스키마·계산 규칙·사람 확인 없이 확정하지 않는다.
+
+### 4.3 Document AI 역량과 IDP 운영 범위를 구분한다
+
+이 과정에서 **Document AI**는 문서를 기계가 사용할 수 있는 구조로 바꾸는 기술·제품 역량의 묶음으로 정의한다.
+
+- 텍스트와 레이아웃 인식
+- 문서 유형 분류
+- 키-값과 표 추출
+- 업무 스키마에 맞춘 구조화와 정규화
+
+**IDP(Intelligent Document Processing)**는 Document AI 역량을 실제 업무 운영에 연결한 더 넓은 범위로 구분한다.
+
+- 문서 접수와 접근 통제
+- 검증과 예외 분기
+- 사람 검토와 승인·반려
+- Excel·업무 시스템 연결
+- 모니터링, 평가, 개선, 보존과 삭제
+
+Document AI와 IDP는 시장에서 같은 뜻처럼 쓰이기도 한다. 이 구분은 “모델 실행”과 “업무에서 안전하게 계속 쓰는 과정”을 놓치지 않기 위한 **강의상의 기준**이다.
 
 > **쉬운 비유**
-> OCR은 영수증을 받아 적는 사람, VLM은 품목과 금액 관계를 표로 정리하는 사람, Document AI는 검사·승인·저장까지 정한 전체 비용 처리 절차다.
+>
+> OCR은 영수증을 받아 적는 역할, VLM은 이미지와 요청을 함께 보고 표 초안을 만드는 역할, Document AI는 문서를 구조화하는 도구 상자, IDP는 접수·검사·승인·전달·사후관리까지 정한 비용 처리 운영이다.
 
-비유의 한계: 실제 AI는 사람처럼 의미를 완전히 이해하지 않는다. OCR과 VLM은 모두 틀릴 수 있고, Document AI도 스키마·규칙·사람 확인이 있어야 한다.
+비유의 한계: 각 기술은 사람처럼 완전하게 이해하지 않으며, 실제 제품은 여러 기능을 한 번에 제공할 수 있다. 따라서 `OCR → VLM → Document AI`를 반드시 거치는 고정 순서로 이해하면 안 된다.
 
-![같은 영수증에서 OCR은 글자, VLM은 관계, Document AI는 검증과 저장까지 처리하는 비교도](assets/01/01_pipeline_map.svg)
+![Multimodal AI, VLM, OCR, Document AI 역량과 IDP 운영 범위의 관계](assets/01/01_terms_relationship.svg)
 
 ## 5. 전체 실습 흐름
 
-```text
-한국 실물 영수증 관찰
-  → 교육용 OCR·VLM 예시 비교
-  → 세 기술의 입력·과정·출력·한계 정리
-  → technology_comparison.json 저장
-```
+아래 0~12는 외워야 할 새 용어 13개가 아니라, 하루 동안 계속 돌아올 **전체 참조 지도**다. 문서 종류와 제품에 따라 일부 단계는 합쳐지거나 순서가 되돌아갈 수 있다.
+
+![업무 목표부터 운영 평가까지 이어지는 Document AI 전체 참조 지도](assets/01/02_enterprise_pipeline.svg)
+
+| 단계 | 하는 일 | 영수증 한 장에서 확인할 것 | 다음으로 넘기는 결과 |
+| ---: | --- | --- | --- |
+| 0 | 업무 목표·성공 기준·스키마 정의 | 무엇을 왜 자동화하며 오류 영향은 무엇인가? | 필드·검증·성공 기준 |
+| 1 | 접수 | 사진·PDF·Office 원본을 어디서 받는가? | 원본과 문서 ID |
+| 2 | 형식 라우팅·분리 | 텍스트층, 셀 구조, 사진 중 무엇인가? 한 장인가? | 처리 경로 |
+| 3 | 품질 확인·전처리 | 흐림·잘림·회전·해상도가 처리 가능한가? | 처리 가능 이미지 또는 반려 |
+| 4 | 텍스트·레이아웃 추출 | 원본 구조 파서인가, OCR인가? | 원문·페이지·위치 등 |
+| 5 | 문서 유형 분류 | 영수증인가, 견적서인가? | 문서 유형 |
+| 6 | 필드·표 구조화 | 상호명·날짜·품목·합계의 후보는 무엇인가? | 스키마 초안 |
+| 7 | 정규화 | `"76,000원"`을 `76000`으로 바꿔도 원문이 남는가? | 원문과 정규화 값 |
+| 8 | 검증 | 필수값·형식·`69,094 + 6,906 = 76,000`이 맞는가? | 규칙별 통과·실패 |
+| 9 | 처리 결정 | 자동 확정, 사람 검토, 처리 불가 중 무엇인가? | `AUTO_ACCEPT`·`REVIEW`·`REJECT` |
+| 10 | 사람 검토 | 담당자가 원본 근거를 보고 승인·수정·반려했는가? | 사람의 결정과 기록 |
+| 11 | 내보내기·업무 연결 | 승인된 값을 Excel·업무 시스템에 어떻게 전달하는가? | 사용 가능한 업무 데이터 |
+| 12 | 관측·평가·개선 | 어떤 문서·필드에서 자주 틀리는가? | 품질·비용·수정률과 개선안 |
+
+보안·개인정보·접근 통제·감사 기록·보존·삭제 정책은 특정 한 단계가 아니라 **0~12 전체를 가로지른다.**
+
+처리 결정의 최소 기준은 다음과 같다.
+
+| 결정 | 예시 기준 | 다음 행동 |
+| --- | --- | --- |
+| `AUTO_ACCEPT` | 필수값·형식·합계·원문 근거 규칙을 모두 통과하고 오류 영향이 낮음 | 승인된 저장 경로로 전달 |
+| `REVIEW` | 값은 있으나 모호하거나 정책상 사람 확인이 필요함 | 원본과 후보 값을 검토자에게 표시 |
+| `REJECT` | 입력 품질이 부족하거나 필수 근거가 없거나 지원하지 않는 문서임 | 재촬영·재접수·수동 처리 |
+
+사람 검토는 없는 근거를 만들어 내는 단계가 아니다. 원본과 추출 후보를 비교해 승인·수정·반려하고 그 이유를 남기는 단계다.
 
 ## 6. 단계별 실습
 
-### 실습 1. 같은 영수증의 세 가지 처리 방식 비교하기
+### 실습 1. 영수증 한 장의 처리 흔적 완성하기
 
-아래 값은 **교육용 예시이며 실제 모델 실행 결과가 아니다.** 각 기술이 하는 일과 보장하지 못하는 일을 확인한다.
+먼저 완성 Excel의 두 시트와 원본 영수증을 2~3분 비교한다. 그다음 Colab에서 준비된 추적 데이터의 빈칸 세 곳을 채운다.
+
+![영수증 원문에서 근거·정규화·검증·사람 확인을 거쳐 Excel로 가는 흐름](assets/01/03_receipt_evidence_flow.svg)
 
 ```python
-COMPARISONS = [
-    {
-        "technology": "OCR",
-        "input": "영수증 이미지 픽셀",
-        "process": ["텍스트 영역 탐지", "문자 인식"],
-        "output": "교육용 예시: 텍스트·좌표·신뢰도",
-        "cannot_guarantee": "업무 의미와 금액의 정확성",
+TRACE = {
+    "schema_fields": ["net_amount", "tax_amount", "total_amount"],
+    "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
+    "fields": {
+        "net_amount": {
+            "raw_value": "69,094",
+            "normalized_value": 69094,
+            "evidence": "원본의 공급가액 행",
+        },
+        "tax_amount": {
+            "raw_value": "6,906",
+            "normalized_value": 6906,
+            "evidence": "원본의 부가세 행",
+        },
+        "total_amount": {
+            "raw_value": "76,000",
+            "normalized_value": 76000,
+            "evidence": "원본의 합계 행",
+        },
     },
-    {
-        "technology": "VLM",
-        "input": "영수증 이미지와 추출 지시",
-        "process": ["시각·배치 확인", "언어 관계 해석"],
-        "output": "교육용 예시: 표·Markdown·초안 JSON",
-        "cannot_guarantee": "관계와 값의 사실성",
-    },
-    {
-        "technology": "Document AI",
-        "input": "영수증과 업무 규칙",
-        "process": ["처리기 선택", "스키마", "검증", "사람 확인"],
-        "output": "검토 가능한 업무 데이터",
-        "cannot_guarantee": "검토 없는 완전 자동 정확성",
-    },
-]
+}
+
+TRACE["validation"] = {
+    "amount_math_ok": 69094 + 6906 == 76000,
+    "evidence_present": all(
+        field["evidence"] for field in TRACE["fields"].values()
+    ),
+}
+TRACE["routing_decision"] = "REVIEW"  # 정책상 사람 확인 필수
+TRACE["human_decision"] = "APPROVED_AFTER_SOURCE_CHECK"
+TRACE["next_step"] = "7교시에서 receipt_result.xlsx 생성"
 ```
+
+이 값과 근거 문구는 교재 제작자가 원본에서 확인한 **교육용 준비 결과**다. 모델이 생성한 신뢰도나 좌표처럼 가장하지 않는다.
 
 ```python
 import json
 
-result = {
-    "input_document": "taebaek_restaurant_2025_redacted.png",
-    "example_label": "교육용 예시 — 실제 모델 실행 결과가 아님",
-    "comparisons": COMPARISONS,
-    "document_ai_workflow": [
-        "입력 품질", "OCR·VLM·혼합", "업무 스키마",
-        "규칙 검증", "사람 확인", "저장",
-    ],
-}
-with open("technology_comparison.json", "w", encoding="utf-8") as file:
-    json.dump(result, file, ensure_ascii=False, indent=2)
+with open("receipt_pipeline_trace.json", "w", encoding="utf-8") as file:
+    json.dump(TRACE, file, ensure_ascii=False, indent=2)
 ```
 
 **기대 결과**
 
-- `comparisons`에 OCR·VLM·Document AI가 한 번씩 들어 있다.
-- Colab 파일 영역에 `technology_comparison.json`이 생긴다.
+- `raw_value`와 `normalized_value`가 모두 남아 있다.
+- `69,094 + 6,906 = 76,000` 검증 결과가 `True`다.
+- 합계가 맞아도 정책에 따라 `REVIEW`가 될 수 있다.
+- Colab 파일 영역에 `receipt_pipeline_trace.json`이 생긴다.
 
-**mock 대체 경로**
+**완성 복구본**
 
-이미지 표시가 실패해도 노트북에 내장된 축소 이미지와 위 교육용 예시로 같은 실습을 진행한다. mock을 실제 업로드 처리 결과라고 말하지 않는다.
+이미지 표시나 빈칸 실행이 막히면 노트북에 내장된 비식별 축소 이미지와 완성 `PREPARED_TRACE`를 사용한다. 준비 결과를 실제 OCR·VLM 출력이라고 말하지 않는다.
 
-## 7. Codex 활용
+### 60분 운영표
 
-### 실습 프롬프트
+| 시간 | 수업 운영 |
+| --- | --- |
+| 0~4분 | 완성 Excel과 원본을 비교해 최종 목적지 확인 |
+| 4~10분 | OCR·Multimodal AI·VLM·Document AI·IDP 정의 |
+| 10~20분 | 용어 관계도에서 선택·조합 관계 표시 |
+| 20~30분 | 영수증을 0~12 지도에 대입해 입력·출력 표시 |
+| 30~34분 | 강사 연속 시연과 완성 Excel 두 시트 확인 |
+| 34~52분 | Colab에서 원문·정규화·근거·검증·처리 결정 추적 |
+| 52~57분 | 결과 비교와 완성 복구본으로 재실행 |
+| 57~60분 | 형성평가와 2~8교시 연결 |
 
-```text
-목표: OCR, VLM, Document AI 비교표를 초보자 관점에서 검토해줘.
-맥락: 같은 한국 영수증 한 장을 비교한 1교시 결과야.
-제약조건: 기술을 추가하지 말고 입력·과정·출력·한계만 확인해.
-완료 기준: 서로 역할이 섞인 항목만 짧게 알려줘.
-```
+## 7. 실습 결과 확인
+
+- `schema_fields`, `raw_text`, `raw_value`, `normalized_value`, `evidence`가 있는가?
+- 검증 결과와 처리 결정이 분리돼 있는가?
+- `REVIEW` 뒤 사람의 결정과 다음 단계가 기록됐는가?
+- 준비 결과를 실제 모델 실행 결과라고 표시하지 않았는가?
 
 ## 8. 문제 해결
 
 | 증상 | 원인 | 해결 방법 |
 | --- | --- | --- |
 | 이미지가 보이지 않음 | 셀 실행 순서 문제 | 이미지 준비 셀부터 다시 실행 |
-| `JSONDecodeError` | 따옴표·쉼표 오류 | 완성 예시와 해당 줄 비교 |
-| 결과를 실제 추론으로 오해 | 예시 라벨 누락 | `example_label`을 삭제하지 않음 |
+| `JSONDecodeError` | 따옴표·쉼표 오류 | 전체 정답과 해당 줄 비교 |
+| 합계가 `False` | 문자열을 더했거나 값 오타 | 정규화 값 세 개가 정수인지 확인 |
+| 합계가 맞는데 `REVIEW` | 검증과 업무 정책은 별개 | 정책상 사람 확인 사유를 기록 |
+| 단계가 너무 많아 보임 | 전체 지도를 암기하려 함 | 오늘은 각 단계의 입력·출력 위치만 표시 |
 
 ## 9. 형성평가
 
-1. OCR이 `76,000`을 읽으면 그 금액을 바로 확정해도 되는가?
-2. Document AI는 OCR이나 VLM과 같은 단일 모델 이름인가?
+1. VLM은 Multimodal AI와 별개의 상위 기술인가?
+2. 이 과정에서 Document AI와 IDP를 어떻게 구분하는가?
+3. 합계 계산이 맞아도 `REVIEW`가 될 수 있는 이유는 무엇인가?
 
 <details>
 <summary>정답 보기</summary>
 
-1. 아니다. 원문·합계 규칙·업무 기준과 사람 확인이 필요하다.
-2. 아니다. 처리기 선택부터 스키마·검증·사람 확인·저장까지의 시스템과 흐름이다.
+1. 아니다. VLM은 이미지와 언어를 다루는 Multimodal AI의 한 종류다.
+2. Document AI는 문서를 구조화하는 기술·제품 역량, IDP는 이를 접수·검증·사람 확인·업무 연결·운영 개선과 결합한 범위로 구분한다. 다만 시장에서는 두 용어가 겹쳐 쓰일 수 있다.
+3. 필수 근거가 모호하거나 오류 영향이 크거나 조직 정책이 사람 확인을 요구할 수 있기 때문이다.
 
 </details>
 
 ## 10. 핵심 요약
 
-- OCR은 이미지에서 글자·위치·신뢰도를 만든다.
-- VLM은 이미지와 지시를 함께 보고 배치·관계를 구조 초안으로 표현한다.
-- Document AI는 읽기부터 검증·사람 확인·저장까지 연결한다.
+- OCR은 이미지에서 텍스트를 인식하고, 제품에 따라 위치·신뢰도 등도 제공할 수 있다.
+- VLM은 Multimodal AI의 한 종류이며 문서 구조 초안을 만들 수 있지만 사실성을 보장하지 않는다.
+- Document AI는 구조화 역량, IDP는 이를 실제 업무 운영에 연결한 범위로 구분한다.
+- 실제 자동화는 목표 정의부터 검증·예외·사람 확인·연결·평가까지 이어진다.
+- 검증 통과와 업무 승인은 같은 말이 아니다.
 
 ## 11. 완료 체크리스트
 
-- [ ] 세 기술의 정의와 과정을 설명할 수 있다.
-- [ ] 교육용 예시와 실제 모델 결과를 구분했다.
-- [ ] `technology_comparison.json`을 만들었다.
+- [ ] 다섯 용어를 이 과정의 기준으로 구분했다.
+- [ ] 0~12 지도에서 영수증 데이터의 이동을 표시했다.
+- [ ] 원문·정규화 값·근거·검증·처리 결정을 구분했다.
+- [ ] `receipt_pipeline_trace.json`을 만들었다.
 
 ## 12. 다음 교시 예고
 
-2교시에서는 OCR 결과의 텍스트·위치·신뢰도를 직접 확인한다.
+2교시에서는 식별정보를 가린 영수증 한 장에 PP-OCRv5 Korean을 실행하고, 실제 OCR 결과를 원본과 대조한다.
 
 ## 참고 자료
 
-- [PaddleOCR 3.x OCR 파이프라인](https://www.paddleocr.ai/main/en/version3.x/pipeline_usage/OCR.html)
-- [PaddleOCR-VL 파이프라인](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)
+- [Google Cloud Document AI 개요](https://cloud.google.com/document-ai/docs/overview)
+- [Google Cloud Document 응답 구조](https://docs.cloud.google.com/document-ai/docs/handle-response)
+- [AWS Intelligent Document Processing 설명](https://aws.amazon.com/what-is/intelligent-document-processing/)
+- [NIST AI RMF Core](https://airc.nist.gov/airmf-resources/airmf/5-sec-core/)
+- [Google Cloud Document AI 평가](https://docs.cloud.google.com/document-ai/docs/evaluate)
+- [PaddleOCR PP-OCRv5 다국어 모델](https://www.paddleocr.ai/latest/en/version3.x/algorithm/PP-OCRv5/PP-OCRv5_multi_languages.html)
+- [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
+
+기술 버전과 운영 근거는 2026-07-27 기준 공식 문서를 확인했다. 2024년 이후 널리 알려진 사례는 문제 구조와 설명 방식에만 참고하고, 버전·성능·가격·보안 정책은 최신 공식 문서로 다시 확인한다.

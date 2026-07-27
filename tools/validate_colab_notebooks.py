@@ -12,14 +12,14 @@ ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
 
 EXPECTED_ARTIFACTS = {
-    "01_document_ai_overview.ipynb": "technology_comparison.json",
-    "02_ocr_basic.ipynb": "ocr_text.txt",
+    "01_document_ai_overview.ipynb": "receipt_pipeline_trace.json",
+    "02_ocr_basic.ipynb": "ocr_result.json",
     "03_document_structure.ipynb": "clean_receipt.json",
     "04_genai_extraction.ipynb": "receipt.json",
-    "05_gradio_basic.ipynb": "app_05.py",
+    "05_streamlit_basic.ipynb": "app_05.py",
     "06_ocr_ai_integration.ipynb": "app_06.py",
-    "07_validation_export.ipynb": "receipt.csv",
-    "08_business_application.ipynb": "business_application_card.md",
+    "07_validation_export.ipynb": "receipt_result.xlsx",
+    "08_business_application.ipynb": "poc_candidate_card.md",
 }
 
 
@@ -42,9 +42,10 @@ def validate_structure(path: Path, notebook: dict) -> None:
         "RUN_PADDLEOCR_VL = False" in source
         or path.name != "04_genai_extraction.ipynb"
     )
-    assert "RUN_PUBLIC_DEMO = False" in source or path.name != "05_gradio_basic.ipynb"
     assert "OPENAI_API_KEY" not in source, f"{path}: do not embed key names in required path"
     assert "easyocr" not in source.lower(), f"{path}: EasyOCR must not appear"
+    assert "gradio" not in source.lower(), f"{path}: Gradio must not appear"
+    assert "codex" not in source.lower(), f"{path}: Codex lab must not appear"
 
     if path.name == "02_ocr_basic.ipynb":
         assert "PaddleOCR" in source
@@ -52,6 +53,17 @@ def validate_structure(path: Path, notebook: dict) -> None:
     if path.name == "04_genai_extraction.ipynb":
         assert "PaddleOCRVL" in source
         assert 'pipeline_version="v1.6"' in source
+    if path.name == "06_ocr_ai_integration.ipynb":
+        assert "streamlit.testing.v1" in source
+        assert "영수증 Document AI 연결 앱" in source
+        assert "from src" not in source
+    if path.name == "07_validation_export.ipynb":
+        assert "human_approved" in source
+        assert "validation[\"valid\"]" in source
+        assert '"검토_요약", "품목", "원문"' in source
+        assert "raw_value" in source
+        assert "cleaned_value" in source
+        assert "final_value" in source
 
 
 def execute_mock_path(path: Path, notebook: dict) -> None:

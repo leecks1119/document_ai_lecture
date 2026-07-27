@@ -142,9 +142,9 @@ def intro(
 
         **결과물:** `{artifact}`
 
-        - 기본 경로는 API 키와 OCR 모델 다운로드가 필요 없습니다.
-        - 선택 실습은 기본값이 `False`입니다.
-        - 수업이 지정한 공개 실물·합성 샘플만 사용합니다.
+        - 모든 필수 실습은 Google Colab에서 진행합니다.
+        - 학습자 API 키나 결제가 필요 없습니다.
+        - 실행이 막히면 교재에 포함된 완성 복구본으로 같은 실습을 계속합니다.
         """
     )
 
@@ -195,8 +195,8 @@ def notebook_01() -> dict:
         intro(
             1,
             "한국 영수증으로 구분하는 OCR·VLM·Document AI",
-            "technology_comparison.json",
-            "같은 한국 영수증에서 세 기술의 역할과 처리 과정을 구분합니다.",
+            "receipt_pipeline_trace.json",
+            "용어 관계를 구분하고 영수증 한 장의 0~12 전체 처리 흐름을 추적합니다.",
         ),
         runtime_cell(),
         code(
@@ -216,77 +216,160 @@ def notebook_01() -> dict:
         ),
         markdown(
             """
-            ## 핵심 3개
+            ## 강사가 먼저 보여 줄 최종 목적지
 
-            1. OCR: 픽셀 → 영역 탐지 → 문자 인식 → 텍스트·좌표·신뢰도
-            2. VLM: 이미지+지시 → 배치·언어 관계 해석 → 표·Markdown·초안 JSON
-            3. Document AI: 처리기 선택 → 스키마 → 검증 → 사람 확인 → 저장
+            완성 `receipt_result.xlsx`에는 원문·최종값·검토 상태와 품목 행이 남습니다.
+            1교시에는 파일을 직접 만들지 않고 목적지만 확인합니다. 실제 생성은 7교시입니다.
+            """
+        ),
+        markdown(
+            """
+            ## 이 과정의 용어 기준
 
-            아래 결과는 모두 **교육용 예시이며 실제 모델 실행 결과가 아닙니다.**
+            업계에서 용어 경계는 공급자에 따라 일부 겹칩니다. 이 과정에서는 다음처럼 구분합니다.
+
+            1. **OCR**: 이미지에서 텍스트를 인식합니다. 제품에 따라 페이지·좌표·신뢰도를 함께 제공할 수 있습니다.
+            2. **Multimodal AI**: 둘 이상의 데이터 형식을 다루는 상위 범주입니다.
+            3. **VLM**: 이미지와 언어를 함께 다루는 Multimodal AI의 한 종류입니다.
+            4. **Document AI**: 분류·OCR·레이아웃·필드 추출·정규화 등 문서 구조화 역량입니다.
+            5. **IDP**: Document AI 역량을 접수·검증·예외·사람 확인·업무 연결·운영 개선에 결합한 범위입니다.
+
+            `OCR → VLM → Document AI`는 반드시 거치는 고정 순서가 아닙니다.
             """
         ),
         code(
             """
-            COMPARISONS = [
-                {
-                    "technology": "OCR",
-                    "input": "영수증 이미지 픽셀",
-                    "process": ["텍스트 영역 탐지", "문자 인식"],
-                    "output": "교육용 예시: 텍스트·좌표·신뢰도",
-                    "cannot_guarantee": "업무 의미와 금액의 정확성",
-                },
-                {
-                    "technology": "VLM",
-                    "input": "영수증 이미지와 추출 지시",
-                    "process": ["시각·배치 확인", "언어 관계 해석"],
-                    "output": "교육용 예시: 표·Markdown·초안 JSON",
-                    "cannot_guarantee": "관계와 값의 사실성",
-                },
-                {
-                    "technology": "Document AI",
-                    "input": "영수증과 업무 규칙",
-                    "process": ["처리기 선택", "스키마", "검증", "사람 확인"],
-                    "output": "검토 가능한 업무 데이터",
-                    "cannot_guarantee": "검토 없는 완전 자동 정확성",
-                },
-            ]
-
-            for item in COMPARISONS:
-                print(item["technology"], "→", item["output"])
-            """
-        ),
-        markdown("## 실습. 한 장의 영수증을 세 방식으로 비교"),
-        code(
-            """
-            TECHNOLOGY_COMPARISON = {
-                "input_document": "taebaek_restaurant_2025_redacted.png",
-                "example_label": "교육용 예시 — 실제 모델 실행 결과가 아님",
-                "comparisons": COMPARISONS,
-                "document_ai_workflow": [
-                    "입력 품질",
-                    "OCR·VLM·혼합",
-                    "업무 스키마",
-                    "규칙 검증",
-                    "사람 확인",
-                    "저장",
+            TERM_RELATION = {
+                "multimodal_ai": ["VLM"],
+                "document_ai_capabilities": [
+                    "OCR", "VLM", "분류", "레이아웃", "필드·표 추출", "정규화"
+                ],
+                "idp_operations": [
+                    "접수", "보안", "검증", "예외 처리", "사람 확인",
+                    "업무 연결", "관측·평가·개선",
                 ],
             }
 
-            technologies = {
-                item["technology"] for item in TECHNOLOGY_COMPARISON["comparisons"]
+            assert "VLM" in TERM_RELATION["multimodal_ai"]
+            assert "OCR" in TERM_RELATION["document_ai_capabilities"]
+            TERM_RELATION
+            """
+        ),
+        markdown(
+            """
+            ## 0~12 전체 참조 지도
+
+            아래 단계는 암기 목록이 아닙니다. 하루 동안 각 실습이 어디에 있는지 찾는 지도입니다.
+
+            | 번호 | 단계 | 영수증에서 확인할 질문 |
+            |---:|---|---|
+            | 0 | 목표·스키마 | 어떤 값이 필요하고 틀리면 어떤 문제가 생기는가? |
+            | 1 | 접수 | 사진·PDF·Office 원본을 어디서 받는가? |
+            | 2 | 형식 라우팅·분리 | 텍스트층·셀·픽셀 중 무엇인가? |
+            | 3 | 품질 확인·전처리 | 흐림·잘림·회전이 처리 가능한가? |
+            | 4 | 텍스트·레이아웃 추출 | 원본 파서인가, OCR인가? |
+            | 5 | 문서 유형 분류 | 영수증인가, 다른 문서인가? |
+            | 6 | 필드·표 구조화 | 상호명·날짜·품목·합계 후보는? |
+            | 7 | 정규화 | `"76,000원"`을 `76000`으로 바꿔도 원문이 남는가? |
+            | 8 | 검증 | 필수값·형식·계산 규칙이 맞는가? |
+            | 9 | 처리 결정 | 자동 확정·사람 검토·처리 불가 중 무엇인가? |
+            | 10 | 사람 검토 | 원본을 보고 승인·수정·반려했는가? |
+            | 11 | 내보내기·연결 | 승인된 값을 어디로 보낼 것인가? |
+            | 12 | 관측·평가·개선 | 어디서 자주 틀리고 비용이 드는가? |
+
+            보안·접근 통제·감사 기록·보존·삭제는 모든 단계를 가로지릅니다.
+            """
+        ),
+        code(
+            """
+            PIPELINE_MAP = [
+                {"step": 0, "name": "목표·스키마", "output": "필드·검증·성공 기준"},
+                {"step": 1, "name": "접수", "output": "원본·문서 ID"},
+                {"step": 2, "name": "형식 라우팅·분리", "output": "처리 경로"},
+                {"step": 3, "name": "품질 확인·전처리", "output": "처리 가능 입력"},
+                {"step": 4, "name": "텍스트·레이아웃 추출", "output": "원문·위치"},
+                {"step": 5, "name": "문서 유형 분류", "output": "문서 유형"},
+                {"step": 6, "name": "필드·표 구조화", "output": "스키마 초안"},
+                {"step": 7, "name": "정규화", "output": "원문·정규화 값"},
+                {"step": 8, "name": "검증", "output": "규칙 결과"},
+                {"step": 9, "name": "처리 결정", "output": "AUTO_ACCEPT·REVIEW·REJECT"},
+                {"step": 10, "name": "사람 검토", "output": "승인·수정·반려 기록"},
+                {"step": 11, "name": "내보내기·연결", "output": "업무 데이터"},
+                {"step": 12, "name": "관측·평가·개선", "output": "품질·비용·개선안"},
+            ]
+
+            assert [item["step"] for item in PIPELINE_MAP] == list(range(13))
+            print("전체 지도:", " → ".join(item["name"] for item in PIPELINE_MAP))
+            """
+        ),
+        markdown("## 실습. 영수증 한 장의 처리 흔적 완성"),
+        code(
+            """
+            PREPARED_TRACE = {
+                "source_document": "taebaek_restaurant_2025_redacted.png",
+                "source_mode": "교재 제작자가 원본에서 확인한 교육용 준비 결과",
+                "schema_fields": ["net_amount", "tax_amount", "total_amount"],
+                "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
+                "fields": {
+                    "net_amount": {
+                        "raw_value": "69,094",
+                        "normalized_value": 69094,
+                        "evidence": "원본의 공급가액 행",
+                    },
+                    "tax_amount": {
+                        "raw_value": "6,906",
+                        "normalized_value": 6906,
+                        "evidence": "원본의 부가세 행",
+                    },
+                    "total_amount": {
+                        "raw_value": "76,000",
+                        "normalized_value": 76000,
+                        "evidence": "원본의 합계 행",
+                    },
+                },
             }
-            assert technologies == {"OCR", "VLM", "Document AI"}
-            TECHNOLOGY_COMPARISON
+
+            fields = PREPARED_TRACE["fields"]
+            PREPARED_TRACE["validation"] = {
+                "amount_math_ok": (
+                    fields["net_amount"]["normalized_value"]
+                    + fields["tax_amount"]["normalized_value"]
+                    == fields["total_amount"]["normalized_value"]
+                ),
+                "evidence_present": all(
+                    field["evidence"] for field in fields.values()
+                ),
+            }
+            PREPARED_TRACE["routing_decision"] = "REVIEW"
+            PREPARED_TRACE["routing_reason"] = "정책상 원본을 보는 사람 확인 필수"
+            PREPARED_TRACE["human_decision"] = "APPROVED_AFTER_SOURCE_CHECK"
+            PREPARED_TRACE["next_step"] = "7교시에서 receipt_result.xlsx 생성"
+
+            assert PREPARED_TRACE["validation"]["amount_math_ok"]
+            assert PREPARED_TRACE["routing_decision"] == "REVIEW"
+            PREPARED_TRACE
+            """
+        ),
+        markdown(
+            """
+            ## 처리 결정 비교
+
+            - `AUTO_ACCEPT`: 필수값·형식·합계·근거 규칙을 모두 통과하고 오류 영향이 낮음
+            - `REVIEW`: 값은 있으나 모호하거나 정책상 사람 확인이 필요함
+            - `REJECT`: 입력 품질 부족, 필수 근거 없음, 지원하지 않는 문서
+
+            합계 검증이 맞아도 사람 확인 정책 때문에 `REVIEW`가 될 수 있습니다.
+            사람 검토는 원본에 없는 근거를 새로 만드는 단계가 아닙니다.
             """
         ),
         code(
             """
             import json
 
-            output_path = OUTPUT_DIR / "technology_comparison.json"
+            output_path = OUTPUT_DIR / "receipt_pipeline_trace.json"
             output_path.write_text(
                 json.dumps(
-                    TECHNOLOGY_COMPARISON,
+                    PREPARED_TRACE,
                     ensure_ascii=False,
                     indent=2,
                 ) + "\\n",
@@ -299,9 +382,10 @@ def notebook_01() -> dict:
             """
             ## 확인
 
-            - OCR·VLM·Document AI가 한 번씩 있는가?
-            - 각 기술의 입력·과정·출력·한계가 구분되는가?
-            - 교육용 예시 라벨이 남아 있는가?
+            - 원문·정규화 값·근거가 모두 남아 있는가?
+            - 검증 결과와 처리 결정이 분리돼 있는가?
+            - `REVIEW` 뒤 사람의 결정과 다음 단계가 기록됐는가?
+            - 교육용 준비 결과 라벨이 남아 있는가?
             """
         ),
     ]
@@ -313,8 +397,8 @@ def notebook_02() -> dict:
     cells = [
         intro(
             2,
-            "OCR 결과를 눈으로 확인하기",
-            "ocr_text.txt",
+            "OCR 기반 텍스트 추출 실습",
+            "ocr_result.json",
             "OCR 결과의 텍스트·위치·신뢰도를 읽고 원본과 비교합니다.",
         ),
         runtime_cell(),
@@ -329,7 +413,9 @@ def notebook_02() -> dict:
                 io.BytesIO(base64.b64decode(SAMPLE_IMAGE_BASE64))
             ).convert("RGB")
             MOCK_OCR_RESULT = {json_literal(SAMPLE_OCR_RESULT)}
-            print("MOCK OCR 결과:", len(MOCK_OCR_RESULT), "개 영역")
+            OCR_RESULT = MOCK_OCR_RESULT
+            SOURCE_MODE = "prepared"
+            print("준비된 OCR 결과:", len(OCR_RESULT), "개 영역")
             """
         ),
         markdown(
@@ -356,29 +442,19 @@ def notebook_02() -> dict:
                     )
                 return annotated
 
-            annotated = draw_boxes(receipt_image, MOCK_OCR_RESULT)
+            annotated = draw_boxes(receipt_image, OCR_RESULT)
             annotated_path = OUTPUT_DIR / "ocr_boxes.png"
             annotated.save(annotated_path)
             print("바운딩 박스 이미지:", annotated_path)
             """
         ),
-        markdown("## 실습. 텍스트만 읽기 순서대로 저장"),
-        code(
-            """
-            ocr_text = "\\n".join(item["text"] for item in MOCK_OCR_RESULT)
-            output_path = OUTPUT_DIR / "ocr_text.txt"
-            output_path.write_text(ocr_text + "\\n", encoding="utf-8")
-
-            print(ocr_text)
-            print("저장 완료:", output_path)
-            """
-        ),
         markdown(
             """
-            ## 선택 실습. PaddleOCR 3.7 + PP-OCRv5 Korean
+            ## 기본 실습. PaddleOCR 3.7 + PP-OCRv5 Korean
 
             한국어 인식은 `lang="korean"`과 `PP-OCRv5`를 사용합니다.
-            최초 모델 다운로드가 가능할 때만 실행하며, 실패해도 위 결과물은 이미 완성됐습니다.
+            강사 안내에 따라 아래 값을 `True`로 바꿉니다. 설치·다운로드·실행이
+            3분 안에 끝나지 않으면 중지하고 준비 결과로 같은 원본 대조 실습을 계속합니다.
             """
         ),
         code(
@@ -418,18 +494,55 @@ def notebook_02() -> dict:
                 if callable(live_payload):
                     live_payload = live_payload()
                 live_result = live_payload.get("res", live_payload)
-                print("LIVE PaddleOCR 텍스트:", live_result.get("rec_texts", []))
+                texts = live_result.get("rec_texts", [])
+                boxes = live_result.get("rec_polys", [])
+                scores = live_result.get("rec_scores", [])
+                OCR_RESULT = [
+                    {
+                        "box": box,
+                        "text": text,
+                        "confidence": float(score),
+                    }
+                    for box, text, score in zip(boxes, texts, scores)
+                ]
+                SOURCE_MODE = "live_paddleocr"
+                print("LIVE PaddleOCR 텍스트:", texts)
             else:
-                print("선택 PaddleOCR 셀을 건너뛰었습니다.")
+                print("준비된 OCR 결과로 원본 대조 실습을 계속합니다.")
+            """
+        ),
+        markdown("## 실습. 원본 대조 표시와 함께 저장"),
+        code(
+            """
+            import json
+
+            reviewed = [
+                {
+                    **item,
+                    "matches_source": None,
+                    "review_note": "",
+                }
+                for item in OCR_RESULT
+            ]
+            output = {
+                "source_mode": SOURCE_MODE,
+                "items": reviewed,
+            }
+            output_path = OUTPUT_DIR / "ocr_result.json"
+            output_path.write_text(
+                json.dumps(output, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            print("저장 완료:", output_path)
             """
         ),
         markdown(
             """
             ## 확인
 
-            - `ocr_text.txt`가 생성됐는가?
+            - `ocr_result.json`이 생성됐는가?
             - 높은 신뢰도도 원문과 비교했는가?
-            - 선택 OCR 실패가 기본 실습을 막지 않는가?
+            - 실제 OCR이 3분 안에 실행되지 않을 때 준비 결과로 전환했는가?
             """
         ),
     ]
@@ -440,7 +553,7 @@ def notebook_03() -> dict:
     cells = [
         intro(
             3,
-            "OCR 초안을 정돈된 데이터로 바꾸기",
+            "문서 구조 이해 및 추출 결과 정제",
             "clean_receipt.json",
             "원문·정제 결과·변경 기록을 함께 보존합니다.",
         ),
@@ -547,7 +660,7 @@ def notebook_04() -> dict:
     cells = [
         intro(
             4,
-            "멀티모달로 문서 구조 읽기",
+            "멀티모달·생성형 AI 기반 핵심 정보 추출",
             "receipt.json",
             "PaddleOCR-VL의 구조화 결과를 이해하고 업무용 JSON으로 변환합니다.",
         ),
@@ -722,23 +835,30 @@ def notebook_04() -> dict:
     return notebook("04_genai_extraction.ipynb", cells)
 
 
-GRADIO_SETUP = """
+STREAMLIT_SETUP = """
 import importlib.metadata
 import subprocess
 
-required_gradio = "6.20.0"
+required_streamlit = "1.60.0"
 try:
-    installed_gradio = importlib.metadata.version("gradio")
+    installed_streamlit = importlib.metadata.version("streamlit")
 except importlib.metadata.PackageNotFoundError:
-    installed_gradio = None
+    installed_streamlit = None
 
-if installed_gradio != required_gradio:
+if installed_streamlit != required_streamlit:
     subprocess.check_call(
-        [sys.executable, "-m", "pip", "install", "-q", f"gradio=={required_gradio}"]
+        [
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "-q",
+            f"streamlit=={required_streamlit}",
+        ]
     )
 
-import gradio as gr
-print("Gradio:", gr.__version__)
+import streamlit
+print("Streamlit:", streamlit.__version__)
 """
 
 
@@ -746,126 +866,178 @@ def notebook_05() -> dict:
     cells = [
         intro(
             5,
-            "Python 함수에 화면 붙이기",
+            "문서 자동화 웹 애플리케이션 기본 구현",
             "app_05.py",
-            "Gradio 버튼과 mock 처리 함수를 연결합니다.",
+            "Streamlit 파일 입력·버튼·결과 화면을 Python 처리 함수와 연결합니다.",
         ),
         runtime_cell(),
-        code(GRADIO_SETUP),
+        code(STREAMLIT_SETUP),
         code(receipt_constants()),
         markdown(
             """
             ## 핵심 3개
 
-            1. 컴포넌트는 함수 입출력을 화면에 연결합니다.
-            2. 버튼 이벤트에는 함수·입력·출력이 필요합니다.
-            3. 화면과 처리 함수는 따로 확인합니다.
+            1. Streamlit은 위에서 아래로 실행되는 Python 스크립트를 웹앱으로 보여 줍니다.
+            2. 파일 입력·실행 버튼·결과 영역을 처리 함수와 연결합니다.
+            3. Colab에서는 브라우저 서버를 열지 않고 AppTest로 화면 코드를 검증합니다.
             """
         ),
         code(
             """
-            def show_mock_result(file_path=None, processor="PaddleOCR"):
-                status = f"MOCK {processor} 결과 — 업로드 문서를 읽지 않았습니다."
-                source_text = (
-                    SAMPLE_VLM_MARKDOWN
-                    if processor == "PaddleOCR-VL"
-                    else SAMPLE_OCR_TEXT
+            from textwrap import dedent
+
+            app_code = dedent(
+                '''
+                import streamlit as st
+
+                SAMPLE_TEXT = "준비된 영수증 판독 결과"
+                SAMPLE_JSON = {
+                    "store_name": "샘플문구점",
+                    "date": "2026-07-27",
+                    "items": [],
+                    "total_amount": 5000,
+                    "source_mode": "prepared",
+                }
+
+                st.title("영수증 Document AI 미니 앱")
+                uploaded = st.file_uploader(
+                    "영수증 이미지 또는 PDF 한 장",
+                    type=["png", "jpg", "jpeg", "pdf"],
                 )
-                return status, source_text, SAMPLE_RECEIPT
-
-
-            direct_result = show_mock_result()
-            assert "MOCK PaddleOCR 결과" in direct_result[0]
-            assert direct_result[2]["total_amount"] == 5000
-            print(direct_result[0])
-            """
-        ),
-        markdown("## 실습. 버튼과 함수 연결"),
-        code(
-            """
-            with gr.Blocks(title="5교시 Document AI") as demo:
-                gr.Markdown("# 영수증 Document AI · MOCK 실습")
-                file_input = gr.File(label="합성 영수증", type="filepath")
-                processor = gr.Radio(
-                    ["PaddleOCR", "PaddleOCR-VL"],
-                    value="PaddleOCR",
-                    label="문서 처리기",
-                )
-                process_button = gr.Button("mock 결과 보기", variant="primary")
-                status = gr.Markdown()
-                ocr_output = gr.Textbox(label="문서 인식 결과", lines=9)
-                json_output = gr.JSON(label="구조화 JSON")
-
-                process_button.click(
-                    fn=show_mock_result,
-                    inputs=[file_input, processor],
-                    outputs=[status, ocr_output, json_output],
-                )
-
-            print("Gradio 화면 구성 완료")
-            """
-        ),
-        code(
-            """
-            app_code = '''import gradio as gr
-
-            SAMPLE_TEXT = "합성 영수증 OCR 텍스트"
-            SAMPLE_JSON = {"source_mode": "mock"}
-
-            def show_mock_result(file_path=None, processor="PaddleOCR"):
-                return f"MOCK {processor} 결과", SAMPLE_TEXT, SAMPLE_JSON
-
-            with gr.Blocks() as demo:
-                file_input = gr.File(type="filepath")
-                processor = gr.Radio(["PaddleOCR", "PaddleOCR-VL"], value="PaddleOCR")
-                button = gr.Button("mock 결과 보기")
-                status = gr.Markdown()
-                text = gr.Textbox()
-                data = gr.JSON()
-                button.click(
-                    show_mock_result,
-                    [file_input, processor],
-                    [status, text, data],
-                )
-
-            if __name__ == "__main__":
-                demo.launch(share=False)
-            '''
+                if st.button("준비 결과로 실행"):
+                    st.info("준비 결과를 사용했습니다.")
+                    st.text_area("판독 원문", SAMPLE_TEXT)
+                    st.json(SAMPLE_JSON)
+                '''
+            ).lstrip()
             output_path = OUTPUT_DIR / "app_05.py"
             output_path.write_text(app_code, encoding="utf-8")
             print("저장 완료:", output_path)
             """
         ),
+        markdown("## 실습. Colab에서 Streamlit 앱 검사"),
         code(
             """
-            RUN_PUBLIC_DEMO = False
+            from streamlit.testing.v1 import AppTest
 
-            if RUN_PUBLIC_DEMO:
-                demo.launch(share=True, max_file_size="5mb")
-            else:
-                print("공개 공유 주소를 만들지 않았습니다. demo 객체 생성으로 검증했습니다.")
+            app_test = AppTest.from_file(str(output_path)).run(timeout=20)
+            assert not app_test.exception
+            assert app_test.title[0].value == "영수증 Document AI 미니 앱"
+            assert len(app_test.file_uploader) == 1
+            assert len(app_test.button) == 1
+            print("Streamlit 화면 코드 검사 완료")
             """
         ),
         markdown(
             """
-            ## mock 대체 경로
+            ## 완성 복구본
 
-            Gradio 화면이 열리지 않아도 `show_mock_result()` 직접 실행 결과가 같으면 완료입니다.
+            빈칸 수정이 어려우면 완성된 `app_05.py`를 저장하고 AppTest 결과를 확인합니다.
+            실제 브라우저 서버나 공개 터널을 열지 않아도 이번 교시를 완료할 수 있습니다.
             """
         ),
     ]
-    return notebook("05_gradio_basic.ipynb", cells)
+    return notebook("05_streamlit_basic.ipynb", cells)
 
 
 def notebook_06() -> dict:
+    app_source = (
+        dedent(
+            f"""
+            import streamlit as st
+
+            SAMPLE_OCR_TEXT = {SAMPLE_TEXT!r}
+            SAMPLE_VLM_MARKDOWN = {SAMPLE_VLM_MARKDOWN!r}
+            SAMPLE_RECEIPT = {json_literal(SAMPLE_RECEIPT)}
+
+
+            def process_document(uploaded=None, *, processor="ocr", use_sample=False):
+                if processor not in ("ocr", "vlm"):
+                    return {{
+                        "ok": False,
+                        "status": "입력 오류",
+                        "errors": ["처리기는 ocr 또는 vlm이어야 합니다."],
+                    }}
+
+                if use_sample:
+                    document_text = (
+                        SAMPLE_VLM_MARKDOWN
+                        if processor == "vlm"
+                        else SAMPLE_OCR_TEXT
+                    )
+                    data = dict(SAMPLE_RECEIPT)
+                    data["source_mode"] = f"MOCK {{processor}} prepared result"
+                    return {{
+                        "ok": True,
+                        "status": f"MOCK {{processor.upper()}} + 준비 결과",
+                        "document_text": document_text,
+                        "data": data,
+                    }}
+
+                if uploaded is None:
+                    return {{
+                        "ok": False,
+                        "status": "입력 오류",
+                        "errors": ["파일을 선택하세요."],
+                    }}
+
+                return {{
+                    "ok": False,
+                    "status": "실제 모델 실행 필요",
+                    "errors": [
+                        "2교시 OCR 또는 4교시 VLM 선택 셀의 결과를 연결하세요."
+                    ],
+                }}
+
+
+            st.title("영수증 Document AI 연결 앱")
+            uploaded = st.file_uploader(
+                "영수증 이미지 또는 PDF 한 장",
+                type=["png", "jpg", "jpeg", "pdf"],
+            )
+            processor = st.radio(
+                "처리기",
+                options=["ocr", "vlm"],
+                horizontal=True,
+            )
+            left, right = st.columns(2)
+            run_uploaded = left.button("업로드 처리", key="run_uploaded")
+            run_sample = right.button("샘플로 계속", key="run_sample")
+
+            if run_uploaded:
+                st.session_state["result"] = process_document(
+                    uploaded,
+                    processor=processor,
+                )
+            elif run_sample:
+                st.session_state["result"] = process_document(
+                    processor=processor,
+                    use_sample=True,
+                )
+
+            result = st.session_state.get("result")
+            if result:
+                if result["ok"]:
+                    st.success(result["status"])
+                    st.text_area("판독 원문", result["document_text"])
+                    st.json(result["data"])
+                else:
+                    st.error(result["status"])
+                    for message in result["errors"]:
+                        st.write(f"- {{message}}")
+            """
+        ).strip()
+        + "\n"
+    )
     cells = [
         intro(
             6,
-            "작은 함수들을 한 줄로 연결하기",
+            "OCR 및 정보 추출 기능 연동",
             "app_06.py",
             "오류를 숨기지 않고 실제·mock 경로를 연결합니다.",
         ),
         runtime_cell(),
+        code(STREAMLIT_SETUP),
         code(receipt_constants()),
         markdown(
             """
@@ -951,20 +1123,27 @@ def notebook_06() -> dict:
             """
         ),
         code(
-            """
-            app_code = '''from src.pipeline import process_document
-
-            def run_uploaded(file_path, processor="ocr"):
-                return process_document(file_path, processor=processor)
-
-            def run_sample(processor="ocr"):
-                return process_document(processor=processor, use_sample=True)
-
-            # Gradio에서는 두 함수를 서로 다른 버튼에 연결합니다.
-            '''
+            f"""
+            app_code = {app_source!r}
             output_path = OUTPUT_DIR / "app_06.py"
             output_path.write_text(app_code, encoding="utf-8")
             print("저장 완료:", output_path)
+            """
+        ),
+        code(
+            """
+            from streamlit.testing.v1 import AppTest
+
+            app_test = AppTest.from_file(str(output_path)).run(timeout=20)
+            assert not app_test.exception
+            assert app_test.title[0].value == "영수증 Document AI 연결 앱"
+            assert len(app_test.file_uploader) == 1
+            assert len(app_test.button) == 2
+
+            app_test.button(key="run_sample").click().run(timeout=20)
+            assert app_test.success
+            assert "MOCK" in app_test.success[0].value
+            print("독립 실행 Streamlit 앱 검사 완료")
             """
         ),
         markdown(
@@ -992,22 +1171,27 @@ def notebook_07() -> dict:
     cells = [
         intro(
             7,
-            "틀린 값을 걸러 CSV로 저장하기",
-            "receipt.csv",
-            "필수값과 품목 합계를 확인하고 CSV를 만듭니다.",
+            "추출 결과 검증 및 데이터 저장",
+            "receipt_result.xlsx",
+            "필수값과 품목 합계를 확인하고 검증된 결과만 Excel로 저장합니다.",
         ),
         runtime_cell(),
         code(
             f"""
-            import csv
-            import io
             from copy import deepcopy
+            from datetime import date
+            from openpyxl import Workbook, load_workbook
 
             SAMPLE_RECEIPT = {json_literal(SAMPLE_RECEIPT)}
+            SAMPLE_OCR_TEXT = {SAMPLE_TEXT!r}
             MISSING_STORE = deepcopy(SAMPLE_RECEIPT)
             MISSING_STORE["store_name"] = None
             WRONG_TOTAL = deepcopy(SAMPLE_RECEIPT)
             WRONG_TOTAL["total_amount"] = 6000
+            BAD_DATE = deepcopy(SAMPLE_RECEIPT)
+            BAD_DATE["date"] = "2026/07/27"
+            BAD_AMOUNT = deepcopy(SAMPLE_RECEIPT)
+            BAD_AMOUNT["total_amount"] = "5,000원"
             """
         ),
         markdown(
@@ -1016,11 +1200,21 @@ def notebook_07() -> dict:
 
             1. 검증 결과는 valid·warnings·errors로 나눕니다.
             2. 자료형과 업무 규칙은 다른 검사입니다.
-            3. 품목 하나가 CSV의 한 행이 됩니다.
+            3. 오류가 없고 사람이 확인한 결과만 Excel로 저장합니다.
             """
         ),
         code(
             """
+            def is_iso_date(value):
+                if not isinstance(value, str):
+                    return False
+                try:
+                    date.fromisoformat(value)
+                    return True
+                except ValueError:
+                    return False
+
+
             def validate_receipt(data):
                 errors = []
 
@@ -1028,10 +1222,21 @@ def notebook_07() -> dict:
                     if data.get(field) in (None, "", []):
                         errors.append(f"필수값 누락: {field}")
 
+                if data.get("date") and not is_iso_date(data["date"]):
+                    errors.append("date는 YYYY-MM-DD 형식이어야 합니다.")
+
+                total_amount = data.get("total_amount")
+                if total_amount is not None and (
+                    not isinstance(total_amount, int) or total_amount < 0
+                ):
+                    errors.append("total_amount는 0 이상의 정수여야 합니다.")
+
                 item_sum = sum(
-                    item["line_total"] for item in data.get("items", [])
+                    item.get("line_total", 0)
+                    for item in data.get("items", [])
+                    if isinstance(item.get("line_total"), int)
                 )
-                if data.get("total_amount") != item_sum:
+                if isinstance(total_amount, int) and total_amount != item_sum:
                     errors.append("품목 합계와 총액이 다릅니다.")
 
                 return {
@@ -1041,20 +1246,26 @@ def notebook_07() -> dict:
                 }
             """
         ),
-        markdown("## 실습. 세 데이터 검증"),
+        markdown("## 실습. 다섯 데이터 검증"),
         code(
             """
             normal = validate_receipt(SAMPLE_RECEIPT)
             missing = validate_receipt(MISSING_STORE)
             wrong_total = validate_receipt(WRONG_TOTAL)
+            bad_date = validate_receipt(BAD_DATE)
+            bad_amount = validate_receipt(BAD_AMOUNT)
 
             assert normal["valid"]
             assert not missing["valid"]
             assert not wrong_total["valid"]
+            assert not bad_date["valid"]
+            assert not bad_amount["valid"]
 
             print("정상:", normal)
             print("누락:", missing)
             print("합계 불일치:", wrong_total)
+            print("날짜 형식:", bad_date)
+            print("금액 형식:", bad_amount)
             """
         ),
         code(
@@ -1081,18 +1292,101 @@ def notebook_07() -> dict:
                 return rows
 
 
-            columns = [
-                "store_name", "date", "total_amount", "item_name",
-                "quantity", "unit_price", "line_total",
-            ]
-            output_path = OUTPUT_DIR / "receipt.csv"
-            with output_path.open("w", encoding="utf-8-sig", newline="") as file:
-                writer = csv.DictWriter(file, fieldnames=columns)
-                writer.writeheader()
-                writer.writerows(receipt_rows(SAMPLE_RECEIPT))
+            def save_reviewed_excel(
+                data,
+                validation,
+                *,
+                human_approved,
+                output_path,
+                source_text,
+            ):
+                if not validation["valid"] or not human_approved:
+                    return False
 
-            print("저장 완료:", output_path)
-            print(output_path.read_text(encoding="utf-8-sig"))
+                raw_values = {
+                    "store_name": data["store_name"],
+                    "date": data["date"],
+                    "total_amount": f'{data["total_amount"]:,}원',
+                }
+                workbook = Workbook()
+                summary = workbook.active
+                summary.title = "검토_요약"
+                summary.append(
+                    [
+                        "field",
+                        "raw_value",
+                        "cleaned_value",
+                        "final_value",
+                        "review_status",
+                    ]
+                )
+                for field in ("store_name", "date", "total_amount"):
+                    summary.append(
+                        [
+                            field,
+                            safe_text(raw_values[field]),
+                            safe_text(data[field]),
+                            safe_text(data[field]),
+                            "사람 확인 완료",
+                        ]
+                    )
+
+                items = workbook.create_sheet("품목")
+                columns = [
+                    "store_name", "date", "total_amount", "item_name",
+                    "quantity", "unit_price", "line_total",
+                ]
+                items.append(columns)
+                for row in receipt_rows(data):
+                    items.append([row[column] for column in columns])
+
+                source = workbook.create_sheet("원문")
+                source.append(["source_mode", data["source_mode"]])
+                source.append(["ocr_text", safe_text(source_text)])
+                workbook.save(output_path)
+                return True
+
+
+            blocked_path = OUTPUT_DIR / "blocked_result.xlsx"
+            assert not save_reviewed_excel(
+                WRONG_TOTAL,
+                wrong_total,
+                human_approved=True,
+                output_path=blocked_path,
+                source_text=SAMPLE_OCR_TEXT,
+            )
+            assert not blocked_path.exists()
+
+            not_approved_path = OUTPUT_DIR / "not_approved.xlsx"
+            assert not save_reviewed_excel(
+                SAMPLE_RECEIPT,
+                normal,
+                human_approved=False,
+                output_path=not_approved_path,
+                source_text=SAMPLE_OCR_TEXT,
+            )
+            assert not not_approved_path.exists()
+
+            HUMAN_APPROVED = True  # 원본과 추출값을 직접 대조한 뒤에만 True
+            output_path = OUTPUT_DIR / "receipt_result.xlsx"
+            assert save_reviewed_excel(
+                SAMPLE_RECEIPT,
+                normal,
+                human_approved=HUMAN_APPROVED,
+                output_path=output_path,
+                source_text=SAMPLE_OCR_TEXT,
+            )
+
+            saved = load_workbook(output_path)
+            assert saved.sheetnames == ["검토_요약", "품목", "원문"]
+            assert [cell.value for cell in saved["검토_요약"][1]] == [
+                "field",
+                "raw_value",
+                "cleaned_value",
+                "final_value",
+                "review_status",
+            ]
+            print("저장 완료:", output_path, saved.sheetnames)
             """
         ),
         code(
@@ -1110,7 +1404,7 @@ def notebook_07() -> dict:
             """
             ## mock 대체 경로
 
-            이전 앱 없이 내장 `SAMPLE_RECEIPT`를 같은 검증·CSV 함수에 전달합니다.
+            이전 앱 없이 내장 `SAMPLE_RECEIPT`를 같은 검증·Excel 함수에 전달합니다.
             """
         ),
     ]
@@ -1121,9 +1415,9 @@ def notebook_08() -> dict:
     cells = [
         intro(
             8,
-            "자동화의 마지막 단계는 사람의 확인",
-            "business_application_card.md",
-            "전체 흐름을 점검하고 사람 검토가 있는 적용 카드를 씁니다.",
+            "실무 적용 시나리오 설계 및 최종 정리",
+            "poc_candidate_card.md",
+            "견적서·신청서·거래명세서 중 하나의 PoC 조건을 정리합니다.",
         ),
         runtime_cell(),
         code(
@@ -1184,8 +1478,9 @@ def notebook_08() -> dict:
             | 필요한 추출 필드 | 상호명, 날짜, 품목, 총액 |
             | 틀렸을 때의 영향 | 총액 오류 시 정산 금액이 달라짐 |
             | 사람 검토자 | 비용 처리 담당자 |
-            | 저장 형식과 위치 | 승인 후 CSV, 승인된 저장소 |
+            | 저장 형식과 위치 | 승인 후 Excel, 승인된 저장소 |
             | 원본·결과 삭제 시점 | 조직의 보존 기준에 따름 |
+            | PoC 중단 조건 | 수정률이 허용 범위를 넘으면 중단 |
 
             ## 적용 전 확인
 
@@ -1194,7 +1489,7 @@ def notebook_08() -> dict:
             - [ ] 최종 승인자와 반려 절차를 확인한다.
             '''
 
-            output_path = OUTPUT_DIR / "business_application_card.md"
+            output_path = OUTPUT_DIR / "poc_candidate_card.md"
             output_path.write_text(card, encoding="utf-8")
             print(card)
             print("저장 완료:", output_path)
@@ -1222,7 +1517,7 @@ NOTEBOOK_SLUGS = {
     2: "ocr_basic",
     3: "document_structure",
     4: "genai_extraction",
-    5: "gradio_basic",
+    5: "streamlit_basic",
     6: "ocr_ai_integration",
     7: "validation_export",
     8: "business_application",

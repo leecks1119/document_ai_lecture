@@ -1,18 +1,20 @@
-# 2교시. PaddleOCR 결과를 눈으로 확인하기
+# 2교시. OCR 기반 텍스트 추출 실습
 
-> 한국어 영수증의 글자·위치·신뢰도를 원본과 비교합니다.
+> 각자 식별정보를 가린 영수증 한 장에 실제 OCR을 시도하고, 읽은 글자·위치·신뢰도를 원본과 비교합니다.
+>
+> **핵심 메시지:** OCR 결과는 정답이 아니라 컴퓨터가 읽어 본 초안이므로 숫자와 읽기 순서를 반드시 원본과 대조해야 합니다.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/02_ocr_basic.ipynb)
 
 ## 1. 학습 목표
 
-- PaddleOCR 결과에서 텍스트·위치·신뢰도를 찾을 수 있다.
-- 입력 품질이 OCR 결과에 미치는 영향을 설명할 수 있다.
-- 중요한 값은 신뢰도만 믿지 않고 원본과 비교할 수 있다.
+- 한 번에 영수증 한 장을 PP-OCRv5 Korean으로 판독할 수 있다.
+- OCR 결과에서 텍스트·위치·신뢰도를 확인할 수 있다.
+- 날짜·금액의 오인식과 읽기 순서 오류를 원본에서 찾아 표시할 수 있다.
 
 ## 2. 이번 교시의 결과물
 
-- `ocr_text.txt`: OCR 텍스트를 읽기 순서대로 저장한 파일
+- `ocr_result.json`: OCR 원문·위치·신뢰도와 원본 대조 표시를 담은 파일
 
 ## 3. 시작하기 전에
 
@@ -22,12 +24,13 @@
 
 ### 준비 파일
 
-- [정상 영수증](../sample_docs/receipt_sample.png)
+- 식별정보를 가린 점심·커피 영수증 또는 사진첩의 영수증 한 장
+- [공개 한국 실물 영수증 대체 샘플](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 - [저품질 영수증](../sample_docs/receipt_low_quality.png)
 - [준비된 OCR 결과](../sample_outputs/ocr_result.json)
 - [2교시 Colab 노트북](../colab/02_ocr_basic.ipynb)
 
-기본 실습은 준비된 결과로 진행한다. 실제 모델 실행은 다운로드가 가능한 학습자만 선택한다.
+카드번호·승인번호·현금영수증 번호·전화번호·회원번호는 촬영 전이나 업로드 전에 가린다. 실제 OCR을 먼저 시도하되 3분 안에 설치·모델 다운로드·실행이 끝나지 않으면 준비된 `ocr_result.json`으로 전환한다. 전환해도 원본 대조 실습은 동일하게 진행한다.
 
 ## 4. 핵심 개념
 
@@ -57,78 +60,66 @@ PaddleOCR 결과에서 이번 시간에 볼 값은 세 가지다.
 ## 5. 전체 실습 흐름
 
 ```text
-합성 영수증과 준비된 OCR 결과 열기
+식별정보를 가린 영수증 한 장 선택
+  → PP-OCRv5 Korean 실행 또는 3분 뒤 준비 결과로 전환
   → 위치·텍스트·신뢰도 확인
   → 원본과 비교
-  → 텍스트만 합치기
-  → ocr_text.txt 저장
+  → 잘못 읽은 값과 순서 표시
+  → ocr_result.json 저장
 ```
 
 ## 6. 단계별 실습
 
-### 실습 1. OCR 텍스트 저장하기
+### 실습 1. OCR 결과를 원본과 대조해 저장하기
 
-노트북의 준비된 결과를 사용한다.
+실제 OCR 또는 준비 결과의 각 항목에 원본 대조 표시를 추가한다. `matches_source`는 원본을 직접 확인한 뒤 `True` 또는 `False`로 바꾼다.
 
 ```python
-ocr_text = "\n".join(item["text"] for item in MOCK_OCR_RESULT)
-with open("ocr_text.txt", "w", encoding="utf-8") as file:
-    file.write(ocr_text)
+import json
+
+reviewed = [
+    {**item, "matches_source": None, "review_note": ""}
+    for item in OCR_RESULT
+]
+with open("ocr_result.json", "w", encoding="utf-8") as file:
+    json.dump(reviewed, file, ensure_ascii=False, indent=2)
 ```
 
 **기대 결과**
 
-```text
-샘플문구점
-거래일자: 2026-07-27
-연필 2개 × 1,000원 = 2,000원
-노트 1개 × 3,000원 = 3,000원
-합계: 5,000원
-```
+- 각 텍스트에 위치·신뢰도·원본 대조 표시가 함께 남는다.
+- Colab 파일 영역에 `ocr_result.json`이 생긴다.
 
-**mock 대체 경로**
+**3분 복구 경로**
 
-외부 파일이나 모델을 읽지 못해도 `MOCK_OCR_RESULT`로 같은 확인·저장 과정을 수행한다. 출력에 `MOCK OCR 결과`가 표시된다.
+실제 OCR이 3분 안에 실행되지 않으면 `MOCK_OCR_RESULT`로 같은 확인·대조·저장 과정을 수행한다. 출력에는 `준비된 OCR 결과`라고 표시한다.
 
-**선택: 실제 PaddleOCR 실행**
+**기본: 실제 PaddleOCR 실행**
 
 ```python
-RUN_PADDLEOCR = False
+RUN_PADDLEOCR = True
 ```
 
-`True`로 바꾸면 노트북이 PaddleOCR 3.7을 설치하고 합성 영수증을 읽는다. 회사 문서나 개인정보 문서는 사용하지 않는다.
+PaddleOCR 3.7과 PP-OCRv5 Korean으로 식별정보를 가린 영수증 한 장을 읽는다. 개인 영수증을 Colab에 올리기 어렵다면 공개 한국 실물 영수증을 사용한다.
 
-## 7. Codex 활용
+## 7. 실습 결과 확인
 
-### 요청 목표
-
-PaddleOCR 결과를 원본과 비교할 지점을 찾는다.
-
-### 실습 프롬프트
-
-```text
-목표: PaddleOCR 결과 확인 코드를 초보자 관점에서 검토해줘.
-맥락: 결과에는 rec_texts, rec_polys, rec_scores가 있어.
-제약조건: 점수만 보고 값을 자동 승인하지 마.
-완료 기준: 원본과 다시 비교할 값을 두 문장으로 알려줘.
-```
-
-### 생성 결과 확인
-
-- 신뢰도를 정답 확률이라고 단정하지 않았는가?
-- 금액과 날짜를 원본과 비교하라고 했는가?
+- 텍스트·위치·신뢰도를 원본의 같은 영역과 비교했는가?
+- 날짜와 합계가 틀린 경우 `matches_source=False`로 표시했는가?
+- 준비 결과를 사용했다면 실제 OCR 결과처럼 표시하지 않았는가?
+- `ocr_result.json`을 Colab에서 내려받았는가?
 
 ## 8. 문제 해결
 
 | 증상 | 원인 | 해결 방법 |
 | --- | --- | --- |
-| 결과 파일이 없음 | 외부 파일 미업로드 | 내장 `MOCK_OCR_RESULT` 사용 |
-| 설치가 오래 걸림 | 패키지·모델 다운로드 | 선택 셀을 중지하고 기본 실습 계속 |
+| 결과 파일이 없음 | 외부 파일 미업로드 | 공개 샘플 또는 내장 `MOCK_OCR_RESULT` 사용 |
+| 설치가 3분 넘게 걸림 | 패키지·모델 다운로드 | 실행을 중지하고 준비 결과로 전환 |
 | 한글 결과가 좋지 않음 | 언어 설정 불일치 | `lang="korean"`, `PP-OCRv5` 확인 |
 
 ## 9. 형성평가
 
-1. 한국어 합성 영수증에는 어떤 OCR 버전을 사용하는가?
+1. 한국어 영수증에는 어떤 OCR 버전을 사용하는가?
 2. 높은 신뢰도의 총액을 자동 확정해도 되는가?
 
 <details>
@@ -149,7 +140,7 @@ PaddleOCR 결과를 원본과 비교할 지점을 찾는다.
 
 - [ ] 세 결과 요소를 구분했다.
 - [ ] 원본과 OCR 결과를 비교했다.
-- [ ] `ocr_text.txt`를 만들었다.
+- [ ] 원본 대조 표시가 포함된 `ocr_result.json`을 만들었다.
 
 ## 12. 다음 교시 예고
 

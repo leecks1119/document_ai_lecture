@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from .export import receipt_to_csv_bytes
+from .export import receipt_to_xlsx_bytes
 from .extract import mock_extract
 from .ocr import extract_with_paddleocr, ocr_text_from_result
 from .sample_data import (
@@ -40,6 +40,7 @@ def process_document(
     *,
     use_sample: bool = False,
     processor: str = "ocr",
+    human_approved: bool = False,
 ) -> dict:
     """문서를 처리한다.
 
@@ -92,9 +93,20 @@ def process_document(
     extracted = mock_extract(ocr_text)
     extracted["source_mode"] = "mock_extraction"
     validation = validate_receipt(extracted)
-    csv_bytes = (
-        receipt_to_csv_bytes(extracted)
+    review_status = (
+        "APPROVED"
+        if validation["valid"] and human_approved
+        else "PENDING_REVIEW"
         if validation["valid"]
+        else "BLOCKED_BY_VALIDATION"
+    )
+    xlsx_bytes = (
+        receipt_to_xlsx_bytes(
+            extracted,
+            source_text=ocr_text,
+            review_status="사람 확인 완료",
+        )
+        if review_status == "APPROVED"
         else None
     )
 
@@ -104,7 +116,8 @@ def process_document(
         "ocr_text": ocr_text,
         "data": extracted,
         "validation": validation,
-        "csv_bytes": csv_bytes,
+        "review_status": review_status,
+        "xlsx_bytes": xlsx_bytes,
     }
 
 

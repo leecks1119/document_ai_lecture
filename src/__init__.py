@@ -1,7 +1,7 @@
 """초보자용 Document AI 실습 함수 모음."""
 
 from .clean import group_receipt_lines, normalize_line
-from .export import receipt_to_csv_bytes, receipt_to_rows
+from .export import receipt_to_rows, receipt_to_xlsx_bytes
 from .extract import RECEIPT_SCHEMA, build_extraction_prompt, mock_extract
 from .ocr import extract_with_paddleocr, load_mock_ocr
 from .pipeline import process_document, run_smoke_test
@@ -19,7 +19,7 @@ __all__ = [
     "normalize_line",
     "process_document",
     "parse_with_paddleocr_vl",
-    "receipt_to_csv_bytes",
+    "receipt_to_xlsx_bytes",
     "receipt_to_rows",
     "run_smoke_test",
     "validate_receipt",

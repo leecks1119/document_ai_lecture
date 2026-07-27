@@ -1,6 +1,7 @@
 # Colab 기본 실습
-gradio==6.20.0
+streamlit==1.60.0
 jsonschema>=4.23,<5
+openpyxl>=3.1,<4
 pandas>=2.0,<4
 Pillow>=10,<13
 PyMuPDF==1.28.0

@@ -7,6 +7,10 @@
 
 > 2026-07-27 기술 정정 완료: 활성 과정은 PaddleOCR 3.7,
 > PP-OCRv5 Korean, PaddleOCR-VL 1.6 기반이다.
+>
+> 2026-07-27 과정 메시지 재정의: 실제 영수증 한 장으로 작은 프로토타입을
+> 만들고, 최종 결과를 `receipt_result.xlsx`로 내려받은 뒤 견적서·신청서·
+> 거래명세서의 PoC 후보를 검토한다.
 
 ## 범위 원칙
 
@@ -34,14 +38,14 @@
 
 | 교시 | 핵심 산출물 | 기본 실습 |
 | --- | --- | --- |
-| 1교시 | 기술 비교 JSON | 한국 실물 영수증에서 OCR·VLM·Document AI 구분 |
-| 2교시 | OCR 결과 텍스트 | 준비된 OCR 결과를 확인하고 텍스트 저장 |
-| 3교시 | 정제된 문서 데이터 | OCR 텍스트를 키-값과 품목 행으로 정리 |
-| 4교시 | 구조화 JSON | VLM Markdown을 업무 JSON으로 변환 |
-| 5교시 | 기본 Gradio 화면 | 파일 입력과 결과 컴포넌트 연결 |
-| 6교시 | 통합 미니 앱 | 업로드 → OCR/VLM/mock → JSON 연결 |
-| 7교시 | CSV | 필수값·품목 합계 검증 후 CSV 만들기 |
-| 8교시 | 업무 적용 카드 | 사람 검토가 포함된 적용 시나리오 설계 |
+| 1교시 | `receipt_pipeline_trace.json` | 한국 실물 영수증에서 원문·근거·검증·처리 결정과 0~12 전체 흐름 추적 |
+| 2교시 | `ocr_result.json` | 각자 비식별 영수증에 실제 OCR을 시도하고 원본 대조 |
+| 3교시 | `clean_receipt.json` | OCR 원문을 보존해 키-값과 품목 행으로 정리 |
+| 4교시 | `receipt.json` | 준비된 VLM 구조 초안을 근거 있는 업무 JSON으로 변환 |
+| 5교시 | 기본 Streamlit 앱 | Colab에서 파일 입력·결과 화면을 만들고 AppTest로 검사 |
+| 6교시 | 통합 미니 앱 | 파일 → OCR 또는 준비 텍스트 → JSON 연결 |
+| 7교시 | `receipt_result.xlsx` | 오류 저장 차단 후 검증·사람 확인 결과를 Excel로 저장 |
+| 8교시 | `poc_candidate_card.md` | 세 확장 문서 중 하나의 PoC 조건 설계 |
 
 ## 완료 증거
 
@@ -64,10 +68,13 @@
 | 초기 기술·출처 조사 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/01_research_brief.md` |
 | 초기 교재 설계 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/02_lesson_blueprint.md` |
 | 초기 분량·운영 검수 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/03_manager_review.md` |
-| Markdown·Colab·이미지 구현 | 완료 | 교재 8개, Colab 8개, 도식 16개 |
-| 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 테스트 26개 통과 |
-| 최종 교육 품질 검수 | 완료 | 98/100, P0 0개, P1 0개 |
+| 이전 Markdown·Colab·이미지 구현 | 과거 기준 완료 | 교재 8개, Colab 8개, 도식 16개 |
+| 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 29개 테스트, Colab 8개 독립 실행 |
+| 이전 최종 교육 품질 검수 | 대체됨 | 과정 메시지와 최종 Excel 기준 확정 전의 검수 |
 | PaddleOCR·멀티모달 기술 정정 | 완료 | 커밋 `301754b`, `d2f1c21`, `e0e12bb` 및 최종 교재 검증 |
+| 8교시 서문·핵심 메시지 개편 | 완료 | 실제 영수증·10/90·Excel·PoC 연결 반영 |
+| Colab·Streamlit 앱·샘플 산출물 동기화 | 완료 | `ocr_result.json`, `receipt_pipeline_trace.json`, `receipt_result.xlsx` 생성 및 검증 |
+| 최종 교육 품질 재검수 | 완료 | P0 0건, P1 0건, 97/100, 완료 게이트 통과 |
 
 ## 커밋 원칙
 

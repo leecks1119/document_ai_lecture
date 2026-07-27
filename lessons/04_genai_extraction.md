@@ -1,18 +1,20 @@
-# 4교시. PaddleOCR-VL로 문서 구조 읽기
+# 4교시. 멀티모달·생성형 AI 기반 핵심 정보 추출
 
-> 문서 전용 멀티모달 모델의 중간 결과를 업무용 JSON으로 바꿉니다.
+> 강사의 비식별 문서 VLM 시연을 한 번 보고, 학습자는 준비된 구조 초안에서 근거가 있는 값만 업무용 JSON으로 옮깁니다.
+>
+> **핵심 메시지:** VLM은 복잡한 문서 구조의 초안을 빠르게 만들 수 있지만, 원문에 없는 값을 만들 수 있으므로 검증 전에는 확정 데이터가 아닙니다.
 
 [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb)
 
 ## 1. 학습 목표
 
-- OCR과 문서 전용 VLM의 차이를 설명할 수 있다.
-- PaddleOCR-VL의 Markdown 결과에서 제목·표·합계를 찾을 수 있다.
-- 중간 결과를 정해진 JSON으로 바꾸고 원문과 대조할 수 있다.
+- 영수증 필드의 이름·자료형·필수 여부를 JSON 스키마로 표현할 수 있다.
+- 준비된 VLM 구조 초안에서 각 값의 원문 근거를 찾을 수 있다.
+- 찾을 수 없는 값은 추측하지 않고 `null`로 처리할 수 있다.
 
 ## 2. 이번 교시의 결과물
 
-- `receipt.json`: VLM 중간 결과를 네 필드로 바꾼 업무용 JSON
+- `receipt.json`: 상호명·날짜·품목·합계와 원문 근거를 담은 검토용 JSON
 
 ## 3. 시작하기 전에
 
@@ -22,13 +24,14 @@
 
 ### 준비 파일
 
-- [합성 영수증](../sample_docs/receipt_sample.png)
+- 3교시의 `clean_receipt.json` 또는 교재에 포함된 완성 복구본
+- [비식별 한국 실물 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 - [PaddleOCR-VL mock Markdown](../sample_outputs/paddleocr_vl_result.md)
 - [PaddleOCR-VL mock 블록](../sample_outputs/paddleocr_vl_result.json)
 - [mock 추출 결과](../sample_outputs/extracted_result.json)
 - [4교시 Colab 노트북](../colab/04_genai_extraction.ipynb)
 
-기본 실습은 PaddleOCR-VL 형태의 준비된 Markdown을 사용한다. 실제 모델은 크고 다운로드 시간이 필요하므로 선택 실행한다.
+실제 PaddleOCR-VL 1.6 또는 상용 VLM 호출은 강사가 비식별 샘플로 한 번만 시연한다. 학습자 API 키나 과금은 사용하지 않는다. 학습자는 준비된 결과로 같은 JSON 구조화와 원문 대조를 수행한다.
 
 ## 4. 핵심 개념
 
@@ -64,7 +67,8 @@ PaddleOCR-VL은 Markdown과 레이아웃 블록을 반환할 수 있다. 회사 
 ## 5. 전체 실습 흐름
 
 ```text
-PaddleOCR-VL 형태의 Markdown 읽기
+강사의 문서 VLM 시연 1회 관찰
+  → 준비된 VLM 구조 초안 읽기
   → 제목·표·합계 찾기
   → 네 필드의 JSON으로 변환
   → 자료형과 원문 근거 확인
@@ -111,25 +115,12 @@ RUN_PADDLEOCR_VL = False
 
 Colab에 충분한 메모리가 있을 때만 `True`로 바꾼다. 모델 결과가 곧 업무 정답이라는 뜻은 아니므로 반드시 합성 원본과 비교한다.
 
-## 7. Codex 활용
+## 7. 실습 결과 확인
 
-### 요청 목표
-
-VLM 중간 결과를 네 필드로만 변환하는 코드를 검토한다.
-
-### 실습 프롬프트
-
-```text
-목표: PaddleOCR-VL Markdown을 영수증 JSON으로 바꾸는 함수를 검토해줘.
-맥락: store_name, date, items, total_amount만 필요해.
-제약조건: 원문에 없는 값은 null, 새 필드를 추가하지 마.
-완료 기준: 표 파싱과 합계 변환에서 틀릴 수 있는 부분만 알려줘.
-```
-
-### 생성 결과 확인
-
-- Markdown과 업무 JSON을 같은 것으로 취급하지 않았는가?
-- 없는 값을 추측하지 않았는가?
+- VLM의 Markdown과 최종 업무 JSON을 구분했는가?
+- 네 필드의 값마다 원문에서 확인한 근거가 있는가?
+- 원문에서 찾을 수 없는 값은 `null`인가?
+- `receipt.json`을 Colab에서 내려받았는가?
 
 ## 8. 문제 해결
 
@@ -166,7 +157,7 @@ VLM 중간 결과를 네 필드로만 변환하는 코드를 검토한다.
 
 ## 12. 다음 교시 예고
 
-5교시에서는 OCR과 VLM 처리기를 고를 수 있는 작은 Gradio 화면을 만든다.
+5교시에서는 파일 입력과 판독 원문·JSON 결과를 보여 주는 작은 Streamlit 앱 코드를 Colab에서 만든다.
 
 ## 참고 자료
 
