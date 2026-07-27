@@ -43,7 +43,7 @@
 | 업무 추출 | 명시적 변환 함수 | 모델 중간 결과를 바로 정답 JSON으로 취급하지 않음 |
 | 최종 확정 | 검증 규칙 + 사람 검토 | 필수값·품목 합계 오류가 있으면 CSV 저장 차단 |
 
-PP-OCRv6의 현재 공식 언어 범위에는 한국어가 없으므로 한국어 합성 영수증은 PP-OCRv5를 사용한다. PaddleOCR-VL은 VLM 구성 요소만 단독 호출하지 않고 레이아웃 분석이 포함된 전체 파이프라인 예제로 작성했다.
+PP-OCRv6의 현재 공식 언어 범위에는 한국어가 없으므로 한국어 영수증은 PP-OCRv5를 사용한다. PaddleOCR-VL은 VLM 구성 요소만 단독 호출하지 않고 레이아웃 분석이 포함된 전체 파이프라인 예제로 작성했다.
 
 근거:
 
@@ -53,11 +53,17 @@ PP-OCRv6의 현재 공식 언어 범위에는 한국어가 없으므로 한국�
 - [PaddleOCR-VL 1.6](https://www.paddleocr.ai/main/en/version3.x/algorithm/PaddleOCR-VL/PaddleOCR-VL-1.6.html)
 - [PaddleOCR-VL 파이프라인](https://www.paddleocr.ai/latest/en/version3.x/pipeline_usage/PaddleOCR-VL.html)
 
+## 한국 실물 영수증 확인
+
+1교시 입력은 Wikimedia Commons의 [2025년 태백 음식점 영수증](https://commons.wikimedia.org/wiki/File:Receipt_taebaek_restaurant_IMG_2614_modified.jpg)이다. Commons 파일 설명은 Public Domain(`PD-ineligible`)으로 표시한다.
+
+저장소에는 원본을 그대로 넣지 않았다. 전화번호·내부 거래 식별 행을 추가로 가리고, 하단 결제 영역을 제외하고, 내장 메타데이터를 제거한 PNG만 포함했다. 원본·파생본 해시와 수정 내역은 `sample_docs/public_receipts/metadata.json`에서 확인한다. 해외 CORD 샘플은 1교시 대표 입력이 아니라 선택 비교 자료다.
+
 ## Colab 산출물 확인
 
 | 교시 | 확인 산출물 |
 | --- | --- |
-| 1 | `field_spec.json` |
+| 1 | `technology_comparison.json` |
 | 2 | `ocr_text.txt` |
 | 3 | `clean_receipt.json` |
 | 4 | `receipt.json` |
@@ -89,6 +95,6 @@ PP-OCRv6의 현재 공식 언어 범위에는 한국어가 없으므로 한국�
 
 - 실제 모델의 첫 실행은 패키지와 모델 다운로드에 영향을 받는다.
 - PaddleOCR-VL은 OCR보다 메모리와 실행 시간이 더 필요하므로 Colab에서 선택 실행한다.
-- 합성 영수증 한 장의 결과를 일반적인 정확도 수치로 사용하지 않는다.
+- 공개 한국 영수증 한 장과 합성 영수증의 결과를 일반적인 정확도 수치로 사용하지 않는다.
 - Gradio 공개 주소에는 합성 문서만 사용한다.
 - 실제 조직 적용 전 개인정보, 외부 전송, 접근권한, 보존·삭제 기준을 별도로 승인받는다.

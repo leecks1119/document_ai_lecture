@@ -1,10 +1,10 @@
 # Google Colab 실습 노트북
 
-이 폴더의 8개 노트북은 각각 새 런타임에서 독립적으로 실행할 수 있다. 이전 교시의 파일이 없어도 내장 합성 데이터로 시작한다.
+이 폴더의 8개 노트북은 각각 새 런타임에서 독립적으로 실행할 수 있다. 1교시는 연락처·거래 식별정보를 가린 한국 실물 영수증, 이후 교시는 합성 데이터로 시작한다.
 
 | 교시 | 노트북 | 기본 산출물 |
 | --- | --- | --- |
-| 1 | [01_document_ai_overview.ipynb](01_document_ai_overview.ipynb) | `field_spec.json` |
+| 1 | [01_document_ai_overview.ipynb](01_document_ai_overview.ipynb) | `technology_comparison.json` |
 | 2 | [02_ocr_basic.ipynb](02_ocr_basic.ipynb) | `ocr_text.txt` |
 | 3 | [03_document_structure.ipynb](03_document_structure.ipynb) | `clean_receipt.json` |
 | 4 | [04_genai_extraction.ipynb](04_genai_extraction.ipynb) | `receipt.json` |

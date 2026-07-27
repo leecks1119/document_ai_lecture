@@ -131,30 +131,43 @@ def main() -> None:
         receipt_to_csv_bytes(SAMPLE_RECEIPT)
     )
 
-    field_spec = {
-        "store_name": {
-            "type": "string",
-            "required": True,
-            "human_review": False,
-        },
-        "date": {
-            "type": "string",
-            "required": True,
-            "human_review": True,
-        },
-        "items": {
-            "type": "array",
-            "required": True,
-            "human_review": True,
-        },
-        "total_amount": {
-            "type": "integer",
-            "required": True,
-            "human_review": True,
-        },
+    technology_comparison = {
+        "input_document": "taebaek_restaurant_2025_redacted.png",
+        "example_label": "교육용 예시 — 실제 모델 실행 결과가 아님",
+        "comparisons": [
+            {
+                "technology": "OCR",
+                "input": "영수증 이미지 픽셀",
+                "process": ["텍스트 영역 탐지", "문자 인식"],
+                "output": "교육용 예시: 텍스트·좌표·신뢰도",
+                "cannot_guarantee": "업무 의미와 금액의 정확성",
+            },
+            {
+                "technology": "VLM",
+                "input": "영수증 이미지와 추출 지시",
+                "process": ["시각·배치 확인", "언어 관계 해석"],
+                "output": "교육용 예시: 표·Markdown·초안 JSON",
+                "cannot_guarantee": "관계와 값의 사실성",
+            },
+            {
+                "technology": "Document AI",
+                "input": "영수증과 업무 규칙",
+                "process": ["처리기 선택", "스키마", "검증", "사람 확인"],
+                "output": "검토 가능한 업무 데이터",
+                "cannot_guarantee": "검토 없는 완전 자동 정확성",
+            },
+        ],
+        "document_ai_workflow": [
+            "입력 품질",
+            "OCR·VLM·혼합",
+            "업무 스키마",
+            "규칙 검증",
+            "사람 확인",
+            "저장",
+        ],
     }
-    (SAMPLE_OUTPUTS / "field_spec.json").write_text(
-        json.dumps(field_spec, ensure_ascii=False, indent=2) + "\n",
+    (SAMPLE_OUTPUTS / "technology_comparison.json").write_text(
+        json.dumps(technology_comparison, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 

@@ -12,7 +12,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
 
 EXPECTED_ARTIFACTS = {
-    "01_document_ai_overview.ipynb": "field_spec.json",
+    "01_document_ai_overview.ipynb": "technology_comparison.json",
     "02_ocr_basic.ipynb": "ocr_text.txt",
     "03_document_structure.ipynb": "clean_receipt.json",
     "04_genai_extraction.ipynb": "receipt.json",

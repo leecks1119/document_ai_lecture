@@ -3,14 +3,24 @@
 from __future__ import annotations
 
 import base64
+import io
 import json
 from pathlib import Path
 from textwrap import dedent
+
+from PIL import Image
 
 
 ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
 SAMPLE_IMAGE = ROOT / "sample_docs" / "receipt_sample.png"
+KOREAN_RECEIPT_IMAGE = (
+    ROOT
+    / "sample_docs"
+    / "public_receipts"
+    / "korea"
+    / "taebaek_restaurant_2025_redacted.png"
+)
 
 SAMPLE_TEXT = """샘플문구점
 거래일자: 2026-07-27
@@ -134,7 +144,7 @@ def intro(
 
         - 기본 경로는 API 키와 OCR 모델 다운로드가 필요 없습니다.
         - 선택 실습은 기본값이 `False`입니다.
-        - 실제 개인정보가 없는 합성 영수증만 사용합니다.
+        - 수업이 지정한 공개 실물·합성 샘플만 사용합니다.
         """
     )
 
@@ -160,6 +170,17 @@ def json_literal(value) -> str:
     return repr(value)
 
 
+def notebook_image_base64(path: Path, max_size: tuple[int, int]) -> str:
+    """Colab에 넣을 메타데이터 없는 축소 JPEG를 만든다."""
+
+    with Image.open(path) as source:
+        image = source.convert("RGB")
+        image.thumbnail(max_size)
+    buffer = io.BytesIO()
+    image.save(buffer, format="JPEG", quality=88, optimize=True)
+    return base64.b64encode(buffer.getvalue()).decode("ascii")
+
+
 def receipt_constants() -> str:
     return (
         f"SAMPLE_OCR_TEXT = {SAMPLE_TEXT!r}\n"
@@ -169,71 +190,106 @@ def receipt_constants() -> str:
 
 
 def notebook_01() -> dict:
+    encoded_image = notebook_image_base64(KOREAN_RECEIPT_IMAGE, (900, 1100))
     cells = [
         intro(
             1,
-            "OCR보다 먼저 정할 것",
-            "field_spec.json",
-            "영수증에서 필요한 필드와 검토 여부를 정의합니다.",
+            "한국 영수증으로 구분하는 OCR·VLM·Document AI",
+            "technology_comparison.json",
+            "같은 한국 영수증에서 세 기술의 역할과 처리 과정을 구분합니다.",
         ),
         runtime_cell(),
+        code(
+            f"""
+            import base64
+            import io
+            from PIL import Image
+
+            KOREAN_RECEIPT_BASE64 = {encoded_image!r}
+            receipt_image = Image.open(
+                io.BytesIO(base64.b64decode(KOREAN_RECEIPT_BASE64))
+            ).convert("RGB")
+            receipt_image.thumbnail((720, 900))
+            print("실제 한국 영수증 파생본:", receipt_image.size)
+            receipt_image
+            """
+        ),
         markdown(
             """
             ## 핵심 3개
 
-            1. OCR은 글자와 위치를 읽고, VLM은 이미지와 문서 구조를 함께 봅니다.
-            2. 실무에서는 문서 난이도에 따라 OCR·VLM·혼합 경로를 고릅니다.
-            3. 어떤 모델보다 필요한 필드와 사람 검토 기준을 먼저 정합니다.
-            """
-        ),
-        code(
-            """
-            RECEIPT_TEXT = '''샘플문구점
-            거래일자: 2026-07-27
-            연필 2개 × 1,000원 = 2,000원
-            노트 1개 × 3,000원 = 3,000원
-            합계: 5,000원'''
+            1. OCR: 픽셀 → 영역 탐지 → 문자 인식 → 텍스트·좌표·신뢰도
+            2. VLM: 이미지+지시 → 배치·언어 관계 해석 → 표·Markdown·초안 JSON
+            3. Document AI: 처리기 선택 → 스키마 → 검증 → 사람 확인 → 저장
 
-            print(RECEIPT_TEXT)
+            아래 결과는 모두 **교육용 예시이며 실제 모델 실행 결과가 아닙니다.**
             """
         ),
-        markdown("## 실습. 네 개의 필드 정의"),
         code(
             """
-            FIELD_SPEC = {
-                "store_name": {
-                    "type": "string",
-                    "required": True,
-                    "human_review": False,
+            COMPARISONS = [
+                {
+                    "technology": "OCR",
+                    "input": "영수증 이미지 픽셀",
+                    "process": ["텍스트 영역 탐지", "문자 인식"],
+                    "output": "교육용 예시: 텍스트·좌표·신뢰도",
+                    "cannot_guarantee": "업무 의미와 금액의 정확성",
                 },
-                "date": {
-                    "type": "string",
-                    "required": True,
-                    "human_review": True,
+                {
+                    "technology": "VLM",
+                    "input": "영수증 이미지와 추출 지시",
+                    "process": ["시각·배치 확인", "언어 관계 해석"],
+                    "output": "교육용 예시: 표·Markdown·초안 JSON",
+                    "cannot_guarantee": "관계와 값의 사실성",
                 },
-                "items": {
-                    "type": "array",
-                    "required": True,
-                    "human_review": True,
+                {
+                    "technology": "Document AI",
+                    "input": "영수증과 업무 규칙",
+                    "process": ["처리기 선택", "스키마", "검증", "사람 확인"],
+                    "output": "검토 가능한 업무 데이터",
+                    "cannot_guarantee": "검토 없는 완전 자동 정확성",
                 },
-                "total_amount": {
-                    "type": "integer",
-                    "required": True,
-                    "human_review": True,
-                },
+            ]
+
+            for item in COMPARISONS:
+                print(item["technology"], "→", item["output"])
+            """
+        ),
+        markdown("## 실습. 한 장의 영수증을 세 방식으로 비교"),
+        code(
+            """
+            TECHNOLOGY_COMPARISON = {
+                "input_document": "taebaek_restaurant_2025_redacted.png",
+                "example_label": "교육용 예시 — 실제 모델 실행 결과가 아님",
+                "comparisons": COMPARISONS,
+                "document_ai_workflow": [
+                    "입력 품질",
+                    "OCR·VLM·혼합",
+                    "업무 스키마",
+                    "규칙 검증",
+                    "사람 확인",
+                    "저장",
+                ],
             }
 
-            assert len(FIELD_SPEC) == 4
-            FIELD_SPEC
+            technologies = {
+                item["technology"] for item in TECHNOLOGY_COMPARISON["comparisons"]
+            }
+            assert technologies == {"OCR", "VLM", "Document AI"}
+            TECHNOLOGY_COMPARISON
             """
         ),
         code(
             """
             import json
 
-            output_path = OUTPUT_DIR / "field_spec.json"
+            output_path = OUTPUT_DIR / "technology_comparison.json"
             output_path.write_text(
-                json.dumps(FIELD_SPEC, ensure_ascii=False, indent=2) + "\\n",
+                json.dumps(
+                    TECHNOLOGY_COMPARISON,
+                    ensure_ascii=False,
+                    indent=2,
+                ) + "\\n",
                 encoding="utf-8",
             )
             print("저장 완료:", output_path)
@@ -243,9 +299,9 @@ def notebook_01() -> dict:
             """
             ## 확인
 
-            - 네 필드가 있는가?
-            - 날짜·품목·총액에 사람 검토가 표시됐는가?
-            - 실제 문서 대신 합성 텍스트를 사용했는가?
+            - OCR·VLM·Document AI가 한 번씩 있는가?
+            - 각 기술의 입력·과정·출력·한계가 구분되는가?
+            - 교육용 예시 라벨이 남아 있는가?
             """
         ),
     ]

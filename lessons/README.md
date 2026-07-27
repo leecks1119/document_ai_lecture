@@ -8,7 +8,7 @@
 
 | 교시 | 교재 | 주제 | 작성 상태 |
 | --- | --- | --- | --- |
-| 1교시 | [01_document_ai_overview.md](01_document_ai_overview.md) | OCR보다 먼저 정할 것 | 본문·Colab mock 검증 |
+| 1교시 | [01_document_ai_overview.md](01_document_ai_overview.md) | 한국 영수증으로 구분하는 OCR·VLM·Document AI | 본문·Colab mock 검증 |
 | 2교시 | [02_ocr_basic.md](02_ocr_basic.md) | OCR 결과를 눈으로 확인하기 | 본문·Colab mock 검증 |
 | 3교시 | [03_document_structure.md](03_document_structure.md) | OCR 초안을 정돈된 데이터로 | 본문·Colab mock 검증 |
 | 4교시 | [04_genai_extraction.md](04_genai_extraction.md) | 필요한 값만 JSON으로 | 본문·Colab mock 검증 |
@@ -53,7 +53,7 @@ lessons/
 - 모든 실습에는 기대 결과와 완료 체크리스트를 포함한다.
 - Codex 프롬프트는 목표, 맥락, 제약조건, 완료 기준을 구분해 작성한다.
 - OCR 설치나 외부 API 없이 완료할 수 있는 mock 실습 경로를 함께 제공한다.
-- 실제 API 키와 개인정보가 포함된 문서나 화면 이미지는 사용하지 않는다.
+- 실제 API 키와 식별정보를 가리지 않은 문서나 화면 이미지는 사용하지 않는다.
 - 교시별 이미지는 `assets/{교시 번호}/`에 저장하고 상대 경로로 연결한다.
 
 ## Notion 등록 원칙

@@ -185,15 +185,76 @@ def comparison_diagram(
     return svg_frame(title, description, "".join(body))
 
 
+def three_way_comparison_diagram(
+    title: str,
+    description: str,
+    columns: list[tuple[str, list[str]]],
+    footer: str,
+) -> str:
+    body = []
+    colors = ["#EAF1F8", "#DDF3EE", "#FFF0D8"]
+    for index, (heading, lines) in enumerate(columns):
+        x = 72 + index * 372
+        body.extend(
+            [
+                f'<rect x="{x}" y="155" width="330" height="340" rx="24" '
+                f'fill="{colors[index]}" stroke="{COLORS["line"]}" stroke-width="2"/>',
+                text_lines(x + 165, 210, [heading], size=29),
+                text_lines(
+                    x + 28,
+                    270,
+                    lines,
+                    size=21,
+                    weight=400,
+                    color=COLORS["gray"],
+                    anchor="start",
+                    gap=43,
+                ),
+            ]
+        )
+    body.extend(
+        [
+            f'<rect x="150" y="525" width="900" height="58" rx="18" fill="{COLORS["navy"]}"/>',
+            text_lines(600, 563, [footer], size=23, color=COLORS["white"]),
+        ]
+    )
+    return svg_frame(title, description, "".join(body))
+
+
 DIAGRAMS = {
-    "01/01_pipeline_map.svg": comparison_diagram(
-        "문서에 맞는 읽기 경로 고르기",
-        "단순한 글자 중심 문서는 OCR, 표와 배치가 중요한 문서는 VLM을 선택하는 지도",
-        "PaddleOCR 경로",
-        ["글자와 위치가 중요", "단순한 읽기 순서", "빠르고 가벼운 시작"],
-        "PaddleOCR-VL 경로",
-        ["제목·표 관계가 중요", "복잡한 페이지 배치", "멀티모달 구조 이해"],
-        "두 경로 모두 업무 JSON 변환, 검증, 사람 확인으로 이어집니다.",
+    "01/01_pipeline_map.svg": three_way_comparison_diagram(
+        "같은 한국 영수증, 서로 다른 역할",
+        "OCR은 글자, VLM은 배치와 관계, Document AI는 검증과 저장까지 처리",
+        [
+            (
+                "OCR",
+                [
+                    "입력: 이미지 픽셀",
+                    "탐지 → 문자 인식",
+                    "출력: 글자·좌표·신뢰도",
+                    "업무 의미는 별도",
+                ],
+            ),
+            (
+                "VLM",
+                [
+                    "입력: 이미지 + 지시",
+                    "배치 → 관계 해석",
+                    "출력: 표·Markdown·초안",
+                    "추론 오류 가능",
+                ],
+            ),
+            (
+                "Document AI",
+                [
+                    "입력: 문서 + 업무 규칙",
+                    "처리기 → 스키마 → 검증",
+                    "출력: 검토 가능한 데이터",
+                    "사람 확인 후 저장",
+                ],
+            ),
+        ],
+        "Document AI는 단일 모델이 아니라 문서 업무를 끝내는 전체 흐름입니다.",
     ),
     "01/02_field_definition.svg": comparison_diagram(
         "문서의 글자와 추출 필드",
