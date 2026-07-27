@@ -8,14 +8,14 @@
 
 | 교시 | 교재 | 주제 | 작성 상태 |
 | --- | --- | --- | --- |
-| 1교시 | [01_document_ai_overview.md](01_document_ai_overview.md) | Document AI 개요 및 문서 자동화 활용 사례 | 골격 생성 |
-| 2교시 | [02_ocr_basic.md](02_ocr_basic.md) | OCR 기반 텍스트 추출 실습 | 골격 생성 |
-| 3교시 | [03_document_structure.md](03_document_structure.md) | 문서 구조 이해 및 추출 결과 정제 | 골격 생성 |
-| 4교시 | [04_genai_extraction.md](04_genai_extraction.md) | 생성형 AI 기반 핵심 정보 추출 | 골격 생성 |
-| 5교시 | [05_gradio_basic.md](05_gradio_basic.md) | Gradio 기반 문서 자동화 데모 앱 구현 | 골격 생성 |
-| 6교시 | [06_ocr_ai_integration.md](06_ocr_ai_integration.md) | 문서 업로드·OCR·AI 추출 기능 통합 | 골격 생성 |
-| 7교시 | [07_validation_export.md](07_validation_export.md) | 추출 결과 검증 및 데이터 저장 | 골격 생성 |
-| 8교시 | [08_business_application.md](08_business_application.md) | 실무 적용 시나리오 설계 및 최종 정리 | 골격 생성 |
+| 1교시 | [01_document_ai_overview.md](01_document_ai_overview.md) | OCR보다 먼저 정할 것 | 본문·Colab mock 검증 |
+| 2교시 | [02_ocr_basic.md](02_ocr_basic.md) | OCR 결과를 눈으로 확인하기 | 본문·Colab mock 검증 |
+| 3교시 | [03_document_structure.md](03_document_structure.md) | OCR 초안을 정돈된 데이터로 | 본문·Colab mock 검증 |
+| 4교시 | [04_genai_extraction.md](04_genai_extraction.md) | 필요한 값만 JSON으로 | 본문·Colab mock 검증 |
+| 5교시 | [05_gradio_basic.md](05_gradio_basic.md) | Python 함수에 화면 붙이기 | 본문·Colab mock 검증 |
+| 6교시 | [06_ocr_ai_integration.md](06_ocr_ai_integration.md) | 작은 함수들을 한 줄로 연결하기 | 본문·Colab mock 검증 |
+| 7교시 | [07_validation_export.md](07_validation_export.md) | 틀린 값을 걸러 CSV로 | 본문·Colab mock 검증 |
+| 8교시 | [08_business_application.md](08_business_application.md) | 자동화의 마지막은 사람 확인 | 본문·Colab mock 검증 |
 
 전체 과정의 목표와 교시별 산출물은 [교육 커리큘럼](../docs/curriculum.md)을 기준으로 한다.
 
