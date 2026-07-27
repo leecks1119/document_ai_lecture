@@ -104,6 +104,7 @@ python tools/validate_colab_notebooks.py
 - [Colab·로컬 환경](docs/environment.md)
 - [문제 해결](docs/troubleshooting.md)
 - [강사용 운영 가이드](docs/instructor_guide.md)
+- [최종 검증 보고서](docs/verification_report.md)
 - [2026 개편 상태](docs/rebuild_status.md)
 
 ## 생성형 AI와 Codex 사용 원칙
