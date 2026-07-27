@@ -1,0 +1,21 @@
+{
+  "document_type": "receipt",
+  "store_name": "샘플문구점",
+  "date": "2026-07-27",
+  "total_amount": 5000,
+  "items": [
+    {
+      "name": "연필",
+      "quantity": 2,
+      "unit_price": 1000,
+      "line_total": 2000
+    },
+    {
+      "name": "노트",
+      "quantity": 1,
+      "unit_price": 3000,
+      "line_total": 3000
+    }
+  ],
+  "source_mode": "mock"
+}

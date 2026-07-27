@@ -1,0 +1,22 @@
+{
+  "store_name": {
+    "type": "string",
+    "required": true,
+    "human_review": false
+  },
+  "date": {
+    "type": "string",
+    "required": true,
+    "human_review": true
+  },
+  "items": {
+    "type": "array",
+    "required": true,
+    "human_review": true
+  },
+  "total_amount": {
+    "type": "integer",
+    "required": true,
+    "human_review": true
+  }
+}
