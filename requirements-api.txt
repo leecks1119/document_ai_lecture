@@ -1,4 +1,0 @@
--r requirements.txt
-
-# 선택 실습: 실제 생성형 AI API
-openai==2.48.0

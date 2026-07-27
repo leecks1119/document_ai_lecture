@@ -37,13 +37,21 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert cell["outputs"] == [], path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
-    assert "RUN_OPTIONAL_EASYOCR = False" in source or path.name != "02_ocr_basic.ipynb"
+    assert "RUN_PADDLEOCR = False" in source or path.name != "02_ocr_basic.ipynb"
     assert (
-        "CHECK_OPTIONAL_API_READINESS = False" in source
+        "RUN_PADDLEOCR_VL = False" in source
         or path.name != "04_genai_extraction.ipynb"
     )
     assert "RUN_PUBLIC_DEMO = False" in source or path.name != "05_gradio_basic.ipynb"
     assert "OPENAI_API_KEY" not in source, f"{path}: do not embed key names in required path"
+    assert "easyocr" not in source.lower(), f"{path}: EasyOCR must not appear"
+
+    if path.name == "02_ocr_basic.ipynb":
+        assert "PaddleOCR" in source
+        assert 'lang="korean"' in source
+    if path.name == "04_genai_extraction.ipynb":
+        assert "PaddleOCRVL" in source
+        assert 'pipeline_version="v1.6"' in source
 
 
 def execute_mock_path(path: Path, notebook: dict) -> None:

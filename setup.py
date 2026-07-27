@@ -19,7 +19,6 @@ setup(
             "paddleocr[doc-parser]==3.7.0",
             "transformers>=5.8,<6",
         ],
-        "api": ["openai==2.48.0"],
     },
     python_requires=">=3.12,<3.13",
     classifiers=[

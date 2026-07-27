@@ -19,6 +19,18 @@ SAMPLE_TEXT = """샘플문구점
 합계: 5,000원
 """
 
+SAMPLE_VLM_MARKDOWN = """# 샘플문구점
+
+거래일자: 2026-07-27
+
+| 품목 | 수량 | 단가 | 금액 |
+|---|---:|---:|---:|
+| 연필 | 2 | 1,000원 | 2,000원 |
+| 노트 | 1 | 3,000원 | 3,000원 |
+
+**합계: 5,000원**
+"""
+
 SAMPLE_RECEIPT = {
     "document_type": "receipt",
     "store_name": "샘플문구점",
@@ -151,6 +163,7 @@ def json_literal(value) -> str:
 def receipt_constants() -> str:
     return (
         f"SAMPLE_OCR_TEXT = {SAMPLE_TEXT!r}\n"
+        f"SAMPLE_VLM_MARKDOWN = {SAMPLE_VLM_MARKDOWN!r}\n"
         f"SAMPLE_RECEIPT = {json_literal(SAMPLE_RECEIPT)}\n"
     )
 
@@ -168,9 +181,9 @@ def notebook_01() -> dict:
             """
             ## 핵심 3개
 
-            1. OCR은 글자를 읽는 단계입니다.
-            2. Document AI는 구조화·검증·활용까지 포함합니다.
-            3. 필요한 필드와 사람 검토 여부를 먼저 정합니다.
+            1. OCR은 글자와 위치를 읽고, VLM은 이미지와 문서 구조를 함께 봅니다.
+            2. 실무에서는 문서 난이도에 따라 OCR·VLM·혼합 경로를 고릅니다.
+            3. 어떤 모델보다 필요한 필드와 사람 검토 기준을 먼저 정합니다.
             """
         ),
         code(
@@ -306,30 +319,52 @@ def notebook_02() -> dict:
         ),
         markdown(
             """
-            ## 선택 실습. EasyOCR
+            ## 선택 실습. PaddleOCR 3.7 + PP-OCRv5 Korean
 
-            최초 모델 다운로드가 가능할 때만 실행합니다. 실패해도 위 결과물은 이미 완성됐습니다.
+            한국어 인식은 `lang="korean"`과 `PP-OCRv5`를 사용합니다.
+            최초 모델 다운로드가 가능할 때만 실행하며, 실패해도 위 결과물은 이미 완성됐습니다.
             """
         ),
         code(
             """
-            RUN_OPTIONAL_EASYOCR = False
+            RUN_PADDLEOCR = False
 
-            if RUN_OPTIONAL_EASYOCR:
+            if RUN_PADDLEOCR:
                 import subprocess
 
                 subprocess.check_call(
-                    [sys.executable, "-m", "pip", "install", "-q", "easyocr==1.7.2"]
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "-q",
+                        "paddlepaddle==3.2.1",
+                    ]
                 )
-                import easyocr
+                subprocess.check_call(
+                    [sys.executable, "-m", "pip", "install", "-q", "paddleocr==3.7.0"]
+                )
+                from paddleocr import PaddleOCR
 
                 image_path = OUTPUT_DIR / "receipt_sample.png"
                 receipt_image.save(image_path)
-                reader = easyocr.Reader(["ko", "en"], gpu=False)
-                live_result = reader.readtext(str(image_path))
-                print("LIVE EasyOCR 영역:", len(live_result))
+                pipeline = PaddleOCR(
+                    lang="korean",
+                    ocr_version="PP-OCRv5",
+                    use_doc_orientation_classify=False,
+                    use_doc_unwarping=False,
+                    use_textline_orientation=False,
+                    device="cpu",
+                )
+                live_pages = list(pipeline.predict(str(image_path)))
+                live_payload = live_pages[0].json
+                if callable(live_payload):
+                    live_payload = live_payload()
+                live_result = live_payload.get("res", live_payload)
+                print("LIVE PaddleOCR 텍스트:", live_result.get("rec_texts", []))
             else:
-                print("선택 EasyOCR 셀을 건너뛰었습니다.")
+                print("선택 PaddleOCR 셀을 건너뛰었습니다.")
             """
         ),
         markdown(
@@ -452,22 +487,31 @@ def notebook_03() -> dict:
 
 
 def notebook_04() -> dict:
+    encoded_image = base64.b64encode(SAMPLE_IMAGE.read_bytes()).decode("ascii")
     cells = [
         intro(
             4,
-            "필요한 값만 JSON으로 담기",
+            "멀티모달로 문서 구조 읽기",
             "receipt.json",
-            "스키마에 맞춰 값을 구조화하고 없는 값은 null로 처리합니다.",
+            "PaddleOCR-VL의 구조화 결과를 이해하고 업무용 JSON으로 변환합니다.",
         ),
         runtime_cell(),
-        code("import json\nimport re\n\n" + receipt_constants()),
+        code(
+            "import base64\n"
+            "import io\n"
+            "import json\n"
+            "import re\n"
+            "from PIL import Image\n\n"
+            f"SAMPLE_IMAGE_BASE64 = {encoded_image!r}\n"
+            + receipt_constants()
+        ),
         markdown(
             """
             ## 핵심 3개
 
-            1. 스키마는 필드명·자료형·필수 여부를 정합니다.
-            2. 원문에 없는 값은 `null`입니다.
-            3. JSON 문법과 값의 사실성은 별도 검사입니다.
+            1. VLM은 문서 이미지의 글자와 표·제목 같은 배치를 함께 봅니다.
+            2. PaddleOCR-VL의 Markdown·블록 결과는 업무 JSON 전의 중간 결과입니다.
+            3. 원문에 없는 값은 `null`로 두고 스키마와 업무 규칙으로 검증합니다.
             """
         ),
         code(
@@ -482,10 +526,17 @@ def notebook_04() -> dict:
                 return int(value.replace(",", ""))
 
 
-            def mock_extract(ocr_text):
-                lines = [line.strip() for line in ocr_text.splitlines() if line.strip()]
-                date_match = re.search(r"\\d{4}-\\d{2}-\\d{2}", ocr_text)
-                total_match = re.search(r"합계\\s*:\\s*([\\d,]+)원", ocr_text)
+            def mock_extract(vlm_markdown):
+                lines = [
+                    line.strip()
+                    for line in vlm_markdown.splitlines()
+                    if line.strip()
+                ]
+                date_match = re.search(r"\\d{4}-\\d{2}-\\d{2}", vlm_markdown)
+                total_match = re.search(
+                    r"합계\\s*:\\s*([\\d,]+)원",
+                    vlm_markdown.replace("*", ""),
+                )
                 item_pattern = re.compile(
                     r"(?P<name>.+?)\\s+(?P<quantity>\\d+)개\\s*[×x]\\s*"
                     r"(?P<unit>[\\d,]+)원\\s*=\\s*(?P<line>[\\d,]+)원"
@@ -500,20 +551,49 @@ def notebook_04() -> dict:
                             "unit_price": to_int(match.group("unit")),
                             "line_total": to_int(match.group("line")),
                         })
+                        continue
+
+                    if line.startswith("|") and "---" not in line:
+                        cells = [cell.strip() for cell in line.strip("|").split("|")]
+                        if len(cells) == 4 and cells[0] not in ("품목", ""):
+                            try:
+                                quantity = int(cells[1])
+                                unit_price = to_int(cells[2].removesuffix("원"))
+                                line_total = to_int(cells[3].removesuffix("원"))
+                            except ValueError:
+                                continue
+                            items.append({
+                                "name": cells[0],
+                                "quantity": quantity,
+                                "unit_price": unit_price,
+                                "line_total": line_total,
+                            })
+
+                store_name = next(
+                    (
+                        line.removeprefix("#").strip()
+                        for line in lines
+                        if line.startswith("#")
+                    ),
+                    None,
+                )
                 return {
                     "document_type": "receipt",
-                    "store_name": lines[0] if lines else None,
+                    "store_name": store_name,
                     "date": date_match.group(0) if date_match else None,
                     "total_amount": to_int(total_match.group(1)) if total_match else None,
                     "items": items,
-                    "source_mode": "mock",
+                    "source_mode": "mock_vlm",
                 }
             """
         ),
-        markdown("## 실습. mock JSON을 만들고 원문과 대조"),
+        markdown("## 실습. VLM 중간 결과를 업무용 JSON으로 변환"),
         code(
             """
-            receipt = mock_extract(SAMPLE_OCR_TEXT)
+            print("PaddleOCR-VL 형태의 Markdown 중간 결과:")
+            print(SAMPLE_VLM_MARKDOWN)
+
+            receipt = mock_extract(SAMPLE_VLM_MARKDOWN)
 
             assert receipt["date"] == "2026-07-27"
             assert receipt["total_amount"] == 5000
@@ -529,44 +609,48 @@ def notebook_04() -> dict:
         ),
         markdown(
             """
-            ## 생성형 AI용 추출 프롬프트
+            ## 선택 실습. PaddleOCR-VL 1.6
 
-            실제 API 없이도 역할·목표·제약·출력 형식을 작성하는 연습을 합니다.
+            문서 전용 멀티모달 모델은 다운로드와 더 많은 메모리가 필요합니다.
+            Colab 런타임에서만 선택적으로 실행하며, 기본 mock 실습은 이미 완료됐습니다.
             """
         ),
         code(
             """
-            EXTRACTION_PROMPT = f'''역할: 영수증 정보 추출 도우미
-            목표: 상호명, 날짜, 품목, 합계를 JSON으로 추출
-            제약조건:
-            - 원문에 없는 값은 null
-            - JSON 외 설명 금지
+            RUN_PADDLEOCR_VL = False
 
-            OCR 텍스트:
-            {SAMPLE_OCR_TEXT}'''
+            if RUN_PADDLEOCR_VL:
+                import subprocess
 
-            print(EXTRACTION_PROMPT)
-            """
-        ),
-        markdown(
-            """
-            ## 선택 확인. API 연결 전 준비사항
-
-            실제 API를 호출하지 않습니다. 비밀 저장 방식과 조직의 데이터 처리 조건을
-            확인하는 항목이며, 기본 실습은 mock 결과로 이미 완료됐습니다.
-            """
-        ),
-        code(
-            """
-            CHECK_OPTIONAL_API_READINESS = False
-
-            if CHECK_OPTIONAL_API_READINESS:
-                print(
-                    "실제 호출은 하지 않습니다. Colab Secrets, 조직 승인, "
-                    "데이터 처리 조건을 확인하세요."
+                subprocess.check_call(
+                    [
+                        sys.executable,
+                        "-m",
+                        "pip",
+                        "install",
+                        "-q",
+                        "paddleocr[doc-parser]==3.7.0",
+                        "transformers>=5.8,<6",
+                    ]
                 )
+                from paddleocr import PaddleOCRVL
+
+                image_path = OUTPUT_DIR / "receipt_sample.png"
+                Image.open(
+                    io.BytesIO(base64.b64decode(SAMPLE_IMAGE_BASE64))
+                ).convert("RGB").save(image_path)
+
+                pipeline = PaddleOCRVL(
+                    pipeline_version="v1.6",
+                    engine="transformers",
+                    use_doc_orientation_classify=False,
+                    use_doc_unwarping=False,
+                )
+                live_pages = list(pipeline.predict(str(image_path)))
+                for page in live_pages:
+                    print(page.markdown)
             else:
-                print("API 연결 준비 확인을 건너뛰고 mock 결과로 완료했습니다.")
+                print("선택 PaddleOCR-VL 셀을 건너뛰고 mock 결과로 완료했습니다.")
             """
         ),
         markdown(
@@ -624,13 +708,18 @@ def notebook_05() -> dict:
         ),
         code(
             """
-            def show_mock_result(file_path=None):
-                status = "MOCK 결과 — 업로드 문서를 읽지 않았습니다."
-                return status, SAMPLE_OCR_TEXT, SAMPLE_RECEIPT
+            def show_mock_result(file_path=None, processor="PaddleOCR"):
+                status = f"MOCK {processor} 결과 — 업로드 문서를 읽지 않았습니다."
+                source_text = (
+                    SAMPLE_VLM_MARKDOWN
+                    if processor == "PaddleOCR-VL"
+                    else SAMPLE_OCR_TEXT
+                )
+                return status, source_text, SAMPLE_RECEIPT
 
 
             direct_result = show_mock_result()
-            assert "MOCK 결과" in direct_result[0]
+            assert "MOCK PaddleOCR 결과" in direct_result[0]
             assert direct_result[2]["total_amount"] == 5000
             print(direct_result[0])
             """
@@ -641,14 +730,19 @@ def notebook_05() -> dict:
             with gr.Blocks(title="5교시 Document AI") as demo:
                 gr.Markdown("# 영수증 Document AI · MOCK 실습")
                 file_input = gr.File(label="합성 영수증", type="filepath")
+                processor = gr.Radio(
+                    ["PaddleOCR", "PaddleOCR-VL"],
+                    value="PaddleOCR",
+                    label="문서 처리기",
+                )
                 process_button = gr.Button("mock 결과 보기", variant="primary")
                 status = gr.Markdown()
-                ocr_output = gr.Textbox(label="OCR 텍스트", lines=7)
+                ocr_output = gr.Textbox(label="문서 인식 결과", lines=9)
                 json_output = gr.JSON(label="구조화 JSON")
 
                 process_button.click(
                     fn=show_mock_result,
-                    inputs=file_input,
+                    inputs=[file_input, processor],
                     outputs=[status, ocr_output, json_output],
                 )
 
@@ -662,16 +756,21 @@ def notebook_05() -> dict:
             SAMPLE_TEXT = "합성 영수증 OCR 텍스트"
             SAMPLE_JSON = {"source_mode": "mock"}
 
-            def show_mock_result(file_path=None):
-                return "MOCK 결과", SAMPLE_TEXT, SAMPLE_JSON
+            def show_mock_result(file_path=None, processor="PaddleOCR"):
+                return f"MOCK {processor} 결과", SAMPLE_TEXT, SAMPLE_JSON
 
             with gr.Blocks() as demo:
                 file_input = gr.File(type="filepath")
+                processor = gr.Radio(["PaddleOCR", "PaddleOCR-VL"], value="PaddleOCR")
                 button = gr.Button("mock 결과 보기")
                 status = gr.Markdown()
                 text = gr.Textbox()
                 data = gr.JSON()
-                button.click(show_mock_result, file_input, [status, text, data])
+                button.click(
+                    show_mock_result,
+                    [file_input, processor],
+                    [status, text, data],
+                )
 
             if __name__ == "__main__":
                 demo.launch(share=False)
@@ -735,10 +834,23 @@ def notebook_06() -> dict:
                 return data
 
 
-            def process_document(file_path=None, *, use_sample=False):
+            def process_document(file_path=None, *, processor="ocr", use_sample=False):
+                if processor not in ("ocr", "vlm"):
+                    return {
+                        "ok": False,
+                        "status": "입력 오류",
+                        "errors": ["processor는 ocr 또는 vlm이어야 합니다."],
+                    }
+
                 if use_sample:
-                    ocr_text = SAMPLE_OCR_TEXT
-                    status = "MOCK OCR + MOCK 추출"
+                    document_text = (
+                        SAMPLE_VLM_MARKDOWN if processor == "vlm" else SAMPLE_OCR_TEXT
+                    )
+                    status = (
+                        "MOCK PaddleOCR-VL + MOCK 추출"
+                        if processor == "vlm"
+                        else "MOCK PaddleOCR + MOCK 추출"
+                    )
                 else:
                     errors = validate_upload(file_path)
                     if errors:
@@ -750,16 +862,19 @@ def notebook_06() -> dict:
                         }
                     return {
                         "ok": False,
-                        "status": "선택 EasyOCR 필요",
-                        "errors": ["기본 실습에서는 '샘플로 계속'을 선택하세요."],
+                        "status": "실제 모델 선택 실행 필요",
+                        "errors": [
+                            "PaddleOCR 또는 PaddleOCR-VL 선택 실습을 실행하거나 "
+                            "'샘플로 계속'을 선택하세요."
+                        ],
                         "can_continue_with_sample": True,
                     }
 
                 return {
                     "ok": True,
                     "status": status,
-                    "ocr_text": ocr_text,
-                    "data": mock_extract(ocr_text),
+                    "document_text": document_text,
+                    "data": mock_extract(document_text),
                 }
             """
         ),
@@ -770,7 +885,7 @@ def notebook_06() -> dict:
             assert not error_result["ok"]
             assert "data" not in error_result
 
-            sample_result = process_document(use_sample=True)
+            sample_result = process_document(processor="vlm", use_sample=True)
             assert sample_result["ok"]
             assert "MOCK" in sample_result["status"]
             assert sample_result["data"]["total_amount"] == 5000
@@ -783,11 +898,11 @@ def notebook_06() -> dict:
             """
             app_code = '''from src.pipeline import process_document
 
-            def run_uploaded(file_path):
-                return process_document(file_path)
+            def run_uploaded(file_path, processor="ocr"):
+                return process_document(file_path, processor=processor)
 
-            def run_sample():
-                return process_document(use_sample=True)
+            def run_sample(processor="ocr"):
+                return process_document(processor=processor, use_sample=True)
 
             # Gradio에서는 두 함수를 서로 다른 버튼에 연결합니다.
             '''
@@ -800,8 +915,8 @@ def notebook_06() -> dict:
             """
             ## mock 대체 경로
 
-            필수 경로 자체가 명시적인 mock 실습입니다. EasyOCR 오류 뒤에 자동 전환하지 않고
-            오류를 확인한 뒤 `process_document(use_sample=True)`를 실행합니다.
+            필수 경로 자체가 명시적인 mock 실습입니다. 실제 모델 오류 뒤에 자동 전환하지 않고
+            오류를 확인한 뒤 처리기를 골라 `process_document(use_sample=True)`를 실행합니다.
             """
         ),
         markdown(
