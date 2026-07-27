@@ -5,6 +5,9 @@
 
 이 문서는 1~8교시 교재, Colab 실습, 이미지 자산의 범위와 완료 증거를 추적한다.
 
+> 2026-07-27 기술 정정: EasyOCR 중심 설계를 폐기하고 PaddleOCR 3.7,
+> PP-OCRv5 Korean, PaddleOCR-VL 1.6 기반으로 전면 교체 중이다.
+
 ## 범위 원칙
 
 이 과정은 Python 기초 경험만 있는 Document AI 입문자를 위한 8시간 과정이다. 전문 지식을 많이 전달하는 것보다 학습자가 작은 문서 자동화 흐름을 직접 완성하는 것을 우선한다.
@@ -64,6 +67,7 @@
 | Markdown·Colab·이미지 구현 | 완료 | 교재 8개, Colab 8개, 도식 16개 |
 | 전체 실행 및 링크 검증 | 완료 | `docs/verification_report.md`, 테스트 22개 통과 |
 | 최종 교육 품질 검수 | 완료 | 98/100, P0 0개, P1 0개 |
+| PaddleOCR·멀티모달 기술 정정 | 진행 중 | `lessons/_work/05_paddleocr_multimodal_research.md` |
 
 ## 커밋 원칙
 

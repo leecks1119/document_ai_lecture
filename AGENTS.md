@@ -31,7 +31,9 @@ Do not add model training, OCR engine benchmarks, OCR ensembles, databases, auth
 - Use the documented fixed Colab runtime for final verification.
 - Keep local code compatible with Python 3.12.x.
 - Gradio is the primary UI.
-- EasyOCR is the optional live OCR path.
+- PaddleOCR 3.7 with PP-OCRv5 Korean is the optional live OCR path.
+- PaddleOCR-VL 1.6 is the optional multimodal document parsing path.
+- Do not add EasyOCR back to the 2026 course.
 - Every lesson must remain completable with sample OCR text and mock JSON.
 - Real generative AI API calls are optional.
 
