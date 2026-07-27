@@ -26,7 +26,7 @@
 - [mock 추출 결과](../sample_outputs/extracted_result.json)
 - [4교시 Colab 노트북](../colab/04_genai_extraction.ipynb)
 
-필수 실습은 API 키가 필요 없다. 실제 생성형 AI 호출은 선택 실습이다.
+필수 실습은 API 키가 필요 없다. 이번 입문 과정에서는 실제 생성형 AI를 호출하지 않고, 선택 셀에서 외부 API 연결 전 확인사항만 점검한다.
 
 ## 4. 핵심 개념
 
@@ -78,7 +78,7 @@ OCR 텍스트
 
 ### 실습 1. JSON 구조와 `null` 규칙 확인하기
 
-노트북에서 날짜와 합계 필드의 스키마 골격을 완성한다.
+노트북에 제공된 날짜와 합계 필드의 스키마를 원문과 대조한다.
 
 ```python
 RECEIPT_SCHEMA = {
@@ -104,13 +104,14 @@ print(result["date"], result["total_amount"])
 
 정규식 또는 스키마 패키지 오류가 나면 제공된 `extracted_result.json`을 읽고 필드와 원문을 눈으로 대조한다.
 
-### 선택 실습. 실제 생성형 AI API
+### 선택 확인. API 연결 전 준비사항
 
-- Colab Secrets에 키가 있는 학습자만 실행한다.
+- 실제 호출 코드는 실행하지 않는다.
+- Colab Secrets 같은 비밀 저장 방식이 필요한 이유를 확인한다.
 - 실제 개인정보 문서를 보내지 않는다.
 - 조직 적용 전 데이터 보존·학습 이용·리전·계약 조건을 확인한다.
 
-선택 셀의 기본값은 `RUN_OPTIONAL_API = False`다.
+준비사항 확인 셀의 기본값은 `CHECK_OPTIONAL_API_READINESS = False`다.
 
 ## 7. Codex 활용
 
@@ -139,7 +140,7 @@ print(result["date"], result["total_amount"])
 | --- | --- | --- |
 | JSON 오류 | 따옴표·쉼표 누락 | 제공된 mock JSON과 모양 비교 |
 | 날짜가 없음 | 원문에서 찾지 못함 | 추측하지 말고 `null` 유지 |
-| API 키 오류 | Secrets 미설정 또는 권한 문제 | 선택 셀을 건너뛰고 mock 결과 사용 |
+| API 연결을 실습하고 싶음 | 입문 과정 범위 밖 | mock 결과로 학습을 완료하고 조직 승인 뒤 별도 실습 |
 
 ## 9. 형성평가
 

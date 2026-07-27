@@ -18,7 +18,7 @@
 - **런타임 → 런타임 유형 변경**에서 Python 3 런타임을 사용한다.
 - 교재 검증 기준은 Colab `2026.04` 고정 런타임과 Python 3.12.x다.
 - 필수 셀은 API 키와 OCR 모델 다운로드가 필요 없다.
-- EasyOCR와 생성형 AI API는 기본값이 `False`인 선택 셀이다.
+- EasyOCR는 기본값이 `False`인 선택 셀이다. 생성형 AI는 API 연결 전 준비사항만 선택적으로 확인한다.
 - Gradio 공개 공유 실행도 기본값이 `False`다.
 - 모든 결과물은 현재 세션의 `course_outputs/`에 생성되므로 필요한 파일은 수업 중 다운로드한다.
 
@@ -41,6 +41,6 @@ python tools/validate_colab_notebooks.py
 - 노트북 8개와 Colab 메타데이터
 - 중복되지 않는 고정 셀 ID
 - 저장된 실행 결과와 오류가 없는 깨끗한 배포본
-- 선택 OCR·API·공유 실행의 기본값이 `False`
+- 선택 OCR·API 준비 확인·공유 실행의 기본값이 `False`
 - 모든 코드 셀의 순차 실행
 - 교시별 지정 산출물 생성

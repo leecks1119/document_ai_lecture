@@ -68,7 +68,7 @@ SAMPLE_OCR_TEXT
 
 ### 실습 1. 원문을 보존하며 줄 정리하기
 
-노트북에 `normalize_line()` 골격이 제공된다. 빈칸은 한 줄이다.
+노트북에 제공된 `normalize_line()`에서 공백을 정리하는 핵심 한 줄을 읽고 합성 OCR 텍스트에 적용한다.
 
 ```python
 import re

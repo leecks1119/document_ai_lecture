@@ -548,17 +548,25 @@ def notebook_04() -> dict:
             print(EXTRACTION_PROMPT)
             """
         ),
+        markdown(
+            """
+            ## 선택 확인. API 연결 전 준비사항
+
+            실제 API를 호출하지 않습니다. 비밀 저장 방식과 조직의 데이터 처리 조건을
+            확인하는 항목이며, 기본 실습은 mock 결과로 이미 완료됐습니다.
+            """
+        ),
         code(
             """
-            RUN_OPTIONAL_API = False
+            CHECK_OPTIONAL_API_READINESS = False
 
-            if RUN_OPTIONAL_API:
+            if CHECK_OPTIONAL_API_READINESS:
                 print(
-                    "Colab Secrets의 API 키와 조직의 데이터 처리 조건을 "
-                    "확인한 뒤 강사 안내에 따라 실행하세요."
+                    "실제 호출은 하지 않습니다. Colab Secrets, 조직 승인, "
+                    "데이터 처리 조건을 확인하세요."
                 )
             else:
-                print("선택 API 호출을 건너뛰고 mock 결과로 완료했습니다.")
+                print("API 연결 준비 확인을 건너뛰고 mock 결과로 완료했습니다.")
             """
         ),
         markdown(

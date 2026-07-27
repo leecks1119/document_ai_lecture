@@ -73,7 +73,7 @@ show_mock_result() 직접 실행
 
 ## 6. 단계별 실습
 
-### 실습 1. 버튼과 mock 함수 연결하기
+### 실습 1. 버튼과 mock 함수 연결 확인하기
 
 처리 함수는 완성 코드로 제공된다.
 
@@ -83,7 +83,7 @@ def show_mock_result(file_path):
     return status, SAMPLE_OCR_TEXT, SAMPLE_JSON
 ```
 
-학습자는 버튼 연결을 완성한다.
+완성된 버튼 연결에서 함수·입력·출력 컴포넌트를 찾아본다.
 
 ```python
 process_button.click(

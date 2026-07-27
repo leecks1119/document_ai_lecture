@@ -46,6 +46,12 @@ def local_links(markdown: str) -> list[str]:
     ]
 
 
+def section(markdown: str, start: str, end: str) -> str:
+    """두 2단계 제목 사이의 본문을 반환한다."""
+
+    return markdown.split(start, 1)[1].split(end, 1)[0]
+
+
 def validate_lesson(path: Path) -> None:
     text = path.read_text(encoding="utf-8")
     lines = text.splitlines()
@@ -54,6 +60,22 @@ def validate_lesson(path: Path) -> None:
     assert all(section in text for section in REQUIRED_SECTIONS), path.name
     assert "mock" in text.lower(), f"{path.name}: mock 경로 없음"
     assert "Open In Colab" in text, f"{path.name}: Colab 배지 없음"
+
+    artifact_section = section(
+        text,
+        "## 2. 이번 교시의 결과물",
+        "## 3. 시작하기 전에",
+    )
+    artifacts = re.findall(r"^- ", artifact_section, flags=re.MULTILINE)
+    assert len(artifacts) == 1, f"{path.name}: 주 산출물은 정확히 1개"
+
+    concept_section = section(text, "## 4. 핵심 개념", "## 5. 전체 실습 흐름")
+    concepts = re.findall(r"^### 4\.\d+ ", concept_section, flags=re.MULTILINE)
+    assert len(concepts) == 3, f"{path.name}: 핵심 개념은 정확히 3개"
+
+    practice_section = section(text, "## 6. 단계별 실습", "## 7. Codex 활용")
+    practices = re.findall(r"^### 실습 ", practice_section, flags=re.MULTILINE)
+    assert len(practices) == 1, f"{path.name}: 기본 실습은 정확히 1개"
 
     image_links = [
         link
