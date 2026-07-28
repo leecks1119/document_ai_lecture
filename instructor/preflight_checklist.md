@@ -17,8 +17,9 @@
 - [x] 로컬 실제 브라우저에서 준비 결과→총액 999 차단→76000 복구→승인 다운로드 버튼을 확인했다.
 - [x] 로컬 격리 환경에서 8개 노트북 독립 실행과 2→3→4→7 handoff를 완주했다.
 - [x] 로그인된 새 Colab에서 수정 후 8개 노트북을 다시 실행했다.
+- [x] 최신 `master`의 7교시를 다시 실행해 12/12 단계와 최종 앱 화면을 확인했다.
 - [ ] `quotation.xlsx`, `application_form.docx`, `transaction_statement.pdf`, `table_summary.pptx`가 열린다.
-- [ ] `business_document_code_examples.zip`에 세 문서 코드와 JSON 예제가 모두 있다.
+- [x] `business_document_code_examples.zip`에 세 문서 코드와 JSON 예제가 모두 있다.
 - [ ] 빔프로젝터에서 공개 영수증·bbox·JSON·Excel 글자가 읽힌다.
 
 실제 Colab LIVE 실행 기록:
@@ -34,6 +35,7 @@
 | 결과 | `LIVE`, 인식 영역 46개, 최신 8교시 전체 체크포인트 통과 |
 | 캡처 위치 | 실제 Colab 셀 출력과 강사 PC `Downloads` 산출물 |
 | 검증 대상 기능·교재 commit SHA | `4313c29` |
+| 최신 `master` 추가 재검사 | `23468cf` · 7교시 12/12·최종 앱 화면 통과 |
 | 익명 HTTP URL 확인 | GitHub 8/8·Colab 8/8 상태 200 |
 | 비로그인 Colab 8개 | 미검증 |
 
