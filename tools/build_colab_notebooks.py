@@ -1341,6 +1341,73 @@ def streamlit_preview_cell(path_expression: str, port: int) -> dict:
     )
 
 
+def streamlit_preview_cell_with_diagnostics(
+    path_expression: str,
+    port: int,
+) -> dict:
+    """5교시에서 Streamlit 시작 실패 이유를 Colab 출력에 남긴다."""
+
+    return code(
+        f"""
+        # Streamlit 서버를 시작하고 실제로 준비됐는지 확인합니다.
+        if not AUTOMATED_CHECK:
+            import subprocess
+            import time
+            import urllib.request
+
+            preview_log_path = OUTPUT_DIR / "streamlit_preview.log"
+            preview_log = preview_log_path.open("w", encoding="utf-8")
+            preview_process = subprocess.Popen(
+                [
+                    sys.executable, "-m", "streamlit", "run",
+                    str({path_expression}),
+                    "--server.port", "{port}",
+                    "--server.headless", "true",
+                    "--server.enableCORS", "false",
+                    "--server.enableXsrfProtection", "false",
+                ],
+                stdout=preview_log,
+                stderr=subprocess.STDOUT,
+            )
+
+            server_ready = False
+            for _ in range(30):
+                if preview_process.poll() is not None:
+                    break
+                try:
+                    with urllib.request.urlopen(
+                        "http://127.0.0.1:{port}/_stcore/health",
+                        timeout=1,
+                    ) as response:
+                        server_ready = response.status == 200
+                    if server_ready:
+                        break
+                except Exception:
+                    time.sleep(0.5)
+            preview_log.flush()
+
+            if server_ready:
+                from google.colab import output
+
+                print("✅ Streamlit 서버 준비 완료 · 아래 앱을 직접 조작하세요.")
+                output.serve_kernel_port_as_iframe({port}, height=760)
+            else:
+                preview_log.close()
+                log_text = preview_log_path.read_text(
+                    encoding="utf-8",
+                    errors="replace",
+                )
+                print("❌ Streamlit 서버를 시작하지 못했습니다.")
+                print(log_text[-3000:] or "서버 로그가 비어 있습니다.")
+                raise RuntimeError(
+                    "위 Streamlit 로그를 확인한 뒤 이 셀을 다시 실행하세요."
+                )
+        else:
+            print("자동검사에서는 대화형 Streamlit 화면을 열지 않습니다.")
+        """
+    )
+
+
 def readable_string_assignment(name: str, value: str) -> str:
     """긴 문자열을 노트북에서 읽을 수 있는 인접 문자열 형태로 만든다."""
 
@@ -2907,6 +2974,17 @@ if installed_streamlit != required_streamlit:
     )
 """
 
+LESSON05_STREAMLIT_SETUP = STREAMLIT_SETUP + """
+importlib.invalidate_caches()
+installed_streamlit = importlib.metadata.version("streamlit")
+if installed_streamlit != required_streamlit:
+    raise RuntimeError(
+        f"Streamlit 설치 확인 실패: {installed_streamlit} "
+        f"(필요 버전: {required_streamlit})"
+    )
+print(f"✅ Streamlit {installed_streamlit} 준비 완료")
+"""
+
 PADDLEOCR_SETUP = """
 required_paddlepaddle = "3.2.1"
 required_paddleocr = "3.7.0"
@@ -2992,7 +3070,7 @@ def notebook_05() -> dict:
             "업로드·실행·원문·JSON 영역을 만들고 업로드한 파일명이 화면에 반영되는지 확인합니다.",
         ),
         runtime_cell(),
-        code(STREAMLIT_SETUP),
+        code(LESSON05_STREAMLIT_SETUP),
         code(
             app_assignment
             + """
@@ -3059,7 +3137,7 @@ print("저장:", output_path)
             print("✅ 실습 완료: 업로드·버튼·결과 화면")
             """
         ),
-        streamlit_preview_cell("output_path", 8505),
+        streamlit_preview_cell_with_diagnostics("output_path", 8505),
     ]
     return notebook("05_streamlit_basic.ipynb", cells)
 
