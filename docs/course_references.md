@@ -1,13 +1,16 @@
 # 과정 참고자료와 적용 범위
 
 기술 조사 기준일: 2026-07-27<br>
-링크·구현 재확인일: 2026-07-28
-마지막 링크·주장 확인일: 2026-07-28
+링크·구현 재확인일: 2026-07-29<br>
+마지막 링크·주장 확인일: 2026-07-29<br>
 검토 범위: 공식 제품 문서, 표준, 규제기관 자료, 공공기관 지침
 
 이 과정은 참고 링크를 장식처럼 나열하지 않습니다. 아래 21개 자료를 실제로 검토하고, 각 자료가 뒷받침하는 주장과 적용 교시를 구분했습니다. 18개는 채택하고 3개는 적용 범위를 제한해 조건부로 채택했습니다.
 
-2026-07-28 현재 PaddleOCR 일반 OCR 파이프라인의 기본 계열은 PP-OCRv6이지만, 공식 다국어 문서의 한국어 전용 인식 모델은 PP-OCRv5 Korean입니다. 따라서 이 한국어 영수증 입문 과정은 PP-OCRv5 Korean을 명시하며, 이를 “PaddleOCR 전체의 최신 모델”이라고 표현하지 않습니다.
+2026-07-29 현재 PaddleOCR 3.7의 일반 OCR 기본 계열은 PP-OCRv6이지만,
+공식 다국어 문서의 한국어 전용 인식 모델은 PP-OCRv5 Korean입니다. 따라서
+이 한국어 영수증 입문 과정은 PP-OCRv5 Korean을 명시하며, 이를 “PaddleOCR
+전체의 최신 모델”이라고 표현하지 않습니다.
 
 ## 교시별 핵심 근거
 
@@ -27,7 +30,7 @@
 | 12 | 1·8 | [NIST AI RMF 1.0](https://www.nist.gov/publications/artificial-intelligence-risk-management-framework-ai-rmf-10) | AI 위험을 관리하고 사람 감독의 역할과 책임을 정해야 함 | 채택 |
 | 13 | 4·8 | [NIST 생성형 AI 프로파일](https://nvlpubs.nist.gov/nistpubs/ai/NIST.AI.600-1.pdf) | 생성형 AI의 허구 출력·정보보호·프라이버시 위험을 평가해야 함 | 채택 |
 | 14 | 8 | [개인정보보호위원회 생성형 AI 개인정보 처리 안내서 발표](https://pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS074&mCode=C020010000&nttId=11410) | AI 생애주기에서 개인정보 적법성·안전조치와 Privacy by Design을 검토해야 함 | 채택 |
-| 15 | 전 교시 | [개인정보보호위원회 AI 이용 개인정보 안내](https://m.pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS212&mCode=C040030000&nttId=12257) | 개인정보 입력 전 확인, 승인된 업무용 도구, 저장·학습 설정 점검 | 채택 |
+| 15 | 전 교시 | [개인정보보호위원회 AI 이용 개인정보 안내](https://www.pipc.go.kr/np/cop/bbs/selectBoardArticle.do?bbsId=BS212&mCode=C040030000&nttId=12257) | 개인정보 입력 전 확인, 승인된 업무용 도구, 저장·학습 설정 점검 | 채택 |
 | 16 | 8·강사용 | [개인정보 보호법 제29조](https://www.law.go.kr/LSW/lsLinkCommonInfo.do?chrClsCd=010202&lsJoLnkSeq=1033215737) | 개인정보처리자의 기술적·관리적·물리적 안전조치 의무 | 조건부: 강사용 법적 배경이며 법률 자문으로 표현하지 않음 |
 | 17 | 전 교시 | [Google Colab 과거 런타임 버전 FAQ](https://research.google.com/colaboratory/runtime-version-faq.html) | 교육용 노트북의 런타임 고정과 `2026.04`의 Python 3.12.13 확인 | 채택 |
 | 18 | 전 교시 | [Google Colab FAQ](https://research.google.com/colaboratory/faq.html) | 무료 Colab 자원과 세션 수명이 동적이며 런타임 파일이 영구 저장되지 않음 | 채택 |

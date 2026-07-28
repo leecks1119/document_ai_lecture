@@ -4,7 +4,9 @@
 
 이 연결이 완성되면 “문서 한 장을 넣어 결과를 확인하는 작은 프로토타입”의 기본 형태가 갖춰집니다.
 
-[6교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/06_ocr_ai_integration.ipynb)
+> **이번 시간의 도착점:** 업로드한 문서 한 장을 OCR·읽기 순서 복원·정보 추출에 연결하고 LIVE·오류·준비 결과 상태를 구분합니다.
+
+[6교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/06_ocr_ai_integration.ipynb)
 
 ## 문서 처리 경로를 다시 확인합니다
 
@@ -79,7 +81,7 @@ engine = PaddleOCR(
 
 ### 1. 준비된 예제로 화면 전체를 확인합니다
 
-먼저 `준비 결과로 실행` 버튼을 눌러 다음 영역이 모두 나타나는지 확인합니다.
+먼저 `공개 샘플 준비 결과` 버튼을 눌러 다음 영역이 모두 나타나는지 확인합니다.
 
 - 처리 상태
 - OCR 판독 원문
@@ -141,7 +143,7 @@ engine = PaddleOCR(
 
 ## 잘되지 않을 때
 
-- PaddleOCR을 찾을 수 없으면 2교시의 설치 셀을 다시 실행합니다.
+- PaddleOCR을 찾을 수 없으면 6교시의 `웹앱·OCR 실행환경 준비` 셀을 다시 실행합니다.
 - 모델 다운로드가 3분 이상 진행되지 않으면 준비된 예제로 실습을 이어 갑니다.
 - 업로드하지 않은 상태에서 입력 오류가 나타나는 것은 정상입니다.
 - 오류가 발생했을 때 다른 문서의 결과를 현재 문서의 성공 결과로 사용하지 않습니다.

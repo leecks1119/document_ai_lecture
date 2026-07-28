@@ -4,7 +4,9 @@
 
 마지막 시간에는 견적서, 신청서, 거래명세서를 직접 살펴보고 첫 번째 PoC로 시험할 문서 한 가지를 선택합니다.
 
-[8교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/08_business_application.ipynb)
+> **이번 시간의 도착점:** 세 문서 중 첫 PoC 후보 하나를 고르고 추출 필드·검증 규칙·검토자·중단 조건을 한 장의 카드로 정리합니다.
+
+[8교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/08_business_application.ipynb)
 
 ## 세 가지 업무 문서를 비교해 봅시다
 

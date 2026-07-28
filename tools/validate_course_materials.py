@@ -29,7 +29,11 @@ EXPECTED_OUTPUTS = {
     "05": ["app_05.py"],
     "06": ["app_06.py"],
     "07": ["receipt_result.xlsx", "final_document_ai_app.zip"],
-    "08": ["poc_candidate_card.md", "office_format_samples.zip"],
+    "08": [
+        "poc_candidate_card.md",
+        "office_format_samples.zip",
+        "business_document_code_examples.zip",
+    ],
 }
 
 INTERNAL_QA_PHRASES = [
@@ -61,6 +65,9 @@ def validate_lesson(path: Path) -> None:
     assert "## 직접 해보기" in text, f"{path.name}: 수강생 실습 안내 없음"
     assert "## 참고자료" in text, f"{path.name}: 참고자료 안내 없음"
     assert "Colab 실습 열기" in text, f"{path.name}: Colab 링크 없음"
+    assert text.count("이번 시간의 도착점") == 1, (
+        f"{path.name}: '이번 시간의 도착점' 안내는 정확히 한 번이어야 함"
+    )
 
     lesson_number = path.name[:2]
     for output in EXPECTED_OUTPUTS[lesson_number]:
@@ -114,16 +121,15 @@ def validate_lesson(path: Path) -> None:
 
 
 def validate_repository_links() -> None:
-    for relative_path in [
-        "README.md",
-        "docs/environment.md",
-        "docs/troubleshooting.md",
-        "docs/course_references.md",
-        "instructor/course_operation.md",
-        "instructor/environment_and_models.md",
-        "instructor/recovery_and_safety.md",
-    ]:
-        path = ROOT / relative_path
+    documentation_paths = [
+        ROOT / "README.md",
+        *sorted((ROOT / "docs").glob("*.md")),
+        *sorted((ROOT / "lessons").glob("*.md")),
+        *sorted((ROOT / "instructor").rglob("*.md")),
+        *sorted((ROOT / "prompts").glob("*.md")),
+    ]
+    for path in documentation_paths:
+        relative_path = path.relative_to(ROOT)
         text = path.read_text(encoding="utf-8")
         for link in local_links(text):
             target = (path.parent / link).resolve()
@@ -137,6 +143,51 @@ def validate_repository_links() -> None:
     for phrase in INTERNAL_QA_PHRASES:
         assert phrase not in readme, f"README.md: 내부 검증 표현이 수강생 안내에 남음 {phrase}"
 
+    lesson_specific_checks = {
+        "02_ocr_basic.md": (
+            "PaddleOCR 3.7.0",
+            'lang="korean"',
+            'ocr_version="PP-OCRv5"',
+        ),
+        "05_streamlit_basic.md": ("공개 영수증 결과 확인",),
+        "06_ocr_ai_integration.md": (
+            "공개 샘플 준비 결과",
+            "업로드 파일 LIVE 처리",
+        ),
+    }
+    for lesson_name, phrases in lesson_specific_checks.items():
+        lesson_text = (LESSONS / lesson_name).read_text(encoding="utf-8")
+        for phrase in phrases:
+            assert phrase in lesson_text, (
+                f"{lesson_name}: 실제 실습 문구가 교재에 없음 {phrase}"
+            )
+
+
+def validate_instructor_notes() -> None:
+    note_paths = sorted((ROOT / "instructor" / "lesson_notes").glob("[0-9][0-9]_*.md"))
+    assert len(note_paths) == 8, "교시별 강사 노트는 8개여야 함"
+    for path in note_paths:
+        text = path.read_text(encoding="utf-8")
+        for heading in ("## 전달할 한 문장", "## 60분 운영", "## 종료 조건"):
+            assert heading in text, f"{path.name}: 강사 운영 항목 없음 {heading}"
+
+        time_ranges = [
+            (int(start), int(end))
+            for start, end in re.findall(
+                r"^\|\s*(\d+)~(\d+)\s*\|",
+                text,
+                flags=re.MULTILINE,
+            )
+        ]
+        assert time_ranges, f"{path.name}: 60분 운영 시간표 없음"
+        assert time_ranges[0][0] == 0 and time_ranges[-1][1] == 60, (
+            f"{path.name}: 운영 시간표가 0분부터 60분까지 이어지지 않음"
+        )
+        assert all(
+            current[1] == following[0]
+            for current, following in zip(time_ranges, time_ranges[1:])
+        ), f"{path.name}: 운영 시간표에 공백 또는 중복이 있음"
+
 
 def main() -> None:
     for filename in LESSON_FILES:
@@ -144,6 +195,7 @@ def main() -> None:
         print("OK:", filename)
 
     validate_repository_links()
+    validate_instructor_notes()
     print("검증 완료: 교재 8개, Colab 8개, 로컬 링크")
 
 

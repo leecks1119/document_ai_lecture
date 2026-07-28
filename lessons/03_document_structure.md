@@ -4,7 +4,9 @@ OCR이 영수증의 글자를 모두 읽었다고 해서 곧바로 품목 표를
 
 이번 시간에는 흩어진 OCR 결과를 사람이 읽는 순서로 정리하고, 상호명·날짜·품목·합계 구조로 묶어 봅니다.
 
-[3교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/03_document_structure.ipynb)
+> **이번 시간의 도착점:** OCR 원문을 보존하면서 글자 조각을 읽기 순서·키-값·반복 품목 행으로 다시 구성합니다.
+
+[3교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/03_document_structure.ipynb)
 
 ## 글자를 읽는 것과 문서를 이해하는 것은 다릅니다
 

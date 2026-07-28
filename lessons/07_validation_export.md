@@ -4,7 +4,9 @@ OCR과 VLM이 읽은 값은 어디까지나 초안입니다. 합계가 틀리거
 
 이번 시간에는 프로그램의 규칙 검사와 사람의 원본 확인을 분리해 구현합니다. 잘못 읽은 값은 화면에서 수정하고, 다시 검사한 뒤, 승인된 결과만 Excel로 내려받습니다.
 
-[7교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/07_validation_export.ipynb)
+> **이번 시간의 도착점:** 오류 또는 미승인 결과의 저장을 차단하고, 수정·재검증·사람 승인을 마친 결과만 Excel로 저장합니다.
+
+[7교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/07_validation_export.ipynb)
 
 ## 프로그램 검사와 사람 승인은 다릅니다
 

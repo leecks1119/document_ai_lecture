@@ -4,7 +4,9 @@
 
 이 작업에는 여러 방법이 있습니다. 이번 시간에는 **OCR 결과에 규칙을 적용하는 방법**과 **문서 이미지를 VLM에 직접 보여 주는 방법**을 비교합니다. 어느 방법을 선택하든 원본 근거와 검증이 필요하다는 점도 함께 확인합니다.
 
-[4교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb)
+> **이번 시간의 도착점:** OCR+규칙 결과와 VLM 구조 초안의 차이를 구분하고, 각 값의 원본 근거와 실행 출처를 확인합니다.
+
+[4교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/04_genai_extraction.ipynb)
 
 ## 두 가지 추출 방법을 비교해 봅시다
 

@@ -4,7 +4,9 @@
 
 이번 시간에는 영수증 한 장을 따라가며 각 기술이 어느 일을 맡는지 살펴봅니다.
 
-[1교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb)
+> **이번 시간의 도착점:** 영수증 처리 과정을 보고 OCR·멀티모달 AI·VLM·Document AI·IDP가 각각 어떤 역할을 맡는지 자신의 말로 설명합니다.
+
+[1교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/01_document_ai_overview.ipynb)
 
 ## 먼저 영수증을 살펴봅시다
 

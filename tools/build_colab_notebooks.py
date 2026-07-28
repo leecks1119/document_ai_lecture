@@ -427,7 +427,7 @@ LESSON_STEP_GUIDES = {
         ),
         (
             "내 승인 기록 입력",
-            "원본 대조 여부·결정·검토자 이름을 직접 입력합니다.",
+            "승인 결정·검토자 이름·원본 확인 내용을 직접 입력합니다.",
             "빈칸 안내 또는 내가 남긴 승인 기록이 표시되어야 합니다.",
         ),
         (
@@ -707,24 +707,27 @@ LESSON_CODE_EXPLANATIONS = {
             "`validate_receipt()` 결과의 오류와 경고를 확인합니다."
         ),
         (
-            "`validate_receipt()`는 필수값·계산·근거를 검사하고 `export_excel()`은 "
+            "`validate_receipt()`는 필수값·계산·근거를 검사하고 "
+            "`save_reviewed_excel()`은 "
             "검증과 승인 조건이 모두 맞을 때만 세 시트를 만듭니다."
         ),
         (
-            "`PENDING_REVIEW` 상태로 `export_excel()`을 호출합니다. 반환값이 `False`이고 "
+            "`PENDING_REVIEW` 상태로 `save_reviewed_excel()`을 호출합니다. "
+            "반환값이 `False`이고 "
             "파일이 없으면 미승인 저장 차단이 정상입니다."
         ),
         (
-            "`my_source_checked`, `my_decision`, `my_reviewer` 세 곳만 입력합니다. "
+            "`my_decision`, `my_reviewer`, `my_review_note` 세 곳만 입력합니다. "
             "원본 대조를 끝낸 뒤 실제 검토 기록을 남기는 단계입니다."
         ),
         (
-            "`REVIEW_RECORD`가 공개 승인 정답을 보완하고 Excel을 생성합니다. "
-            "저장된 시트 이름과 승인 상태를 다시 열어 검사합니다."
+            "`REVIEW_RECORD`가 공개 승인 정답과 현재 한국 시각을 기록하고 Excel을 "
+            "생성합니다. 저장된 시트 이름과 승인 상태를 다시 열어 검사합니다."
         ),
         (
-            "`packaged_sources`는 최종 앱의 여러 Python 파일입니다. 반복문이 폴더를 "
-            "만들고 `make_archive()`가 전체 코드를 ZIP으로 묶습니다."
+            "`FINAL_APP_SOURCE_PATHS`는 최종 앱에 필요한 파일 목록입니다. "
+            "`load_course_assets()`로 파일을 받아 폴더에 저장한 뒤 "
+            "`make_archive()`가 ZIP으로 묶습니다."
         ),
         (
             "`AppTest`가 오류값 저장 차단, 정상값 복구, 사람 승인, Excel 다운로드를 "
@@ -943,7 +946,7 @@ def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
         f"""
         # {lesson}교시. {title}
 
-        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/{lesson:02d}_{slug}.ipynb)
+        [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/{lesson:02d}_{slug}.ipynb)
 
         **이번 교시 행동:** {goal}
 
@@ -970,7 +973,7 @@ def course_asset_loader_source() -> str:
         """
         COURSE_ASSET_BASE_URL = (
             "https://raw.githubusercontent.com/leecks1119/"
-            "document_ai_lecture/document_ai_lecture_2026/"
+            "document_ai_lecture/master/"
         )
 
         def load_course_assets(*relative_paths):
@@ -1118,13 +1121,6 @@ def streamlit_preview_cell(path_expression: str, port: int) -> dict:
     )
 
 
-def final_app_payload() -> dict[str, str]:
-    return {
-        relative_path: (ROOT / relative_path).read_text(encoding="utf-8")
-        for relative_path in FINAL_APP_SOURCE_PATHS
-    }
-
-
 def readable_string_assignment(name: str, value: str) -> str:
     """긴 문자열을 노트북에서 읽을 수 있는 인접 문자열 형태로 만든다."""
 
@@ -1133,25 +1129,6 @@ def readable_string_assignment(name: str, value: str) -> str:
         return f"{name} = ''"
     body = "\n".join(f"    {line!r}" for line in lines)
     return f"{name} = (\n{body}\n)"
-
-
-def readable_string_mapping_assignment(
-    name: str,
-    values: dict[str, str],
-) -> str:
-    """소스 파일 묶음을 한 줄짜리 repr 대신 읽을 수 있게 배치한다."""
-
-    sections = [f"{name} = {{"]
-    for key, value in values.items():
-        sections.append(f"    {key!r}: (")
-        sections.extend(
-            f"        {line!r}"
-            for line in value.splitlines(keepends=True)
-        )
-        sections.append("    ),")
-    sections.append("}")
-    return "\n".join(sections)
-
 
 def golden_constants() -> str:
     return (
@@ -1373,7 +1350,7 @@ def notebook_01() -> dict:
             """
             # 1교시. 한국 영수증으로 구분하는 OCR·VLM·Document AI
 
-            [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb)
+            [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/01_document_ai_overview.ipynb)
 
             ## 오늘의 도전
 
@@ -2361,7 +2338,7 @@ def notebook_04() -> dict:
                 "reviewer": (
                     "learner"
                     if INPUT_MODE == "PREVIOUS_LESSON"
-                    else "course maintainer"
+                    else "교육자료 검수자"
                 ),
                 "disclaimer": "이 receipt.json은 VLM 결과가 아니라 OCR+규칙 기준선입니다.",
             }
@@ -2379,7 +2356,7 @@ def notebook_04() -> dict:
                 "engine_version": "not_applicable",
                 "target_technology": "PaddleOCR-VL-1.6",
                 "recorded_at": "2026-07-28",
-                "reviewer": "course maintainer",
+                "reviewer": "교육자료 검수자",
                 "disclaimer": "현재 실행에서 VLM을 호출한 결과가 아닙니다.",
             }
 
@@ -2844,11 +2821,6 @@ print(
 
 
 def notebook_07() -> dict:
-    packaged_sources = final_app_payload()
-    packaged_assignment = readable_string_mapping_assignment(
-        "packaged_sources",
-        packaged_sources,
-    )
     cells = [
         intro(
             7,
@@ -3060,10 +3032,13 @@ def notebook_07() -> dict:
         ),
         code(
             """
+            from datetime import datetime, timedelta, timezone
+
+            KST = timezone(timedelta(hours=9))
             REVIEW_RECORD = {
                 "decision": my_decision or "APPROVED",
                 "reviewer": my_reviewer or "learner",
-                "reviewed_at": "2026-07-28T15:30:00+09:00",
+                "reviewed_at": datetime.now(KST).isoformat(timespec="seconds"),
                 "note": (
                     my_review_note
                     or "공개 비식별 원본과 상호명·날짜·품목·총액 대조 완료"
@@ -3097,15 +3072,17 @@ def notebook_07() -> dict:
             """
         ),
         code(
-            "import shutil\n\n"
-            + packaged_assignment
-            + """
+            f"""
+import shutil
+
+FINAL_APP_SOURCE_PATHS = {FINAL_APP_SOURCE_PATHS!r}
+final_app_assets = load_course_assets(*FINAL_APP_SOURCE_PATHS)
 
 final_app_dir = OUTPUT_DIR / "final_document_ai_app"
-for relative_path, source in packaged_sources.items():
+for relative_path in FINAL_APP_SOURCE_PATHS:
     target = final_app_dir / relative_path
     target.parent.mkdir(parents=True, exist_ok=True)
-    target.write_text(source, encoding="utf-8")
+    target.write_bytes(final_app_assets[relative_path])
 
 final_app_path = final_app_dir / "app.py"
 archive_base = OUTPUT_DIR / "final_document_ai_app"

@@ -65,16 +65,16 @@
 
 | 교시 | 교재 | 실습 |
 | --- | --- | --- |
-| 1 | [OCR·VLM·Document AI 이해하기](lessons/01_document_ai_overview.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb) |
-| 2 | [OCR로 영수증 읽기](lessons/02_ocr_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/02_ocr_basic.ipynb) |
-| 3 | [읽힌 글자를 문서 구조로 정리하기](lessons/03_document_structure.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/03_document_structure.ipynb) |
-| 4 | [OCR·규칙과 VLM 비교하기](lessons/04_genai_extraction.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/04_genai_extraction.ipynb) |
-| 5 | [문서 자동화 화면 만들기](lessons/05_streamlit_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/05_streamlit_basic.ipynb) |
-| 6 | [화면과 실제 문서 처리 연결하기](lessons/06_ocr_ai_integration.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/06_ocr_ai_integration.ipynb) |
-| 7 | [검증하고 Excel로 저장하기](lessons/07_validation_export.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/07_validation_export.ipynb) |
-| 8 | [우리 업무의 PoC 후보 고르기](lessons/08_business_application.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/08_business_application.ipynb) |
+| 1 | [OCR·VLM·Document AI 이해하기](lessons/01_document_ai_overview.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/01_document_ai_overview.ipynb) |
+| 2 | [OCR로 영수증 읽기](lessons/02_ocr_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/02_ocr_basic.ipynb) |
+| 3 | [읽힌 글자를 문서 구조로 정리하기](lessons/03_document_structure.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/03_document_structure.ipynb) |
+| 4 | [OCR·규칙과 VLM 비교하기](lessons/04_genai_extraction.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/04_genai_extraction.ipynb) |
+| 5 | [문서 자동화 화면 만들기](lessons/05_streamlit_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/05_streamlit_basic.ipynb) |
+| 6 | [화면과 실제 문서 처리 연결하기](lessons/06_ocr_ai_integration.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/06_ocr_ai_integration.ipynb) |
+| 7 | [검증하고 Excel로 저장하기](lessons/07_validation_export.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/07_validation_export.ipynb) |
+| 8 | [우리 업무의 PoC 후보 고르기](lessons/08_business_application.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/08_business_application.ipynb) |
 
-Colab 링크는 `document_ai_lecture_2026` 브랜치의 실습 코드를 엽니다.
+Colab 링크는 배포 브랜치인 `master`의 실습 코드를 엽니다.
 
 ## 실습 전에 꼭 확인하세요
 

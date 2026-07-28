@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import tempfile
+import zipfile
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -51,6 +53,16 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert all("# ── 코드 읽기" in cell["source"] for cell in code_cells), path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
+    for cell, step in zip(code_cells, learning_steps, strict=True):
+        mentioned_identifiers = re.findall(
+            r"`([A-Za-z_][A-Za-z0-9_]*(?:\(\))?)`",
+            step["code_help"],
+        )
+        for mention in mentioned_identifiers:
+            identifier = mention.removesuffix("()")
+            assert identifier in cell["source"], (
+                f"{path}: code_help mentions {mention} outside its code cell"
+            )
     # 생성 앱 전체 소스처럼 긴 문자열 안의 임의 문자열은 제외하고,
     # 사람이 읽는 짧은 코드 줄에서 도구명 잔존 여부를 검사한다.
     visible_source = "\n".join(
@@ -74,6 +86,13 @@ def validate_structure(path: Path, notebook: dict) -> None:
     )
     assert longest_code_line < 500, (
         f"{path}: unreadable code line ({longest_code_line} chars)"
+    )
+    longest_code_cell = max(
+        len(cell["source"].splitlines())
+        for cell in code_cells
+    )
+    assert longest_code_cell < 400, (
+        f"{path}: oversized code cell ({longest_code_cell} lines)"
     )
     if path.name == "01_document_ai_overview.ipynb":
         assert len(notebook["cells"]) >= 20
@@ -119,10 +138,12 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "FINAL APP PASS" in source
         assert "final_document_ai_app" in source
         assert "make_archive" in source
-        assert "st.data_editor" in source
+        assert "st.data_editor" in (ROOT / "app.py").read_text(encoding="utf-8")
         assert "serve_kernel_port_as_iframe" in source
         assert "REVIEW_RECORD" in source
         assert "검토_요약\", \"품목\", \"원문_근거" in source
+        assert "FINAL_APP_SOURCE_PATHS" in source
+        assert "final_app_assets = load_course_assets" in source
     if path.name == "08_business_application.ipynb":
         for document in ("quotation", "application", "transaction_statement"):
             assert document in source
@@ -178,10 +199,26 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
                 assert not Path("course_outputs/pending_review.xlsx").exists()
                 assert namespace["PENDING_REVIEW"]["decision"] == "PENDING"
                 assert namespace["REVIEW_RECORD"]["decision"] == "APPROVED"
+                with zipfile.ZipFile(
+                    "course_outputs/final_document_ai_app.zip"
+                ) as archive:
+                    packaged_files = {
+                        name for name in archive.namelist()
+                        if not name.endswith("/")
+                    }
+                    assert packaged_files == set(
+                        namespace["FINAL_APP_SOURCE_PATHS"]
+                    )
             if path.name == "08_business_application.ipynb":
-                assert Path(
+                with zipfile.ZipFile(
                     "course_outputs/business_document_code_examples.zip"
-                ).is_file()
+                ) as archive:
+                    assert set(archive.namelist()) == {
+                        "application.json",
+                        "document_examples.py",
+                        "quotation.json",
+                        "transaction_statement.json",
+                    }
         finally:
             os.chdir(previous)
             if previous_flag is None:

@@ -2,7 +2,9 @@
 
 사람은 영수증을 보는 순간 상호명, 날짜, 품목, 합계를 구분합니다. OCR은 먼저 이미지에서 글자 조각을 찾고, 각 글자가 무엇인지 판독합니다. 이번 시간에는 OCR 결과를 직접 만들어 보고, 모델이 잘 읽은 부분과 놓친 부분을 원본에서 확인합니다.
 
-[2교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/02_ocr_basic.ipynb)
+> **이번 시간의 도착점:** OCR이 반환한 글자·위치·신뢰도를 함께 읽고, 중요한 값은 원본과 대조해야 하는 이유를 설명합니다.
+
+[2교시 Colab 실습 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/02_ocr_basic.ipynb)
 
 ## 실습 문서와 개인정보
 
@@ -28,7 +30,17 @@ OCR 결과를 볼 때는 텍스트만 확인하지 않습니다.
 
 ## 이번 실습에서 사용하는 OCR
 
-실습에서는 PaddleOCR의 한국어 인식 모델을 사용합니다. 현재 일반 OCR 계열과 한국어 전용 인식 모델의 버전은 서로 다를 수 있으므로, 노트북에서는 한국어를 지원하는 `PP-OCRv5` 계열을 명시해 실행합니다.
+`PaddleOCR`은 여러 OCR 모델을 실행하는 도구 이름이고, `PP-OCRv5
+Korean`은 이번 영수증을 읽는 한국어 인식 모델 이름입니다.
+
+- 실행 도구: `PaddleOCR 3.7.0`
+- 언어 설정: `lang="korean"`
+- 인식 모델: `ocr_version="PP-OCRv5"`
+
+PaddleOCR 3.7의 일반 OCR 기본 계열은 PP-OCRv6이지만, 공식 다국어 문서의
+한국어 전용 인식 경로는 PP-OCRv5 Korean입니다. 따라서 이번 실습은
+PP-OCRv5를 명시합니다. 이를 “PaddleOCR 전체의 최신 모델이 PP-OCRv5다”라는
+뜻으로 해석하지 않습니다.
 
 모델 이름을 외울 필요는 없습니다. 중요한 것은 다음 두 가지입니다.
 

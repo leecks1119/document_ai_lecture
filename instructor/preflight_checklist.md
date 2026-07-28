@@ -4,7 +4,7 @@
 
 - [ ] 계약·장소 운영시간을 확인하고 `09:00~19:00 60분안` 또는 `8시간 체류 50분안` 중 하나를 체크했다.
 - [ ] 선택한 시간표와 생략할 선택 활동을 교육담당자·수강생에게 공지했다.
-- [x] `document_ai_lecture_2026` 브랜치의 Colab 링크 8개가 열린다.
+- [x] `master` 배포 링크 형식과 Colab 노트북 8개를 자동 검사했다.
 - [x] 검증한 기능·교재 commit SHA와 원격 브랜치 일치를 확인했다.
 - [ ] 비로그인 시크릿 창에서 Colab 링크 8개를 다시 열었다.
 - [x] 새 Colab 런타임에서 Python 버전을 기록했다.
@@ -18,6 +18,7 @@
 - [x] 로컬 격리 환경에서 8개 노트북 독립 실행과 2→3→4→7 handoff를 완주했다.
 - [x] 로그인된 새 Colab에서 수정 후 8개 노트북을 다시 실행했다.
 - [ ] `quotation.xlsx`, `application_form.docx`, `transaction_statement.pdf`, `table_summary.pptx`가 열린다.
+- [ ] `business_document_code_examples.zip`에 세 문서 코드와 JSON 예제가 모두 있다.
 - [ ] 빔프로젝터에서 공개 영수증·bbox·JSON·Excel 글자가 읽힌다.
 
 실제 Colab LIVE 실행 기록:
