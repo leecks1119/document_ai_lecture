@@ -998,6 +998,10 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
         )
         finish = f"complete_lab_step({current}, {total}, {expected!r})"
         original = cell["source"].rstrip()
+        fold_long_read_only_code = (
+            edit_kind == "none"
+            and len(original.splitlines()) >= 35
+        )
         if current == 1:
             original = (
                 learning_progress_source()
@@ -1023,17 +1027,22 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
             or "# INPUT_FORM_CELL" in cell["source"]
             or "app_code =" in cell["source"]
             or "FINAL_APP_SOURCE_PATHS" in cell["source"]
+            or fold_long_read_only_code
         ):
             cell["metadata"]["cellView"] = "form"
-            title = (
+            form_title = (
                 "🔵 선택: 다른 자료 실험 기록"
                 if "# RESEARCH_NOTE_CELL" in cell["source"]
                 else "🔵 실습 자료 고르기"
                 if "# INPUT_FORM_CELL" in cell["source"]
                 else "🟢 앱 코드 준비 — 그대로 실행"
+                if "app_code =" in cell["source"]
+                else "🟢 최종 앱 묶음 준비 — 그대로 실행"
+                if "FINAL_APP_SOURCE_PATHS" in cell["source"]
+                else f"🟢 {title} — 그대로 실행"
             )
             cell["source"] = (
-                f'#@title {title} {{ display-mode: "form" }}\n'
+                f'#@title {form_title} {{ display-mode: "form" }}\n'
                 + cell["source"]
             )
 

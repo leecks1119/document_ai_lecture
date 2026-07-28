@@ -80,6 +80,15 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert "다른 자료 실험 기록" in source, path
     assert code_cells[0]["metadata"].get("cellView") == "form", path
     assert code_cells[-1]["metadata"].get("cellView") == "form", path
+    for cell in code_cells:
+        step = cell["metadata"]["learning_step"]
+        if (
+            step["edit_kind"] == "none"
+            and len(cell["source"].splitlines()) >= 45
+        ):
+            assert cell["metadata"].get("cellView") == "form", (
+                f"{path}: 긴 읽기 전용 코드가 펼쳐져 있습니다: {step['title']}"
+            )
     assert "easyocr" not in source.lower(), path
     assert "gradio" not in source.lower(), path
     assert "codex" not in visible_source.lower(), path
