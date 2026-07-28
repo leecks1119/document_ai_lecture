@@ -1,6 +1,6 @@
 # 2026 Document AI 교재 검증 보고서
 
-검증일: 2026-07-28<br>
+검증일: 2026-07-29<br>
 대상 브랜치: `document_ai_lecture_2026`<br>
 최신 로컬 검증 환경: Python 3.14.3, macOS ARM64
 
@@ -22,7 +22,8 @@ Windows 녹화 PC 점검은 외부 사전 점검 항목으로 남긴다.
 | 단위·통합·Streamlit AppTest | 46개 통과 |
 | Colab 준비 경로 독립 실행 | 8/8 통과 |
 | Colab 2→3→4→7 순차 인계 | 5품목·승인 Excel·최종 앱 ZIP까지 통과 |
-| Colab 단계 안내 | 코드 셀 65/65에 단계·행동·확인 결과·완료 안내 |
+| Colab 단계 안내 | 코드 셀 65/65에 단계·행동·코드 읽는 법·확인 결과·완료 안내 |
+| 소스코드 설명 | 코드 셀 65/65에 변수·함수·수정 범위를 설명하는 초보자용 주석 |
 | 실제 PP-OCRv5 기록 회귀 | 44토큰 → 총액 76,000원·품목 5개 |
 | 최종 앱 사람 수정 검증 | 총액 999 차단, 정상값 복구 후 승인·다운로드 |
 | 교재 구조·로컬 링크 | 교재 8개·Colab 8개 통과 |
@@ -56,7 +57,7 @@ git diff --check
 | 5 | `app_05.py` |
 | 6 | `app_06.py` |
 | 7 | `receipt_result.xlsx`, `final_document_ai_app.zip` |
-| 8 | `poc_candidate_card.md`, `office_format_samples.zip` |
+| 8 | `poc_candidate_card.md`, `office_format_samples.zip`, `business_document_code_examples.zip` |
 
 ## 1교시 전면 교체 검수
 

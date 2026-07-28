@@ -150,7 +150,8 @@
 
 - 자신의 판단이 담긴 `poc_candidate_card.md`
 - Excel, Word, PDF, PowerPoint 체험 파일이 들어 있는 `office_format_samples.zip`
-- 영수증, 견적서, 신청서, 거래명세서 샘플 구현 코드
+- 견적서·신청서·거래명세서의 Python 검증 코드와 JSON 예제가 들어 있는
+  `business_document_code_examples.zip`
 - 값 수정, 검증, 승인, Excel 다운로드가 가능한 최종 프로토타입
 
 ## 참고자료

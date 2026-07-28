@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 from pprint import pformat
-from textwrap import dedent
+from textwrap import dedent, wrap
 
 ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
@@ -317,9 +317,9 @@ LESSON_STEP_GUIDES = {
             "Python·Platform·공통 작업 폴더가 표시되어야 합니다.",
         ),
         (
-            "Streamlit 준비",
-            "실습에 고정한 Streamlit 버전을 확인하고 필요하면 설치합니다.",
-            "오류 없이 끝나면 웹앱 실행 환경이 준비된 것입니다.",
+            "웹앱·OCR 실행환경 준비",
+            "Streamlit과 PaddleOCR 버전을 확인하고 필요하면 설치합니다.",
+            "웹앱 버전과 LIVE OCR 준비 결과가 표시되어야 합니다.",
         ),
         (
             "기본 웹앱 파일 생성",
@@ -463,9 +463,9 @@ LESSON_STEP_GUIDES = {
             "세 문서 이름·이미지 크기·미리보기가 보여야 합니다.",
         ),
         (
-            "Office 형식 차이 체험",
-            "Excel·Word·PDF·PPT 내부 구조를 검사하고 파일을 묶습니다.",
-            "형식별 검사 결과와 `office_format_samples.zip`을 확인합니다.",
+            "Office 형식과 확장 예제 체험",
+            "Office 내부 구조를 검사하고 문서별 Python·JSON 예제를 묶습니다.",
+            "Office ZIP과 `business_document_code_examples.zip`을 확인합니다.",
         ),
         (
             "내 PoC 후보 입력",
@@ -476,6 +476,285 @@ LESSON_STEP_GUIDES = {
             "PoC 후보 카드 완성",
             "점수 규칙으로 작은 PoC의 시작 여부를 판단해 저장합니다.",
             "후보 카드·`GO_SMALL` 또는 `REVIEW`·파일 경로를 확인합니다.",
+        ),
+    ],
+}
+
+LESSON_CODE_EXPLANATIONS = {
+    "01_document_ai_overview.ipynb": [
+        (
+            "`OUTPUT_DIR`는 결과 파일을 모으는 폴더이고 `VALIDATION_MODE`는 "
+            "자동검증에서만 사용합니다. 이 셀은 수정하지 않고 실행합니다."
+        ),
+        (
+            "`load_course_assets()`는 먼저 GitHub에서 자료를 받고, 실패하면 "
+            "Colab 업로드 창을 엽니다. 함수 내부는 수정하지 않습니다."
+        ),
+        (
+            "`RECEIPT_IMAGE_PATH`는 이미지, `OCR_RECORD_PATH`는 OCR 좌표 JSON입니다. "
+            "`BytesIO`가 내려받은 바이트를 PIL 이미지로 바꿉니다."
+        ),
+        (
+            "`MY_SOURCE_OBSERVATION`이 내 답안입니다. 네 개의 `None`만 원본에서 "
+            "찾은 값으로 바꾸고 나머지 코드는 그대로 둡니다."
+        ),
+        (
+            "`ANSWER_SOURCE_OBSERVATION`은 공개 정답입니다. 리스트 컴프리헨션이 "
+            "내 답과 정답을 한 행씩 비교하므로 수정하지 않고 실행합니다."
+        ),
+        (
+            "`RECORDED_PP_OCRV5_TOKENS`의 각 항목에는 글자·좌표·신뢰도가 있습니다. "
+            "반복문은 좌표를 색상 사각형으로 그립니다."
+        ),
+        (
+            "`MY_OCR_REVIEW`의 `None`만 `True` 또는 `False`로 바꿉니다. "
+            "신뢰도와 업무 승인은 같은 뜻이 아니라는 점을 확인합니다."
+        ),
+        (
+            "`VLM_DRAFT_WITH_ERROR`는 VLM 출력 모양을 흉내 낸 교육용 딕셔너리입니다. "
+            "`items`의 합과 `total_amount`를 비교하며 읽습니다."
+        ),
+        (
+            "`MY_VLM_REVIEW`의 `None`만 바꿉니다. JSON 구조가 자연스러운지와 "
+            "그 안의 값이 정확한지를 서로 다른 질문으로 판단합니다."
+        ),
+        (
+            "`validate_candidate()`는 오류 목록을 반환합니다. 품목 합계, 원본의 "
+            "확인값, 원문 근거가 모두 맞아야 `valid=True`가 됩니다."
+        ),
+        (
+            "`MY_CORRECTED_TOTAL`과 `MY_TOTAL_EVIDENCE` 두 곳만 입력합니다. "
+            "수정한 복사본을 다시 검증하므로 원본 초안은 바뀌지 않습니다."
+        ),
+        (
+            "`ANSWER_CORRECTED_TOTAL`과 `ANSWER_TOTAL_EVIDENCE`는 공개 정답입니다. "
+            "수정 전·후 검증 결과가 달라지는 과정을 확인합니다."
+        ),
+        (
+            "`MY_REVIEW_DECISION`에는 원본을 확인했으면 `APPROVED`를 입력합니다. "
+            "자동검증 통과와 사람의 승인 기록이 별도 조건임을 보여 줍니다."
+        ),
+        (
+            "`MY_CONCEPT_CHOICES`의 다섯 `None`만 기술 이름으로 바꿉니다. "
+            "상황이 설명하는 역할을 보고 OCR·VLM·Document AI 등을 고릅니다."
+        ),
+        (
+            "`comparison_report`는 앞 단계의 내 답과 정답 결과를 한 JSON에 모읍니다. "
+            "`write_text()`가 `course_outputs`에 최종 파일을 저장합니다."
+        ),
+    ],
+    "02_ocr_basic.ipynb": [
+        (
+            "`OUTPUT_DIR`는 모든 산출물의 공통 폴더입니다. 업로드·다운로드 함수와 "
+            "자료 로더를 등록하는 준비 셀이므로 수정하지 않습니다."
+        ),
+        (
+            "`USE_MY_RECEIPT=False`면 공개 영수증을 사용합니다. 내 영수증을 쓰려면 "
+            "비식별 처리 후 이 값만 `True`로 바꿉니다."
+        ),
+        (
+            "`RUN_LIVE_OCR`이 실제 모델 실행 여부를 정합니다. `try`가 성공하면 "
+            "`LIVE`, 실패하면 검수된 `PREPARED_FALLBACK` 결과를 사용합니다."
+        ),
+        (
+            "`OCR_RESULT`의 좌표를 이미지에 그리고 JSON으로 저장합니다. "
+            "`scale_x`와 `scale_y`는 이미지 크기가 달라도 좌표를 맞춥니다."
+        ),
+        (
+            "`review_keywords`의 세 `None`만 원본 대조에 사용할 문자열로 바꿉니다. "
+            "OCR 원문에서 반드시 찾아야 할 값을 고르는 연습입니다."
+        ),
+        (
+            "`ANSWER_REVIEW_KEYWORDS`는 공개 정답이고 `zipfile`은 JSON과 위치 이미지를 "
+            "하나의 다운로드 파일로 묶습니다. 수정 없이 실행합니다."
+        ),
+    ],
+    "03_document_structure.ipynb": [
+        (
+            "이전 교시의 `ocr_result.json`을 받을 공통 폴더와 업로드 함수를 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "`GOLDEN_OCR_TEXT`와 `GOLDEN_RECEIPT`는 파일 인계가 막힐 때만 쓰는 "
+            "공개 복구 데이터입니다. 실습 정답과 LIVE 결과를 구분합니다."
+        ),
+        (
+            "`reconstruct_spatial_lines()`는 y좌표가 가까운 토큰을 같은 행으로 묶고 "
+            "x좌표 순서로 정렬합니다. OCR 글자를 읽기 순서로 복원하는 함수입니다."
+        ),
+        (
+            "`USE_PREPARED_INPUT=True`면 새 Colab에서 공개 입력을 씁니다. 앞 교시 "
+            "파일을 이어 쓰려면 `False`로 바꾸며, `groups`가 문서 영역을 나눕니다."
+        ),
+        (
+            "`my_item_rule` 한 곳만 정규식으로 채웁니다. 숫자 세 묶음으로 끝나는 "
+            "행을 품목 후보로 찾는 규칙입니다."
+        ),
+        (
+            "`ANSWER_ITEM_RULE`은 공개 정규식입니다. `re.search()`가 각 행에서 "
+            "규칙과 일치하는 품목 다섯 개를 찾는지 확인합니다."
+        ),
+    ],
+    "04_genai_extraction.ipynb": [
+        (
+            "3교시의 `clean_receipt.json`을 받을 폴더와 복구 기능을 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "`GOLDEN_VLM_MARKDOWN`은 현재 모델 호출 결과가 아니라 비교용 구조 초안입니다. "
+            "실제 실행 결과와 준비 예제를 혼동하지 않습니다."
+        ),
+        (
+            "`extract_receipt_from_text()`는 정규식으로 날짜·합계·품목을 찾고 "
+            "각 값의 원문 근거까지 함께 반환합니다."
+        ),
+        (
+            "`USE_PREPARED_INPUT=True`는 공개 입력, `False`는 3교시 파일 업로드입니다. "
+            "`source_mode`와 `vlm_demo_mode`를 보고 두 결과의 출처를 구분합니다."
+        ),
+        (
+            "`my_review`의 세 `None`만 채웁니다. 중요 필드, 원문 근거 유무, "
+            "Excel 저장 전 행동을 직접 결정합니다."
+        ),
+        (
+            "`ANSWER_REVIEW`는 총액의 원문 근거가 있더라도 저장 전에 사람이 "
+            "검토해야 한다는 공개 정답입니다. 수정 없이 실행합니다."
+        ),
+    ],
+    "05_streamlit_basic.ipynb": [
+        (
+            "웹앱 파일을 저장할 `OUTPUT_DIR`와 Colab 공통 함수를 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "`required_streamlit`과 설치 버전을 비교합니다. 버전이 다를 때만 "
+            "`pip install`을 실행하므로 이 셀은 그대로 실행합니다."
+        ),
+        (
+            "`app_code`는 Streamlit 화면의 전체 소스이고 `write_text()`가 "
+            "`app_05.py`로 저장합니다. 긴 문자열은 앱 파일을 만드는 재료입니다."
+        ),
+        (
+            "`my_app_title`과 `my_button_label` 두 `None`만 원하는 문구로 바꿉니다. "
+            "Python 문법보다 사용자에게 보이는 표현을 설계하는 단계입니다."
+        ),
+        (
+            "`replace()`가 기본 제목과 버튼 문구를 내 문구로 바꾼 뒤 앱 파일을 "
+            "다시 저장합니다. 빈칸이면 공개 정답을 사용합니다."
+        ),
+        (
+            "`AppTest`는 브라우저를 열지 않고 제목·업로드·버튼·결과 영역을 검사합니다. "
+            "예외가 없고 준비 결과가 보이면 통과입니다."
+        ),
+        (
+            "`subprocess.Popen()`이 Streamlit 서버를 열고 Colab iframe에 표시합니다. "
+            "선택 실습이며 화면이 안 열려도 앞의 AppTest 결과는 유지됩니다."
+        ),
+    ],
+    "06_ocr_ai_integration.ipynb": [
+        (
+            "OCR 연동 앱과 결과 파일을 위한 공통 폴더·자료 로더를 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "Streamlit과 PaddleOCR의 고정 버전을 확인하고 필요한 경우에만 설치합니다. "
+            "설치 실패 시 준비 결과로 계속할 수 있도록 실패 이유를 보존합니다."
+        ),
+        (
+            "`app_code`에는 업로드 파일을 OCR 함수에 전달하는 전체 앱 코드가 있습니다. "
+            "`write_text()`가 이를 `app_06.py`로 저장합니다."
+        ),
+        (
+            "`reconstruct_spatial_lines()`가 실제 OCR 좌표를 행으로 복원한 뒤 "
+            "`extract_receipt_from_text()` 결과의 날짜·총액·품목 수를 검사합니다."
+        ),
+        (
+            "`my_live_checks`의 세 `None`만 필드명으로 바꿉니다. 앱이 열리는 것과 "
+            "추출값이 맞는 것은 다르므로 업무 통과 조건을 고릅니다."
+        ),
+        (
+            "`ANSWER_LIVE_CHECKS`는 날짜·총액·품목을 필수 확인값으로 제시합니다. "
+            "내 답과 비교하고 수정 없이 실행합니다."
+        ),
+        (
+            "`AppTest`가 준비 결과 버튼을 누르고 실행 모드와 JSON이 화면에 "
+            "나오는지 검사합니다. 실제 OCR 정확도 검사는 앞의 회귀 셀이 담당합니다."
+        ),
+        (
+            "Streamlit 서버를 Colab iframe으로 열어 LIVE와 복구 버튼을 직접 조작합니다. "
+            "서버 프로세스와 자동검증 분기를 수정하지 않습니다."
+        ),
+    ],
+    "07_validation_export.ipynb": [
+        (
+            "검증 결과와 Excel을 저장할 공통 폴더·파일 인계 함수를 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "최종 앱에서 사용할 Streamlit 버전을 확인하고 필요할 때만 설치합니다. "
+            "버전 숫자는 수업 중 임의로 바꾸지 않습니다."
+        ),
+        (
+            "`find_spec()`로 openpyxl 설치 여부를 확인합니다. 없을 때만 설치해 "
+            "Excel 생성 함수를 사용할 수 있게 합니다."
+        ),
+        (
+            "`GOLDEN_RECEIPT`는 검증 규칙과 Excel 구조를 확인할 공개 정답입니다. "
+            "이 셀은 데이터를 등록하므로 수정하지 않습니다."
+        ),
+        (
+            "`USE_PREPARED_INPUT=True`는 공개 입력, `False`는 4교시 JSON 업로드입니다. "
+            "`validate_receipt()` 결과의 오류와 경고를 확인합니다."
+        ),
+        (
+            "`validate_receipt()`는 필수값·계산·근거를 검사하고 `export_excel()`은 "
+            "검증과 승인 조건이 모두 맞을 때만 세 시트를 만듭니다."
+        ),
+        (
+            "`PENDING_REVIEW` 상태로 `export_excel()`을 호출합니다. 반환값이 `False`이고 "
+            "파일이 없으면 미승인 저장 차단이 정상입니다."
+        ),
+        (
+            "`my_source_checked`, `my_decision`, `my_reviewer` 세 곳만 입력합니다. "
+            "원본 대조를 끝낸 뒤 실제 검토 기록을 남기는 단계입니다."
+        ),
+        (
+            "`REVIEW_RECORD`가 공개 승인 정답을 보완하고 Excel을 생성합니다. "
+            "저장된 시트 이름과 승인 상태를 다시 열어 검사합니다."
+        ),
+        (
+            "`packaged_sources`는 최종 앱의 여러 Python 파일입니다. 반복문이 폴더를 "
+            "만들고 `make_archive()`가 전체 코드를 ZIP으로 묶습니다."
+        ),
+        (
+            "`AppTest`가 오류값 저장 차단, 정상값 복구, 사람 승인, Excel 다운로드를 "
+            "버튼 조작으로 검사합니다. 최종 통합 테스트입니다."
+        ),
+        (
+            "최종 Streamlit 앱을 Colab iframe으로 열어 전체 흐름을 직접 조작합니다. "
+            "자동검증에서는 서버 화면만 생략합니다."
+        ),
+    ],
+    "08_business_application.ipynb": [
+        (
+            "업무 문서 샘플과 PoC 결과를 저장할 공통 폴더·자료 로더를 준비합니다. "
+            "설정 코드이므로 수정하지 않습니다."
+        ),
+        (
+            "`EXTENSION_IMAGE_PATHS`가 문서별 사진 경로를 연결합니다. 반복문은 "
+            "세 이미지를 같은 크기로 줄여 비교하기 쉽게 표시합니다."
+        ),
+        (
+            "`xml_text_count()`는 Office 내부 XML을 셉니다. 이어서 견적서·신청서·"
+            "거래명세서의 검증 Python과 정답 JSON을 별도 ZIP으로 묶습니다."
+        ),
+        (
+            "`candidate`, `score`, `review_owner`, `stop_condition`의 빈칸만 채웁니다. "
+            "모델 정확도보다 작은 PoC를 운영할 조건을 정하는 단계입니다."
+        ),
+        (
+            "점수 조건이 맞으면 `GO_SMALL`, 아니면 `REVIEW`를 선택합니다. "
+            "결과와 검토·중단 조건을 Markdown PoC 카드로 저장합니다."
         ),
     ],
 }
@@ -527,12 +806,14 @@ def learning_progress_source() -> str:
                 print(markdown_text)
 
 
-        def show_lab_step(current, total, title, action, expected):
+        def show_lab_step(current, total, title, action, expected, code_help):
             _show_learning_message(
                 f"""---
         ### 🧪 실습 단계 {current}/{total} · {title}
 
         **지금 할 일:** {action}
+
+        **코드 읽는 법:** {code_help}
 
         **이 단계에서 확인할 결과:** {expected}
         """
@@ -559,15 +840,24 @@ def learning_progress_source() -> str:
 
 def attach_learning_guides(name: str, cells: list[dict]) -> None:
     guides = LESSON_STEP_GUIDES[name]
+    explanations = LESSON_CODE_EXPLANATIONS[name]
     code_cells = [cell for cell in cells if cell["cell_type"] == "code"]
     if len(code_cells) != len(guides):
         raise ValueError(
             f"{name}: 코드 셀 {len(code_cells)}개와 단계 안내 "
             f"{len(guides)}개가 다릅니다."
         )
+    if len(code_cells) != len(explanations):
+        raise ValueError(
+            f"{name}: 코드 셀 {len(code_cells)}개와 코드 설명 "
+            f"{len(explanations)}개가 다릅니다."
+        )
 
     total = len(code_cells)
-    for current, (cell, guide) in enumerate(zip(code_cells, guides), start=1):
+    for current, (cell, guide, explanation) in enumerate(
+        zip(code_cells, guides, explanations),
+        start=1,
+    ):
         title, action, expected = guide
         cell["metadata"]["learning_step"] = {
             "current": current,
@@ -575,21 +865,58 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
             "title": title,
             "action": action,
             "expected": expected,
+            "code_help": explanation,
         }
+        comment_lines = [
+            "# ── 코드 읽기 ─────────────────────────────────────────────",
+        ]
+        for line in wrap(explanation, width=82):
+            comment_lines.append(f"# {line}")
+        comment_lines.append(
+            "# ──────────────────────────────────────────────────────────"
+        )
+        comment_block = "\n".join(comment_lines)
         start = (
             f"show_lab_step({current}, {total}, {title!r}, "
-            f"{action!r}, {expected!r})"
+            f"{action!r}, {expected!r}, {explanation!r})"
         )
         finish = f"complete_lab_step({current}, {total}, {expected!r})"
         original = cell["source"].rstrip()
         if current == 1:
-            original = learning_progress_source() + "\n\n" + start + "\n\n" + original
+            original = (
+                learning_progress_source()
+                + "\n\n"
+                + comment_block
+                + "\n"
+                + start
+                + "\n\n"
+                + original
+            )
         else:
-            original = start + "\n\n" + original
+            original = comment_block + "\n" + start + "\n\n" + original
         cell["source"] = original + "\n\n" + finish + "\n"
 
 
 def notebook(name: str, cells: list[dict]) -> dict:
+    first_markdown = next(
+        cell for cell in cells if cell["cell_type"] == "markdown"
+    )
+    first_markdown["source"] += dedent(
+        """
+
+        ## 코드 셀을 읽는 방법
+
+        각 코드 셀의 맨 위에는 `코드 읽기` 주석이 있습니다.
+
+        1. `수정하지 않습니다`라고 적힌 셀은 설명을 읽고 그대로 실행합니다.
+        2. `TODO`가 있는 셀은 안내된 `None` 또는 짧은 값만 바꿉니다.
+        3. 실행 출력에서 `코드 읽는 법`과 `확인할 결과`를 다시 확인합니다.
+        4. `단계 실행 완료`가 나온 뒤 다음 코드 셀로 이동합니다.
+
+        Python 문법 전체를 먼저 이해할 필요는 없습니다. 변수에 어떤 값이 들어가고,
+        실행 뒤 어떤 결과가 달라지는지를 중심으로 읽습니다.
+        """
+    )
     attach_learning_guides(name, cells)
     prefix = name[:2]
     for index, cell in enumerate(cells, start=1):
@@ -1814,7 +2141,7 @@ def notebook_02() -> dict:
         ),
         code(
             """
-            ANSWER_REVIEW_KEYWORDS = ["2025", "합계", "76,000"]
+            ANSWER_REVIEW_KEYWORDS = ["이태리", "2025", "76,000"]
             marked = 0
             for item in output["items"]:
                 if any(
@@ -1827,7 +2154,7 @@ def notebook_02() -> dict:
                 json.dumps(output, ensure_ascii=False, indent=2) + "\\n",
                 encoding="utf-8",
             )
-            assert marked >= 2
+            assert marked == 3
             print("전체 정답 · 원본 대조 표시:", marked, "개")
             import zipfile
             bundle_path = OUTPUT_DIR / "lesson02_ocr_outputs.zip"
@@ -1858,7 +2185,9 @@ def notebook_03() -> dict:
             import re
 
             previous_path = OUTPUT_DIR / "ocr_result.json"
-            USE_PREPARED_INPUT = VALIDATION_MODE
+            # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
+            # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
+            USE_PREPARED_INPUT = True
             if not previous_path.exists() and not USE_PREPARED_INPUT:
                 upload_previous_artifact("ocr_result.json")
             if previous_path.exists():
@@ -1992,7 +2321,9 @@ def notebook_04() -> dict:
         code(
             """
             previous_path = OUTPUT_DIR / "clean_receipt.json"
-            USE_PREPARED_INPUT = VALIDATION_MODE
+            # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
+            # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
+            USE_PREPARED_INPUT = True
             if not previous_path.exists() and not USE_PREPARED_INPUT:
                 upload_previous_artifact("clean_receipt.json")
             if previous_path.exists():
@@ -2003,9 +2334,14 @@ def notebook_04() -> dict:
                 source_text = GOLDEN_OCR_TEXT
                 INPUT_MODE = "PREPARED_FALLBACK"
 
+            receipt_source_mode = (
+                "ocr_rule_extraction_from_previous_lesson"
+                if INPUT_MODE == "PREVIOUS_LESSON"
+                else "prepared_fixture_rule_extraction"
+            )
             receipt = extract_receipt_from_text(
                 source_text,
-                "ocr_rule_extraction_from_previous_lesson",
+                receipt_source_mode,
             )
             receipt["provenance"] = {
                 "fixture_type": (
@@ -2013,12 +2349,20 @@ def notebook_04() -> dict:
                     if INPUT_MODE == "PREVIOUS_LESSON"
                     else "human_verified_transcription_fixture"
                 ),
-                "input_file": "clean_receipt.json",
+                "input_file": (
+                    "clean_receipt.json"
+                    if INPUT_MODE == "PREVIOUS_LESSON"
+                    else "prepared GOLDEN_OCR_TEXT"
+                ),
                 "engine": "course_rule_extractor",
                 "engine_version": "v2",
                 "target_technology": "OCR + rule baseline",
                 "recorded_at": "2026-07-28",
-                "reviewer": "learner",
+                "reviewer": (
+                    "learner"
+                    if INPUT_MODE == "PREVIOUS_LESSON"
+                    else "course maintainer"
+                ),
                 "disclaimer": "이 receipt.json은 VLM 결과가 아니라 OCR+규칙 기준선입니다.",
             }
             receipt["input_mode"] = INPUT_MODE
@@ -2147,6 +2491,51 @@ if installed_streamlit != required_streamlit:
     subprocess.check_call(
         [sys.executable, "-m", "pip", "install", "-q", f"streamlit=={required_streamlit}"]
     )
+"""
+
+PADDLEOCR_SETUP = """
+required_paddlepaddle = "3.2.1"
+required_paddleocr = "3.7.0"
+if VALIDATION_MODE:
+    PADDLEOCR_READY = False
+    print("자동검증 모드: PaddleOCR 설치를 생략합니다.")
+else:
+    try:
+        installed_paddlepaddle = importlib.metadata.version("paddlepaddle")
+        installed_paddleocr = importlib.metadata.version("paddleocr")
+        if (
+            installed_paddlepaddle != required_paddlepaddle
+            or installed_paddleocr != required_paddleocr
+        ):
+            raise importlib.metadata.PackageNotFoundError
+        PADDLEOCR_READY = True
+    except importlib.metadata.PackageNotFoundError:
+        try:
+            subprocess.check_call(
+                [
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-q",
+                    f"paddlepaddle=={required_paddlepaddle}",
+                    f"paddleocr=={required_paddleocr}",
+                ]
+            )
+            PADDLEOCR_READY = True
+        except Exception as exc:
+            PADDLEOCR_READY = False
+            print("LIVE OCR 준비 실패:", type(exc).__name__, exc)
+
+print("Streamlit:", importlib.metadata.version("streamlit"))
+print(
+    "PaddleOCR LIVE:",
+    (
+        importlib.metadata.version("paddleocr")
+        if PADDLEOCR_READY
+        else "준비 실패 · PREPARED_FALLBACK 사용"
+    ),
+)
 """
 
 
@@ -2363,7 +2752,7 @@ def notebook_06() -> dict:
             "업로드한 파일을 실제 OCR 함수에 연결하고 LIVE·오류·복구 모드를 화면에서 구분합니다.",
         ),
         runtime_cell(),
-        code(STREAMLIT_SETUP),
+        code(STREAMLIT_SETUP + PADDLEOCR_SETUP),
         code(
             app_assignment
             + """
@@ -2486,7 +2875,9 @@ def notebook_07() -> dict:
         code(
             """
             input_path = OUTPUT_DIR / "receipt.json"
-            USE_PREPARED_INPUT = VALIDATION_MODE
+            # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
+            # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
+            USE_PREPARED_INPUT = True
             if not input_path.exists() and not USE_PREPARED_INPUT:
                 upload_previous_artifact("receipt.json")
             if input_path.exists():
@@ -2814,7 +3205,20 @@ def notebook_08() -> dict:
                 "sample_docs/formats/transaction_statement.pdf",
                 "sample_docs/formats/table_summary.pptx",
             ]
-            office_assets = load_course_assets(*OFFICE_PATHS)
+            CODE_EXAMPLE_PATHS = [
+                "src/document_examples.py",
+                "sample_outputs/extensions/quotation.json",
+                "sample_outputs/extensions/application.json",
+                "sample_outputs/extensions/transaction_statement.json",
+            ]
+            all_assets = load_course_assets(
+                *OFFICE_PATHS,
+                *CODE_EXAMPLE_PATHS,
+            )
+            office_assets = {
+                path: all_assets[path]
+                for path in OFFICE_PATHS
+            }
             office_dir = OUTPUT_DIR / "office_format_samples"
             office_dir.mkdir(exist_ok=True)
             for path, payload in office_assets.items():
@@ -2859,6 +3263,29 @@ def notebook_08() -> dict:
                     archive.write(path, path.name)
             print("실제 파일 4종 묶음:", office_bundle)
             download_artifact(office_bundle)
+
+            code_example_dir = OUTPUT_DIR / "business_document_code_examples"
+            code_example_dir.mkdir(exist_ok=True)
+            for path in CODE_EXAMPLE_PATHS:
+                target = code_example_dir / Path(path).name
+                target.write_bytes(all_assets[path])
+                if target.suffix == ".json":
+                    payload = json.loads(all_assets[path].decode("utf-8"))
+                    print(
+                        "확장 JSON:",
+                        payload["document_type"],
+                        "· 필드",
+                        len(payload),
+                    )
+
+            code_example_bundle = (
+                OUTPUT_DIR / "business_document_code_examples.zip"
+            )
+            with zipfile.ZipFile(code_example_bundle, "w") as archive:
+                for path in sorted(code_example_dir.iterdir()):
+                    archive.write(path, path.name)
+            print("문서별 Python·JSON 예제:", code_example_bundle)
+            download_artifact(code_example_bundle)
             """
         ),
         markdown(

@@ -79,7 +79,9 @@ value.lstrip(" \t\r\n").startswith(("=", "+", "-", "@"))
 
 ### 1. 4교시의 영수증 JSON을 불러옵니다
 
-새 Colab 창에서는 4교시에서 내려받은 `receipt.json`을 선택합니다. 파일이 없다면 공개 영수증의 검수된 예제로 시작할 수 있습니다.
+기본값 `USE_PREPARED_INPUT=True`는 새 Colab에서도 공개 영수증의 검수된
+예제로 바로 실행됩니다. 4교시 결과를 이어서 검증하려면 값을 `False`로
+바꾸고 `receipt.json`을 선택합니다.
 
 원본 영수증 이미지와 JSON을 나란히 열어 둡니다.
 

@@ -40,11 +40,15 @@ def validate_structure(path: Path, notebook: dict) -> None:
     ), f"{path}: invalid learning step order"
     assert all(step["total"] == len(code_cells) for step in learning_steps), path
     assert all(
-        step["title"] and step["action"] and step["expected"]
+        step["title"]
+        and step["action"]
+        and step["expected"]
+        and step["code_help"]
         for step in learning_steps
     ), f"{path}: incomplete learning step guide"
     assert all("show_lab_step(" in cell["source"] for cell in code_cells), path
     assert all("complete_lab_step(" in cell["source"] for cell in code_cells), path
+    assert all("# ── 코드 읽기" in cell["source"] for cell in code_cells), path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
     # 생성 앱 전체 소스처럼 긴 문자열 안의 임의 문자열은 제외하고,
@@ -53,6 +57,7 @@ def validate_structure(path: Path, notebook: dict) -> None:
         line for line in source.splitlines() if len(line) < 500
     )
     assert "Google Colab도 외부 클라우드" in source, path
+    assert "## 코드 셀을 읽는 방법" in source, path
     assert "CHECKPOINT 1/1 PASS" in source, path
     assert "TODO" in source, f"{path}: 학습자 빈칸이 없습니다."
     assert "전체 정답" in source, f"{path}: 공개 정답이 없습니다."
@@ -126,6 +131,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "score = {" in source
         assert "sample_docs/formats/quotation.xlsx" in source
         assert "sample_docs/extensions/quotation_photo.png" in source
+        assert "business_document_code_examples.zip" in source
+        assert "src/document_examples.py" in source
 
 
 def execute_prepared_path(path: Path, notebook: dict) -> None:
@@ -171,6 +178,10 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
                 assert not Path("course_outputs/pending_review.xlsx").exists()
                 assert namespace["PENDING_REVIEW"]["decision"] == "PENDING"
                 assert namespace["REVIEW_RECORD"]["decision"] == "APPROVED"
+            if path.name == "08_business_application.ipynb":
+                assert Path(
+                    "course_outputs/business_document_code_examples.zip"
+                ).is_file()
         finally:
             os.chdir(previous)
             if previous_flag is None:

@@ -116,7 +116,10 @@ Colab 링크마다 런타임과 `/content` 파일시스템이 새로 열릴 수 
 3. 4교시 시작: `clean_receipt.json` 업로드 → 종료 시 `receipt.json` 다운로드
 4. 7교시 시작: `receipt.json` 업로드 → 값 수정·재검증·승인 후 `receipt_result.xlsx`와 최종 앱 ZIP 다운로드
 
-진행 현황판에는 파일 존재뿐 아니라 `PREVIOUS_LESSON` 또는 `PREPARED_FALLBACK`을 기록한다. 파일 선택에서 3분을 넘기면 노트북의 `USE_PREPARED_INPUT=True`로 전환하되, 자신의 파일을 이어 쓴 것처럼 말하지 않는다.
+진행 현황판에는 파일 존재뿐 아니라 `PREVIOUS_LESSON` 또는
+`PREPARED_FALLBACK`을 기록한다. 새 Colab의 기본값은
+`USE_PREPARED_INPUT=True`다. 앞 교시 파일 인계 실습에서만 `False`로 바꾸고
+파일을 선택한다. 준비 입력을 자신의 파일 결과처럼 설명하지 않는다.
 
 ## 개인정보 사고 대응
 

@@ -29,7 +29,9 @@
 
 ## 복구
 
-이전 파일이 없으면 업로드 창이 열린다. 3분 안에 파일을 찾지 못하면 `USE_PREPARED_INPUT=True`로 바꾸고 `PREPARED_FALLBACK`을 기록한다.
+새 Colab의 기본값은 `USE_PREPARED_INPUT=True`이므로 `PREPARED_FALLBACK`으로
+독립 실행된다. 2교시 파일 인계를 시연할 때만 값을 `False`로 바꾸고
+`ocr_result.json`을 선택해 `PREVIOUS_LESSON`을 확인한다.
 
 ## 종료 조건
 
