@@ -43,6 +43,26 @@ GOLDEN_OCR_TEXT = """이태리집
 부가세 6,906
 """
 
+GOLDEN_VLM_MARKDOWN = """# 이태리집
+
+> **PREPARED VLM STRUCTURE FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
+
+거래일시: 2025-10-04 12:33:37
+
+| 품목 | 수량 | 단가 | 금액 |
+| --- | ---: | ---: | ---: |
+| 페퍼로니 앤 치즈 | 1 | 29,000원 | 29,000원 |
+| 토마토 파스타 | 1 | 14,000원 | 14,000원 |
+| 수제 돈가스 | 1 | 13,000원 | 13,000원 |
+| 새우 칠리치 필라 | 1 | 14,000원 | 14,000원 |
+| 콜라 | 3 | 2,000원 | 6,000원 |
+
+**합계: 76,000원**
+
+부가세 과세물품가액 69,094
+부가세 6,906
+"""
+
 GOLDEN_RECEIPT = {
     "document_type": "receipt",
     "store_name": "이태리집",
@@ -136,6 +156,19 @@ NOTEBOOK_SLUGS = {
     7: "validation_export",
     8: "business_application",
 }
+
+FINAL_APP_SOURCE_PATHS = [
+    "app.py",
+    "src/__init__.py",
+    "src/clean.py",
+    "src/export.py",
+    "src/extract.py",
+    "src/ocr.py",
+    "src/pipeline.py",
+    "src/sample_data.py",
+    "src/validate.py",
+    "src/vlm.py",
+]
 
 
 def markdown(source: str) -> dict:
@@ -252,6 +285,57 @@ def runtime_cell() -> dict:
     )
 
 
+def streamlit_preview_cell(path_expression: str, port: int) -> dict:
+    return code(
+        f"""
+        # 선택 실습 · 녹화에서는 이 셀로 실제 화면을 엽니다.
+        # AppTest가 필수 검증이며, 미리보기에는 공개 비식별 샘플만 사용합니다.
+        if not VALIDATION_MODE:
+            import subprocess
+            import time
+            import urllib.request
+
+            preview_process = subprocess.Popen(
+                [
+                    sys.executable, "-m", "streamlit", "run",
+                    str({path_expression}),
+                    "--server.port", "{port}",
+                    "--server.headless", "true",
+                    "--server.enableCORS", "false",
+                    "--server.enableXsrfProtection", "false",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.STDOUT,
+            )
+            for _ in range(20):
+                try:
+                    urllib.request.urlopen(
+                        "http://127.0.0.1:{port}/_stcore/health",
+                        timeout=1,
+                    )
+                    break
+                except Exception:
+                    time.sleep(0.5)
+            try:
+                from google.colab import output
+                print("아래 화면에서 직접 버튼과 입력값을 조작하세요.")
+                output.serve_kernel_port_as_iframe({port}, height=760)
+            except Exception as exc:
+                print("Colab 미리보기를 열지 못했습니다:", exc)
+                print("AppTest 결과와 app 파일로 계속합니다.")
+        else:
+            print("검증 모드: 대화형 Streamlit 미리보기 생략")
+        """
+    )
+
+
+def final_app_payload() -> dict[str, str]:
+    return {
+        relative_path: (ROOT / relative_path).read_text(encoding="utf-8")
+        for relative_path in FINAL_APP_SOURCE_PATHS
+    }
+
+
 def image_base64(path: Path, max_size: tuple[int, int] = (900, 1100)) -> str:
     with Image.open(path) as source:
         image = source.convert("RGB")
@@ -264,6 +348,7 @@ def image_base64(path: Path, max_size: tuple[int, int] = (900, 1100)) -> str:
 def golden_constants() -> str:
     return (
         f"GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}\n"
+        f"GOLDEN_VLM_MARKDOWN = {GOLDEN_VLM_MARKDOWN!r}\n"
         f"GOLDEN_RECEIPT = {GOLDEN_RECEIPT!r}\n"
     )
 
@@ -306,10 +391,16 @@ def extract_receipt_from_text(text, source_mode):
         r"^(?P<name>.+?)\s+(?P<unit>[\d,]+)\s+"
         r"(?P<quantity>\d+)\s+(?P<line>[\d,]+)$"
     )
+    markdown_item_pattern = re.compile(
+        r"^\|\s*(?P<name>[^|]+?)\s*\|\s*(?P<quantity>\d+)\s*\|"
+        r"\s*(?P<unit>[\d,]+)원\s*\|\s*(?P<line>[\d,]+)원\s*\|$"
+    )
     items = []
     item_evidence = []
     for line_number, line in enumerate(lines, start=1):
         match = item_pattern.search(line)
+        if not match:
+            match = markdown_item_pattern.search(line)
         if match:
             item = {
                 "name": match.group("name"),
@@ -362,6 +453,82 @@ def extract_receipt_from_text(text, source_mode):
 '''
 
 
+def spatial_reconstruction_source() -> str:
+    return r'''
+from collections import defaultdict
+
+def reconstruct_spatial_lines(items):
+    positioned_by_page = defaultdict(list)
+    unpositioned_by_page = defaultdict(list)
+    for order, item in enumerate(items):
+        text = " ".join(str(item.get("text", "")).split())
+        if not text:
+            continue
+        page = int(item.get("page") or 1)
+        points = [
+            point
+            for point in (item.get("box") or [])
+            if isinstance(point, (list, tuple)) and len(point) >= 2
+        ]
+        if not points:
+            unpositioned_by_page[page].append((order, text))
+            continue
+        xs = [float(point[0]) for point in points]
+        ys = [float(point[1]) for point in points]
+        positioned_by_page[page].append({
+            "text": text,
+            "x": min(xs),
+            "y": sum(ys) / len(ys),
+            "height": max(ys) - min(ys),
+            "order": order,
+        })
+
+    pages = sorted(set(positioned_by_page) | set(unpositioned_by_page))
+    lines = []
+    for page in pages:
+        rows = []
+        for token in sorted(
+            positioned_by_page[page],
+            key=lambda value: (value["y"], value["x"], value["order"]),
+        ):
+            row = rows[-1] if rows else None
+            tolerance = (
+                max(12.0, min(24.0, max(row["height"], token["height"]) * 0.45))
+                if row else 12.0
+            )
+            if row and abs(token["y"] - row["y"]) <= tolerance:
+                row["tokens"].append(token)
+                count = len(row["tokens"])
+                row["y"] = (row["y"] * (count - 1) + token["y"]) / count
+                row["height"] = max(row["height"], token["height"])
+            else:
+                rows.append({
+                    "tokens": [token],
+                    "y": token["y"],
+                    "height": token["height"],
+                })
+
+        lines.extend(
+            " ".join(
+                token["text"]
+                for token in sorted(
+                    row["tokens"],
+                    key=lambda value: (value["x"], value["order"]),
+                )
+            )
+            for row in rows
+        )
+        lines.extend(
+            text
+            for _, text in sorted(
+                unpositioned_by_page[page],
+                key=lambda value: value[0],
+            )
+        )
+    return lines
+'''
+
+
 def notebook_01() -> dict:
     encoded = image_base64(GOLDEN_IMAGE)
     cells = [
@@ -397,6 +564,47 @@ def notebook_01() -> dict:
 
             이 네 용어는 경쟁 제품 이름이 아니라 **포함 범위가 넓어지는 관계**입니다.
             `OCR → VLM`은 반드시 거치는 고정 순서가 아닙니다.
+            """
+        ),
+        markdown(
+            """
+            ## 내가 직접 채우는 4줄
+
+            네 역할이 남기는 산출물을 연결합니다. 모르면 빈칸으로 실행한 뒤
+            바로 아래 힌트·전체 정답과 비교합니다.
+            """
+        ),
+        code(
+            """
+            # TODO: None 네 곳을 채우세요.
+            my_role_map = {
+                "OCR": None,
+                "VLM": None,
+                "Document AI": None,
+                "IDP": None,
+            }
+            print("내 연결:", my_role_map)
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            읽은 결과, 구조 초안, 검증 결과, 업무 파일 순서로 연결합니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_ROLE_MAP = {
+                "OCR": "ocr_result.json",
+                "VLM": "receipt_draft.json",
+                "Document AI": "validated_receipt.json",
+                "IDP": "receipt_result.xlsx",
+            }
+            assert len(ANSWER_ROLE_MAP) == 4
+            print("전체 정답:", ANSWER_ROLE_MAP)
             """
         ),
         code(
@@ -506,8 +714,24 @@ def notebook_02() -> dict:
             PREPARED_OCR_RESULT = {prepared!r}
             for item in PREPARED_OCR_RESULT:
                 item["confidence_source"] = "not_available_prepared_fixture"
+            USE_MY_RECEIPT = False
+            INPUT_FILE_NAME = "taebaek_restaurant_2025_redacted.png"
+            if USE_MY_RECEIPT and not VALIDATION_MODE:
+                from google.colab import files
+                print(
+                    "카드·승인·전화·회원번호 등을 먼저 가린 "
+                    "영수증 이미지 한 장만 선택하세요."
+                )
+                uploaded = files.upload()
+                if len(uploaded) != 1:
+                    raise ValueError("비식별 영수증 이미지 한 장만 선택하세요.")
+                INPUT_FILE_NAME, uploaded_bytes = next(iter(uploaded.items()))
+                receipt_image = Image.open(
+                    io.BytesIO(uploaded_bytes)
+                ).convert("RGB")
             RUN_LIVE_OCR = not VALIDATION_MODE
             print("요청 모드:", "LIVE" if RUN_LIVE_OCR else "PREPARED_FALLBACK")
+            print("입력 파일:", INPUT_FILE_NAME)
             """
         ),
         markdown(
@@ -595,7 +819,7 @@ def notebook_02() -> dict:
             output = {
                 "source_mode": SOURCE_MODE,
                 "fallback_reason": FALLBACK_REASON,
-                "input_file": "taebaek_restaurant_2025_redacted.png",
+                "input_file": INPUT_FILE_NAME,
                 "items": [
                     {**item, "matches_source": None, "review_note": ""}
                     for item in OCR_RESULT
@@ -607,8 +831,56 @@ def notebook_02() -> dict:
                 encoding="utf-8",
             )
             print("CHECKPOINT 1/1 PASS:", SOURCE_MODE, output_path, annotated_path)
-            download_artifact(output_path)
-            download_artifact(annotated_path)
+            """
+        ),
+        markdown(
+            """
+            ## 내가 직접 채우는 3줄
+
+            금액·날짜처럼 원본 대조가 필요한 OCR 토큰을 키워드로 표시합니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 원본 대조할 키워드 세 개를 넣으세요.
+            review_keywords = [None, None, None]
+            if any(value is None for value in review_keywords):
+                print("빈칸이 있습니다. 아래 전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            날짜의 연도, 합계 라벨, 합계 금액처럼 영향이 큰 토큰을 고릅니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_REVIEW_KEYWORDS = ["2025", "합계", "76,000"]
+            marked = 0
+            for item in output["items"]:
+                if any(
+                    keyword in item.get("text", "")
+                    for keyword in ANSWER_REVIEW_KEYWORDS
+                ):
+                    item["review_note"] = "원본 대조 필수"
+                    marked += 1
+            output_path.write_text(
+                json.dumps(output, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            assert marked >= 2
+            print("전체 정답 · 원본 대조 표시:", marked, "개")
+            import zipfile
+            bundle_path = OUTPUT_DIR / "lesson02_ocr_outputs.zip"
+            with zipfile.ZipFile(bundle_path, "w") as archive:
+                archive.write(output_path, output_path.name)
+                archive.write(annotated_path, annotated_path.name)
+            print("한 번만 다운로드할 묶음:", bundle_path)
+            download_artifact(bundle_path)
             """
         ),
     ]
@@ -625,70 +897,10 @@ def notebook_03() -> dict:
         ),
         runtime_cell(),
         code(golden_constants()),
+        code(spatial_reconstruction_source()),
         code(
             """
             import re
-
-            def reconstruct_spatial_lines(items):
-                tokens = []
-                unpositioned = []
-                for order, item in enumerate(items):
-                    text = re.sub(r"\\s+", " ", item.get("text", "").strip())
-                    if not text:
-                        continue
-                    box = item.get("box") or []
-                    points = [
-                        point
-                        for point in box
-                        if isinstance(point, (list, tuple)) and len(point) >= 2
-                    ]
-                    if not points:
-                        unpositioned.append(text)
-                        continue
-                    xs = [float(point[0]) for point in points]
-                    ys = [float(point[1]) for point in points]
-                    tokens.append({
-                        "text": text,
-                        "x": min(xs),
-                        "y": sum(ys) / len(ys),
-                        "height": max(ys) - min(ys),
-                        "order": order,
-                    })
-
-                rows = []
-                for token in sorted(tokens, key=lambda value: (value["y"], value["x"])):
-                    if rows:
-                        row = rows[-1]
-                        tolerance = max(
-                            12.0,
-                            min(24.0, max(row["height"], token["height"]) * 0.45),
-                        )
-                    else:
-                        row = None
-                        tolerance = 12.0
-                    if row and abs(token["y"] - row["y"]) <= tolerance:
-                        row["tokens"].append(token)
-                        count = len(row["tokens"])
-                        row["y"] = (
-                            row["y"] * (count - 1) + token["y"]
-                        ) / count
-                        row["height"] = max(row["height"], token["height"])
-                    else:
-                        rows.append({
-                            "tokens": [token],
-                            "y": token["y"],
-                            "height": token["height"],
-                        })
-
-                spatial_lines = [
-                    " ".join(
-                        token["text"]
-                        for token in sorted(row["tokens"], key=lambda value: value["x"])
-                    )
-                    for row in rows
-                ]
-                return spatial_lines + unpositioned
-
 
             previous_path = OUTPUT_DIR / "ocr_result.json"
             USE_PREPARED_INPUT = VALIDATION_MODE
@@ -751,6 +963,43 @@ def notebook_03() -> dict:
             download_artifact(output_path)
             """
         ),
+        markdown(
+            """
+            ## 내가 직접 채우는 1줄
+
+            품목 행은 끝부분에 `단가 수량 금액`이 반복됩니다. 그 모양을 찾는
+            정규식 한 줄을 채웁니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 품목 행 끝의 숫자 세 묶음을 찾는 정규식을 넣으세요.
+            my_item_rule = None
+            if my_item_rule is None:
+                print("빈칸입니다. 아래 전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            숫자·쉼표 묶음, 수량 정수, 마지막 숫자·쉼표 묶음을 공백으로 연결합니다.
+            </details>
+            """
+        ),
+        code(
+            r"""
+            ANSWER_ITEM_RULE = r"[\d,]+\s+\d+\s+[\d,]+$"
+            answer_item_lines = [
+                line
+                for line in clean_result["cleaned_lines"]
+                if re.search(ANSWER_ITEM_RULE, line)
+            ]
+            assert answer_item_lines
+            print("전체 정답 · 찾은 품목 후보:", answer_item_lines)
+            """
+        ),
     ]
     return notebook("03_document_structure.ipynb", cells)
 
@@ -768,15 +1017,21 @@ def notebook_04() -> dict:
         code(parser_source()),
         markdown(
             """
-            ## VLM 결과를 정답으로 보지 않는 세 가지 확인
+            ## OCR+규칙과 VLM 구조 초안은 다른 경로입니다
+
+            이 교시에서는 두 결과를 나란히 봅니다.
+
+            - **내 문서 경로**: 3교시 OCR 결과에 규칙 추출을 적용합니다.
+            - **VLM 비교 경로**: 같은 공개 영수증을 표 Markdown으로 구조화한
+              `PREPARED VLM STRUCTURE FIXTURE`를 사용합니다.
+
+            비교 fixture는 실제 모델 실행이 아닙니다. 강사의 LIVE VLM 시연 또는
+            녹화가 실제 호출 경험을 담당하며, 필수 실습에서는 비용·GPU·계정
+            변수를 없앱니다. 어느 경로든 다음 세 가지를 확인합니다.
 
             1. **스키마**: 필요한 필드와 자료형이 맞는가?
             2. **근거**: 값이 원본 어느 줄에서 왔는가?
             3. **불확실성**: 근거가 없으면 추측하지 않고 `null`인가?
-
-            이번 필수 경로는 비용과 네트워크 변수를 없애기 위해 사람이 검수한
-            준비 텍스트를 사용합니다. 실제 VLM 호출 결과로 오해하지 않도록
-            provenance를 함께 저장합니다.
             """
         ),
         code(
@@ -795,22 +1050,65 @@ def notebook_04() -> dict:
 
             receipt = extract_receipt_from_text(
                 source_text,
-                "prepared_vlm_draft_with_rule_normalization",
+                "ocr_rule_extraction_from_previous_lesson",
             )
             receipt["provenance"] = {
-                "fixture_type": "human_verified_transcription_fixture",
+                "fixture_type": (
+                    "previous_lesson_artifact"
+                    if INPUT_MODE == "PREVIOUS_LESSON"
+                    else "human_verified_transcription_fixture"
+                ),
+                "input_file": "clean_receipt.json",
+                "engine": "course_rule_extractor",
+                "engine_version": "v2",
+                "target_technology": "OCR + rule baseline",
+                "recorded_at": "2026-07-28",
+                "reviewer": "learner",
+                "disclaimer": "이 receipt.json은 VLM 결과가 아니라 OCR+규칙 기준선입니다.",
+            }
+            receipt["input_mode"] = INPUT_MODE
+            receipt["source_text"] = source_text
+
+            vlm_demo = extract_receipt_from_text(
+                GOLDEN_VLM_MARKDOWN,
+                "prepared_vlm_structure_fixture_rule_extraction",
+            )
+            vlm_demo["provenance"] = {
+                "fixture_type": "prepared_demonstration_fixture",
                 "input_file": "taebaek_restaurant_2025_redacted.png",
-                "input_sha256": "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f",
                 "engine": "not_executed",
                 "engine_version": "not_applicable",
-                "target_technology": "PaddleOCR-VL 1.6 output structure",
+                "target_technology": "PaddleOCR-VL-1.6",
                 "recorded_at": "2026-07-28",
                 "reviewer": "course maintainer",
                 "disclaimer": "현재 실행에서 VLM을 호출한 결과가 아닙니다.",
             }
-            receipt["input_mode"] = INPUT_MODE
-            assert receipt["total_amount"] == 76000
-            assert receipt["evidence"]["total_amount"]["raw_value"]
+
+            comparison = {
+                field: {
+                    "ocr_rule": receipt.get(field),
+                    "prepared_vlm_structure": vlm_demo.get(field),
+                    "must_check_source": True,
+                }
+                for field in ("store_name", "date", "total_amount", "items")
+            }
+            comparison_path = OUTPUT_DIR / "vlm_comparison.json"
+            comparison_path.write_text(
+                json.dumps({
+                    "warning": "prepared VLM structure fixture, not live inference",
+                    "comparison": comparison,
+                    "vlm_provenance": vlm_demo["provenance"],
+                }, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+
+            assert receipt["total_amount"] is None or isinstance(
+                receipt["total_amount"], int
+            )
+            if INPUT_MODE == "PREPARED_FALLBACK":
+                assert receipt["total_amount"] == 76000
+            assert vlm_demo["total_amount"] == 76000
+            assert len(vlm_demo["items"]) == 5
             output_path = OUTPUT_DIR / "receipt.json"
             output_path.write_text(
                 json.dumps(receipt, ensure_ascii=False, indent=2) + "\\n",
@@ -820,9 +1118,61 @@ def notebook_04() -> dict:
                 "total_amount": receipt["total_amount"],
                 "evidence": receipt["evidence"]["total_amount"],
                 "source_mode": receipt["source_mode"],
+                "vlm_demo_mode": vlm_demo["source_mode"],
             }, ensure_ascii=False, indent=2))
-            print("CHECKPOINT 1/1 PASS:", output_path)
+            print("CHECKPOINT 1/1 PASS:", output_path, comparison_path)
             download_artifact(output_path)
+            download_artifact(comparison_path)
+            """
+        ),
+        markdown(
+            """
+            ## 내가 직접 채우는 5줄
+
+            아래 셀에서 원본 대조가 가장 중요한 필드 하나와 처리 결정을
+            입력합니다. 막히면 바로 다음 정답 셀을 열어 비교합니다.
+            """
+        ),
+        code(
+            """
+            # TODO: None 세 곳을 채우세요.
+            my_review = {
+                "field": None,
+                "evidence_found": None,
+                "action": None,
+            }
+            if None in my_review.values():
+                print("빈칸이 있습니다. 아래 힌트·정답 셀과 비교하세요.")
+            else:
+                print("내 검토 결정:", my_review)
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            영향이 큰 `total_amount`를 선택하고, 원본 근거가 있으면
+            `REVIEW_BEFORE_EXPORT`로 둡니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_REVIEW = {
+                "field": "total_amount",
+                "evidence_found": bool(receipt["evidence"]["total_amount"]["raw_value"]),
+                "action": (
+                    "REVIEW_BEFORE_EXPORT"
+                    if receipt["evidence"]["total_amount"]["raw_value"]
+                    else "MANUAL_REVIEW_REQUIRED"
+                ),
+            }
+            assert ANSWER_REVIEW["action"] in {
+                "REVIEW_BEFORE_EXPORT",
+                "MANUAL_REVIEW_REQUIRED",
+            }
+            print("전체 정답:", ANSWER_REVIEW)
             """
         ),
     ]
@@ -890,13 +1240,53 @@ def notebook_05() -> dict:
             print("저장:", output_path)
             """
         ),
+        markdown(
+            """
+            ## 내가 직접 바꾸는 화면 문구 2개
+
+            앱 제목과 실행 버튼 문구를 업무 사용자가 이해할 표현으로 바꿉니다.
+            """
+        ),
+        code(
+            """
+            # TODO: None 두 곳을 채우세요.
+            my_app_title = None
+            my_button_label = None
+            if None in (my_app_title, my_button_label):
+                print("빈칸이 있습니다. 아래 전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            문서 종류와 버튼을 눌렀을 때 일어나는 일을 그대로 적습니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_APP_TITLE = my_app_title or "영수증 검토 미니 앱"
+            ANSWER_BUTTON_LABEL = my_button_label or "공개 영수증 결과 확인"
+            app_code = app_code.replace(
+                "영수증 Document AI 미니 앱",
+                ANSWER_APP_TITLE,
+            ).replace(
+                "공개 샘플 준비 결과 보기",
+                ANSWER_BUTTON_LABEL,
+            )
+            output_path.write_text(app_code, encoding="utf-8")
+            print("내 화면 문구:", ANSWER_APP_TITLE, "/", ANSWER_BUTTON_LABEL)
+            """
+        ),
         code(
             """
             from streamlit.testing.v1 import AppTest
 
             app_test = AppTest.from_file(str(output_path)).run(timeout=20)
             assert not app_test.exception
-            assert app_test.title[0].value == "영수증 Document AI 미니 앱"
+            assert app_test.title[0].value == ANSWER_APP_TITLE
             assert len(app_test.file_uploader) == 1
             assert len(app_test.button) == 1
             app_test.button[0].click().run(timeout=20)
@@ -904,11 +1294,20 @@ def notebook_05() -> dict:
             print("CHECKPOINT 1/1 PASS: 업로드·버튼·결과 화면")
             """
         ),
+        streamlit_preview_cell("output_path", 8505),
     ]
     return notebook("05_streamlit_basic.ipynb", cells)
 
 
 def notebook_06() -> dict:
+    recorded_tokens = json.loads(
+        (
+            ROOT
+            / "tests"
+            / "fixtures"
+            / "ppocrv5_live_receipt_tokens.json"
+        ).read_text(encoding="utf-8")
+    )
     app_source = (
         dedent(
             f'''
@@ -921,6 +1320,8 @@ def notebook_06() -> dict:
             '''
         ).lstrip()
         + "\n"
+        + spatial_reconstruction_source().strip()
+        + "\n\n"
         + parser_source().strip()
         + "\n\n"
         + dedent(
@@ -943,7 +1344,20 @@ def notebook_06() -> dict:
                 page = list(engine.predict(path))[0]
                 payload = page.json() if callable(page.json) else page.json
                 result = payload.get("res", payload)
-                return "\\n".join(result.get("rec_texts", []))
+                items = [
+                    {{
+                        "page": 1,
+                        "box": box.tolist() if hasattr(box, "tolist") else box,
+                        "text": text,
+                        "confidence": float(score),
+                    }}
+                    for box, text, score in zip(
+                        result.get("rec_polys", []),
+                        result.get("rec_texts", []),
+                        result.get("rec_scores", []),
+                    )
+                ]
+                return "\\n".join(reconstruct_spatial_lines(items))
             finally:
                 Path(path).unlink(missing_ok=True)
 
@@ -1016,6 +1430,64 @@ def notebook_06() -> dict:
             """
         ),
         code(
+            spatial_reconstruction_source()
+            + "\n"
+            + parser_source()
+            + f"""
+
+RECORDED_PP_OCRV5_TOKENS = {recorded_tokens!r}
+recorded_text = "\\n".join(
+    reconstruct_spatial_lines(RECORDED_PP_OCRV5_TOKENS)
+)
+recorded_receipt = extract_receipt_from_text(
+    recorded_text,
+    "recorded_ppocrv5_regression",
+)
+assert recorded_receipt["date"] == "2025-10-04"
+assert recorded_receipt["total_amount"] == 76000
+assert len(recorded_receipt["items"]) == 5
+print(
+    "RECORDED LIVE REGRESSION PASS:",
+    recorded_receipt["total_amount"],
+    len(recorded_receipt["items"]),
+)
+"""
+        ),
+        markdown(
+            """
+            ## 내가 직접 정하는 LIVE 통과 조건 3개
+
+            앱이 오류 없이 열리는 것과 추출값이 맞는 것은 다릅니다. LIVE 경로가
+            반드시 확인해야 할 값을 세 개 고릅니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 확인할 필드 세 개를 채우세요.
+            my_live_checks = [None, None, None]
+            if any(value is None for value in my_live_checks):
+                print("빈칸이 있습니다. 아래 전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            날짜, 총액, 반복 품목 수는 후속 검증과 Excel에 직접 영향을 줍니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_LIVE_CHECKS = ["date", "total_amount", "items"]
+            assert recorded_receipt["date"]
+            assert recorded_receipt["total_amount"] is not None
+            assert recorded_receipt["items"]
+            print("전체 정답 · LIVE 필수 확인:", ANSWER_LIVE_CHECKS)
+            """
+        ),
+        code(
             """
             from streamlit.testing.v1 import AppTest
 
@@ -1029,11 +1501,13 @@ def notebook_06() -> dict:
             print("CHECKPOINT 1/1 PASS: 앱 연결·모드 표시·JSON 출력")
             """
         ),
+        streamlit_preview_cell("output_path", 8506),
     ]
     return notebook("06_ocr_ai_integration.ipynb", cells)
 
 
 def notebook_07() -> dict:
+    packaged_sources = final_app_payload()
     cells = [
         intro(
             7,
@@ -1042,6 +1516,7 @@ def notebook_07() -> dict:
             "오류·경고·사람 검토를 분리하고, 공개된 승인 정답 경로에서만 Excel을 만듭니다.",
         ),
         runtime_cell(),
+        code(STREAMLIT_SETUP),
         code(
             """
             import importlib.util
@@ -1123,9 +1598,14 @@ def notebook_07() -> dict:
 
 
             validation = validate_receipt(receipt)
-            assert validation["valid"], validation
+            source_text = receipt.get("source_text") or GOLDEN_OCR_TEXT
             print("입력 모드:", INPUT_MODE)
             print("검증:", validation)
+            if not validation["valid"]:
+                print(
+                    "BLOCKED_BY_VALIDATION: 아래 최종 앱에서 원본과 대조해 "
+                    "값을 수정한 뒤 승인하세요."
+                )
             """
         ),
         code(
@@ -1202,7 +1682,7 @@ def notebook_07() -> dict:
                 "note": "",
             }
             assert not save_reviewed_excel(
-                receipt, validation, PENDING_REVIEW, blocked_path, GOLDEN_OCR_TEXT
+                receipt, validation, PENDING_REVIEW, blocked_path, source_text
             )
             assert not blocked_path.exists()
             print("DEFAULT_BLOCKED PASS: 미승인 Excel 없음")
@@ -1210,32 +1690,116 @@ def notebook_07() -> dict:
         ),
         markdown(
             """
-            ## 시나리오 B. 전체 정답 공개 — 원본 확인 후 실행
+            ## 시나리오 B. 내가 직접 남기는 승인 기록
 
-            아래 셀은 승인 기록의 **완성 정답**입니다. 원본의 상호명·날짜·품목·총액을
-            직접 대조한 뒤 실행합니다. 결정·검토자·시각·메모가 Excel에 남습니다.
+            원본의 상호명·날짜·품목·총액을 직접 대조한 뒤 세 곳을 채웁니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 원본 대조 뒤 세 곳을 채우세요.
+            my_decision = None
+            my_reviewer = None
+            my_review_note = None
+            if None in (my_decision, my_reviewer, my_review_note):
+                print("빈칸이 있습니다. 아래 전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            값 수정이 없으면 `APPROVED`, 수정했다면 `CHANGED`입니다. 검토자와
+            무엇을 확인했는지도 기록합니다.
+            </details>
             """
         ),
         code(
             """
             REVIEW_RECORD = {
-                "decision": "APPROVED",
-                "reviewer": "learner",
+                "decision": my_decision or "APPROVED",
+                "reviewer": my_reviewer or "learner",
                 "reviewed_at": "2026-07-28T15:30:00+09:00",
-                "note": "공개 비식별 원본과 상호명·날짜·품목·총액 대조 완료",
+                "note": (
+                    my_review_note
+                    or "공개 비식별 원본과 상호명·날짜·품목·총액 대조 완료"
+                ),
             }
             output_path = OUTPUT_DIR / "receipt_result.xlsx"
-            assert save_reviewed_excel(
-                receipt, validation, REVIEW_RECORD, output_path, GOLDEN_OCR_TEXT
+            excel_created = save_reviewed_excel(
+                receipt, validation, REVIEW_RECORD, output_path, source_text
             )
-            saved = load_workbook(output_path)
-            assert saved.sheetnames == ["검토_요약", "품목", "원문_근거"]
-            assert saved["검토_요약"]["E2"].value == "APPROVED"
-            print("REVIEWED_APPROVED PASS:", output_path, saved.sheetnames)
-            print("CHECKPOINT 1/1 PASS: 미승인 차단 + 승인 후 Excel")
-            download_artifact(output_path)
+            if excel_created:
+                saved = load_workbook(output_path)
+                assert saved.sheetnames == ["검토_요약", "품목", "원문_근거"]
+                assert saved["검토_요약"]["E2"].value in {"APPROVED", "CHANGED"}
+                print("REVIEWED_APPROVED PASS:", output_path, saved.sheetnames)
+                print("CHECKPOINT 1/1 PASS: 미승인 차단 + 승인 후 Excel")
+                download_artifact(output_path)
+            else:
+                print(
+                    "Excel 생성 차단: 검증 오류를 최종 앱에서 수정한 뒤 "
+                    "다운로드하세요."
+                )
             """
         ),
+        markdown(
+            """
+            ## 최종 앱: 업로드부터 Excel 다운로드까지 한 화면으로 연결
+
+            아래 셀은 앞 교시의 기능을 하나의 실행 가능한 앱으로 묶습니다.
+            앱에서는 OCR/VLM 경로 선택, 원문·JSON 확인, 상호명·날짜·총액·품목
+            수정, 재검증, 사람 승인, Excel 다운로드를 순서대로 수행합니다.
+            """
+        ),
+        code(
+            f"""
+            import shutil
+
+            packaged_sources = {packaged_sources!r}
+            final_app_dir = OUTPUT_DIR / "final_document_ai_app"
+            for relative_path, source in packaged_sources.items():
+                target = final_app_dir / relative_path
+                target.parent.mkdir(parents=True, exist_ok=True)
+                target.write_text(source, encoding="utf-8")
+
+            final_app_path = final_app_dir / "app.py"
+            archive_base = OUTPUT_DIR / "final_document_ai_app"
+            archive_path = Path(
+                shutil.make_archive(
+                    str(archive_base),
+                    "zip",
+                    root_dir=final_app_dir,
+                )
+            )
+            print("최종 앱:", final_app_path)
+            print("앱 전체 코드:", archive_path)
+            """
+        ),
+        code(
+            """
+            import sys
+            from streamlit.testing.v1 import AppTest
+
+            sys.path.insert(0, str(final_app_dir))
+            final_test = AppTest.from_file(str(final_app_path)).run(timeout=30)
+            assert not final_test.exception
+            final_test.button(key="run_sample").click().run(timeout=30)
+            assert not final_test.exception
+            assert any(
+                "원본 대조 후 수정" in item.value
+                for item in final_test.subheader
+            )
+            assert len(final_test.get("download_button")) == 0
+            final_test.checkbox(key="review_complete").check().run(timeout=30)
+            assert not final_test.exception
+            assert len(final_test.get("download_button")) == 1
+            print("FINAL APP PASS: 수정 표·재검증·승인·Excel 다운로드")
+            download_artifact(archive_path)
+            """
+        ),
+        streamlit_preview_cell("final_app_path", 8507),
     ]
     return notebook("07_validation_export.ipynb", cells)
 
@@ -1244,6 +1808,22 @@ def notebook_08() -> dict:
     encoded = {
         name: image_base64(path, (520, 650))
         for name, path in EXTENSION_IMAGES.items()
+    }
+    office_paths = {
+        "quotation.xlsx": ROOT / "sample_docs" / "formats" / "quotation.xlsx",
+        "application_form.docx": (
+            ROOT / "sample_docs" / "formats" / "application_form.docx"
+        ),
+        "transaction_statement.pdf": (
+            ROOT / "sample_docs" / "formats" / "transaction_statement.pdf"
+        ),
+        "table_summary.pptx": (
+            ROOT / "sample_docs" / "formats" / "table_summary.pptx"
+        ),
+    }
+    encoded_office = {
+        name: base64.b64encode(path.read_bytes()).decode("ascii")
+        for name, path in office_paths.items()
     }
     cells = [
         intro(
@@ -1284,21 +1864,135 @@ def notebook_08() -> dict:
             """
         ),
         code(
+            f"""
+            import re
+            import zipfile
+
+            OFFICE_FILES = {encoded_office!r}
+            office_dir = OUTPUT_DIR / "office_format_samples"
+            office_dir.mkdir(exist_ok=True)
+            for filename, payload in OFFICE_FILES.items():
+                (office_dir / filename).write_bytes(base64.b64decode(payload))
+
+            def xml_text_count(path, prefix, text_tag):
+                with zipfile.ZipFile(path) as archive:
+                    names = [
+                        name for name in archive.namelist()
+                        if name.startswith(prefix) and name.endswith(".xml")
+                    ]
+                    text_count = 0
+                    for name in names:
+                        xml = archive.read(name).decode("utf-8", errors="ignore")
+                        text_count += len(re.findall(text_tag, xml))
+                    return len(names), text_count
+
+            xlsx_sheets, xlsx_values = xml_text_count(
+                office_dir / "quotation.xlsx",
+                "xl/worksheets/",
+                r"<x:(?:v|f)>",
+            )
+            docx_parts, docx_text = xml_text_count(
+                office_dir / "application_form.docx",
+                "word/document",
+                r"<w:t",
+            )
+            pptx_slides, pptx_text = xml_text_count(
+                office_dir / "table_summary.pptx",
+                "ppt/slides/slide",
+                r"<a:t>",
+            )
+            pdf_bytes = (office_dir / "transaction_statement.pdf").read_bytes()
+            print("Excel:", xlsx_sheets, "개 시트 XML · 값/수식", xlsx_values)
+            print("Word:", docx_text, "개 본문 텍스트 run · 이미지 본문 여부 확인")
+            print("PDF:", pdf_bytes[:5], "· 텍스트층 샘플")
+            print("PPT:", pptx_slides, "개 슬라이드 · 텍스트", pptx_text)
+
+            office_bundle = OUTPUT_DIR / "office_format_samples.zip"
+            with zipfile.ZipFile(office_bundle, "w") as archive:
+                for path in sorted(office_dir.iterdir()):
+                    archive.write(path, path.name)
+            print("실제 파일 4종 묶음:", office_bundle)
+            download_artifact(office_bundle)
+            """
+        ),
+        markdown(
+            """
+            ## 내가 직접 만드는 PoC 카드
+
+            `candidate`는 `quotation`, `application`, `transaction_statement`
+            중 하나입니다. 점수는 1~5점이며 오류 영향과 예외 빈도는 낮을수록
+            첫 PoC에 유리합니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 내 업무 후보와 점수·검토자·중단 조건을 채우세요.
+            candidate = None
+            score = {
+                "반복량": None,
+                "필드 안정성": None,
+                "오류 영향": None,
+                "예외 빈도": None,
+                "사람 검토 가능성": None,
+            }
+            review_owner = None
+            stop_condition = None
+            if candidate is None or any(value is None for value in score.values()):
+                print("빈칸이 있습니다. 아래 힌트·전체 정답과 비교하세요.")
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>힌트와 전체 정답 보기</summary>
+
+            예시는 거래명세서를 한 장씩 처리하고 정산 담당자가 검토하는 작은
+            PoC입니다. 값이 맞지 않거나 원본 근거가 없으면 저장을 중단합니다.
+            </details>
+            """
+        ),
+        code(
             """
             from textwrap import dedent
 
-            candidate = "transaction_statement"
-            example = EXTENSION_EXAMPLES[candidate]
-            score = {
+            candidate = candidate or "transaction_statement"
+            if candidate not in EXTENSION_EXAMPLES:
+                raise ValueError(
+                    "candidate는 quotation, application, "
+                    "transaction_statement 중 하나여야 합니다."
+                )
+            default_score = {
                 "반복량": 4,
                 "필드 안정성": 4,
                 "오류 영향": 2,
                 "예외 빈도": 3,
                 "사람 검토 가능성": 5,
             }
+            score = {
+                key: (
+                    int(value)
+                    if value is not None
+                    else default_score[key]
+                )
+                for key, value in score.items()
+            }
+            if not all(1 <= value <= 5 for value in score.values()):
+                raise ValueError("모든 점수는 1~5 사이여야 합니다.")
+            review_owner = review_owner or "정산 담당자"
+            stop_condition = (
+                stop_condition
+                or "필수값·합계·원본 근거 중 하나라도 틀리면 자동 저장 중단"
+            )
+            example = EXTENSION_EXAMPLES[candidate]
             recommendation = (
                 "GO_SMALL"
-                if score["반복량"] >= 4 and score["사람 검토 가능성"] >= 4
+                if (
+                    score["반복량"] >= 4
+                    and score["필드 안정성"] >= 3
+                    and score["오류 영향"] <= 3
+                    and score["예외 빈도"] <= 3
+                    and score["사람 검토 가능성"] >= 4
+                )
                 else "REVIEW"
             )
             card = f'''# 문서 자동화 PoC 후보 카드
@@ -1311,6 +2005,9 @@ def notebook_08() -> dict:
             | 틀렸을 때 영향 | {example["risk"]} |
             | 입력 제한 | 승인된 비식별 한 장 |
             | 최종 산출물 | 사람 승인 후 Excel |
+            | 사람 검토자 | {review_owner} |
+            | 중단 조건 | {stop_condition} |
+            | 점수 | {" / ".join(f"{key} {value}" for key, value in score.items())} |
             | 제안 | {recommendation} |
 
             ## 첫 PoC 통과 기준
@@ -1324,6 +2021,7 @@ def notebook_08() -> dict:
             output_path.write_text(dedent(card), encoding="utf-8")
             print(dedent(card))
             print("CHECKPOINT 1/1 PASS:", output_path)
+            download_artifact(output_path)
             """
         ),
     ]

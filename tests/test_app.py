@@ -34,3 +34,14 @@ def test_streamlit_requires_human_approval_before_download():
 
     assert not app.exception
     assert len(app.get("download_button")) == 1
+
+
+def test_streamlit_revalidates_learner_edits_before_download():
+    app = AppTest.from_file(str(APP_PATH)).run(timeout=20)
+    app.button(key="run_sample").click().run(timeout=20)
+    app.text_input(key="review_total_amount").input("999").run(timeout=20)
+    app.checkbox(key="review_complete").check().run(timeout=20)
+
+    assert not app.exception
+    assert len(app.get("download_button")) == 0
+    assert any("합계" in item.value for item in app.error)

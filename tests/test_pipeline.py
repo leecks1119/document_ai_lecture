@@ -23,6 +23,20 @@ def test_explicit_sample_path_is_labeled():
     assert result["data"]["source_mode"] == "prepared_fixture_rule_extraction"
 
 
+def test_explicit_vlm_sample_is_labeled_and_structured():
+    result = process_document(use_sample=True, processor="vlm")
+
+    assert result["ok"]
+    assert "VLM 구조 시연 fixture" in result["status"]
+    assert result["data"]["total_amount"] == 76000
+    assert len(result["data"]["items"]) == 5
+    assert result["data"]["provenance"]["engine"] == "not_executed"
+    assert (
+        result["data"]["source_mode"]
+        == "prepared_vlm_structure_fixture_rule_extraction"
+    )
+
+
 def test_human_approval_enables_xlsx():
     result = process_document(use_sample=True, human_approved=True)
 

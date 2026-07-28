@@ -96,7 +96,7 @@ def _normalize_date(value: str) -> str:
 
 def _find_store_name(lines: list[str]) -> tuple[str | None, int | None]:
     ignored = re.compile(
-        r"^(?:\[?영수증\]?|거래|사업자|대표|주소|전화|상품명|품명|상\s*품)",
+        r"^(?:\[?영수(?:증)?\]?|거래|사업자|대표|주소|전화|상품명|품명|상\s*품)",
         re.IGNORECASE,
     )
     for index, line in enumerate(lines, start=1):

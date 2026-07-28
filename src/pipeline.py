@@ -9,6 +9,7 @@ from .extract import extract_receipt_from_text
 from .ocr import extract_with_paddleocr, ocr_text_from_result
 from .sample_data import (
     GOLDEN_RECEIPT_OCR_TEXT,
+    GOLDEN_RECEIPT_VLM_MARKDOWN,
     MISSING_STORE_RECEIPT,
     SAMPLE_OCR_TEXT,
     WRONG_TOTAL_RECEIPT,
@@ -61,21 +62,44 @@ def process_document(
     """
 
     if use_sample:
-        ocr_text = GOLDEN_RECEIPT_OCR_TEXT
-        extraction_mode = "prepared_fixture_rule_extraction"
-        mode = "PREPARED REPLAY — 공개 한국 영수증의 검수된 준비 결과"
+        if processor == "ocr":
+            ocr_text = GOLDEN_RECEIPT_OCR_TEXT
+            extraction_mode = "prepared_fixture_rule_extraction"
+            mode = "PREPARED REPLAY — 공개 한국 영수증의 검수된 OCR 텍스트"
+            target_technology = "PaddleOCR Korean"
+        elif processor == "vlm":
+            ocr_text = GOLDEN_RECEIPT_VLM_MARKDOWN
+            extraction_mode = "prepared_vlm_structure_fixture_rule_extraction"
+            mode = "PREPARED REPLAY — 공개 한국 영수증의 VLM 구조 시연 fixture"
+            target_technology = "PaddleOCR-VL-1.6"
+        else:
+            return {
+                "ok": False,
+                "status": "처리 방식 오류",
+                "errors": ["processor는 'ocr' 또는 'vlm'이어야 합니다."],
+                "can_continue_with_sample": True,
+            }
         provenance = {
-            "fixture_type": "human_verified_transcription_fixture",
+            "fixture_type": (
+                "human_verified_transcription_fixture"
+                if processor == "ocr"
+                else "prepared_demonstration_fixture"
+            ),
             "input_file": "taebaek_restaurant_2025_redacted.png",
             "input_sha256": (
                 "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f"
             ),
             "engine": "not_executed",
             "engine_version": "not_applicable",
-            "target_technology": "PaddleOCR Korean",
+            "target_technology": target_technology,
             "recorded_at": "2026-07-28",
             "reviewer": "course maintainer",
-            "disclaimer": "현재 실행에서 모델을 호출한 결과가 아닙니다.",
+            "disclaimer": (
+                "현재 실행에서 모델을 호출한 결과가 아닙니다. "
+                "VLM 경로는 구조와 검증 활동을 위한 시연 fixture입니다."
+                if processor == "vlm"
+                else "현재 실행에서 모델을 호출한 결과가 아닙니다."
+            ),
         }
     else:
         errors = validate_upload(file_path)

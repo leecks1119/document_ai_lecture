@@ -1,7 +1,48 @@
+import json
 import fitz
 import pytest
+from pathlib import Path
 
-from src.ocr import _prepare_image_paths
+from src.extract import extract_receipt_from_text
+from src.ocr import (
+    _prepare_image_paths,
+    ocr_text_from_result,
+    reconstruct_spatial_lines,
+)
+
+
+FIXTURE = (
+    Path(__file__).parent
+    / "fixtures"
+    / "ppocrv5_live_receipt_tokens.json"
+)
+
+
+def test_recorded_ppocrv5_tokens_restore_receipt_rows():
+    tokens = json.loads(FIXTURE.read_text(encoding="utf-8"))
+
+    lines = reconstruct_spatial_lines(tokens)
+    text = ocr_text_from_result(tokens)
+    receipt = extract_receipt_from_text(
+        text,
+        source_mode="recorded_ppocrv5_regression",
+    )
+
+    assert "페퍼르니인집스 29,000 1 29,000" in lines
+    assert "합계 9 76,000" in lines
+    assert receipt["date"] == "2025-10-04"
+    assert receipt["total_amount"] == 76000
+    assert len(receipt["items"]) == 5
+    assert receipt["items"][-1]["line_total"] == 6000
+
+
+def test_unpositioned_fixture_keeps_input_order():
+    result = [
+        {"text": "첫 줄", "box": []},
+        {"text": "둘째 줄", "box": None},
+    ]
+
+    assert reconstruct_spatial_lines(result) == ["첫 줄", "둘째 줄"]
 
 
 def test_corrupt_pdf_has_beginner_friendly_error(tmp_path):

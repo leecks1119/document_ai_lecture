@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections import defaultdict
 from copy import deepcopy
 from pathlib import Path
 from tempfile import TemporaryDirectory
@@ -15,10 +16,98 @@ def load_mock_ocr() -> list[dict]:
     return deepcopy(SAMPLE_OCR_RESULT)
 
 
-def ocr_text_from_result(result: list[dict]) -> str:
-    """OCR 결과의 텍스트를 읽기 순서대로 합친다."""
+def reconstruct_spatial_lines(result: list[dict]) -> list[str]:
+    """OCR 토큰을 페이지·y좌표·x좌표 기준의 읽기 행으로 복원한다.
 
-    return "\n".join(item["text"] for item in result)
+    PaddleOCR는 영수증의 ``품목명 / 단가 / 수량 / 금액`` 한 행을 여러
+    토큰으로 반환할 수 있다. 단순 줄바꿈으로 합치면 행 관계가 사라지므로,
+    각 토큰 중심 y좌표가 가까운 것끼리 묶고 x좌표 순서로 정렬한다.
+    위치가 없는 준비 결과는 입력 순서를 보존한다.
+    """
+
+    positioned_by_page: dict[int, list[dict]] = defaultdict(list)
+    unpositioned_by_page: dict[int, list[tuple[int, str]]] = defaultdict(list)
+
+    for order, item in enumerate(result):
+        text = " ".join(str(item.get("text", "")).split())
+        if not text:
+            continue
+        page = int(item.get("page") or 1)
+        points = [
+            point
+            for point in (item.get("box") or [])
+            if isinstance(point, (list, tuple)) and len(point) >= 2
+        ]
+        if not points:
+            unpositioned_by_page[page].append((order, text))
+            continue
+        xs = [float(point[0]) for point in points]
+        ys = [float(point[1]) for point in points]
+        positioned_by_page[page].append(
+            {
+                "text": text,
+                "x": min(xs),
+                "y": sum(ys) / len(ys),
+                "height": max(ys) - min(ys),
+                "order": order,
+            }
+        )
+
+    pages = sorted(set(positioned_by_page) | set(unpositioned_by_page))
+    lines: list[str] = []
+    for page in pages:
+        rows: list[dict] = []
+        for token in sorted(
+            positioned_by_page[page],
+            key=lambda value: (value["y"], value["x"], value["order"]),
+        ):
+            row = rows[-1] if rows else None
+            tolerance = (
+                max(
+                    12.0,
+                    min(24.0, max(row["height"], token["height"]) * 0.45),
+                )
+                if row
+                else 12.0
+            )
+            if row and abs(token["y"] - row["y"]) <= tolerance:
+                row["tokens"].append(token)
+                count = len(row["tokens"])
+                row["y"] = (row["y"] * (count - 1) + token["y"]) / count
+                row["height"] = max(row["height"], token["height"])
+            else:
+                rows.append(
+                    {
+                        "tokens": [token],
+                        "y": token["y"],
+                        "height": token["height"],
+                    }
+                )
+
+        lines.extend(
+            " ".join(
+                token["text"]
+                for token in sorted(
+                    row["tokens"],
+                    key=lambda value: (value["x"], value["order"]),
+                )
+            )
+            for row in rows
+        )
+        lines.extend(
+            text
+            for _, text in sorted(
+                unpositioned_by_page[page],
+                key=lambda value: value[0],
+            )
+        )
+    return lines
+
+
+def ocr_text_from_result(result: list[dict]) -> str:
+    """OCR 결과를 표 행 관계가 보존된 읽기 순서 텍스트로 합친다."""
+
+    return "\n".join(reconstruct_spatial_lines(result))
 
 
 def extract_with_paddleocr(

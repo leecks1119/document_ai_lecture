@@ -32,11 +32,19 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert all(cell["outputs"] == [] for cell in code_cells), path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
+    # 8교시는 실제 Office 파일을 base64로 내장한다. 압축 바이너리 안에는
+    # 금지어와 같은 임의 문자열이 우연히 생길 수 있으므로 사람이 읽는
+    # 짧은 소스 줄만 대상으로 도구명 잔존 여부를 검사한다.
+    visible_source = "\n".join(
+        line for line in source.splitlines() if len(line) < 500
+    )
     assert "Google Colab도 외부 클라우드" in source, path
     assert "CHECKPOINT 1/1 PASS" in source, path
+    assert "TODO" in source, f"{path}: 학습자 빈칸이 없습니다."
+    assert "전체 정답" in source, f"{path}: 공개 정답이 없습니다."
     assert "easyocr" not in source.lower(), path
     assert "gradio" not in source.lower(), path
-    assert "codex" not in source.lower(), path
+    assert "codex" not in visible_source.lower(), path
     if path.name == "02_ocr_basic.ipynb":
         assert "RUN_LIVE_OCR = not VALIDATION_MODE" in source
         assert 'lang="korean"' in source
@@ -47,19 +55,30 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "현재 실행에서 VLM을 호출한 결과가 아닙니다." in source
     if path.name == "05_streamlit_basic.ipynb":
         assert "uploaded.getvalue()" in source
+        assert "serve_kernel_port_as_iframe" in source
     if path.name == "06_ocr_ai_integration.ipynb":
         assert "run_live_ocr" in source
+        assert "RECORDED LIVE REGRESSION PASS" in source
+        assert "serve_kernel_port_as_iframe" in source
         assert "PREPARED_FALLBACK" in source
         assert "LIVE_ERROR" in source
         assert "finally:" in source and "unlink(missing_ok=True)" in source
     if path.name == "07_validation_export.ipynb":
         assert "DEFAULT_BLOCKED PASS" in source
         assert "REVIEWED_APPROVED PASS" in source
+        assert "FINAL APP PASS" in source
+        assert "final_document_ai_app" in source
+        assert "make_archive" in source
+        assert "st.data_editor" in source
+        assert "serve_kernel_port_as_iframe" in source
         assert "REVIEW_RECORD" in source
         assert "검토_요약\", \"품목\", \"원문_근거" in source
     if path.name == "08_business_application.ipynb":
         for document in ("quotation", "application", "transaction_statement"):
             assert document in source
+        assert "office_format_samples.zip" in source
+        assert "candidate = None" in source
+        assert "score = {" in source
 
 
 def execute_prepared_path(path: Path, notebook: dict) -> None:

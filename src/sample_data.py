@@ -24,6 +24,61 @@ GOLDEN_RECEIPT_OCR_TEXT = """이태리집
 부가세 6,906
 """
 
+GOLDEN_RECEIPT_VLM_MARKDOWN = """# 이태리집
+
+> **PREPARED VLM STRUCTURE FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
+
+거래일시: 2025-10-04 12:33:37
+
+| 품목 | 수량 | 단가 | 금액 |
+| --- | ---: | ---: | ---: |
+| 페퍼로니 앤 치즈 | 1 | 29,000원 | 29,000원 |
+| 토마토 파스타 | 1 | 14,000원 | 14,000원 |
+| 수제 돈가스 | 1 | 13,000원 | 13,000원 |
+| 새우 칠리치 필라 | 1 | 14,000원 | 14,000원 |
+| 콜라 | 3 | 2,000원 | 6,000원 |
+
+**합계: 76,000원**
+
+부가세 과세물품가액 69,094
+부가세 6,906
+"""
+
+GOLDEN_RECEIPT_VLM_RESULT = {
+    "target_technology": "PaddleOCR-VL-1.6",
+    "executed_model": None,
+    "source_mode": "prepared_vlm_structure_fixture",
+    "provenance": {
+        "fixture_type": "prepared_demonstration_fixture",
+        "input_file": "taebaek_restaurant_2025_redacted.png",
+        "engine": "not_executed",
+        "engine_version": "not_applicable",
+        "target_technology": "PaddleOCR-VL-1.6",
+        "created_by": "course maintainer",
+        "disclaimer": "현재 실행에서 VLM을 호출한 결과가 아닙니다.",
+    },
+    "pages": [
+        {
+            "page": 1,
+            "markdown": GOLDEN_RECEIPT_VLM_MARKDOWN,
+            "blocks": [
+                {"label": "title", "content": "이태리집", "order": 1},
+                {
+                    "label": "text",
+                    "content": "거래일시: 2025-10-04 12:33:37",
+                    "order": 2,
+                },
+                {
+                    "label": "table",
+                    "content": "품목·수량·단가·금액 5행",
+                    "order": 3,
+                },
+                {"label": "text", "content": "합계: 76,000원", "order": 4},
+            ],
+        }
+    ],
+}
+
 SAMPLE_OCR_RESULT = [
     {
         "box": [[80, 70], [330, 70], [330, 125], [80, 125]],
