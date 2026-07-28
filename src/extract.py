@@ -133,12 +133,24 @@ def extract_receipt_from_text(
         return empty
 
     date_match = re.search(r"\b(\d{4}[-./]\d{1,2}[-./]\d{1,2})\b", ocr_text)
-    total_match = re.search(
-        r"(?:합\s*계(?:\s*금액)?|결제\s*금액|총\s*액)\s*[:：]?\s*"
-        r"(?P<amount>[\d,]+)[ \t]*원?",
-        ocr_text,
-        re.IGNORECASE,
+    total_line_text = next(
+        (
+            line
+            for line in lines
+            if re.search(
+                r"(?:합\s*계|결제\s*금액|총\s*액)",
+                line,
+                re.IGNORECASE,
+            )
+        ),
+        None,
     )
+    total_candidates = (
+        re.findall(r"(?<![\d,])\d[\d,]*(?![\d,])", total_line_text)
+        if total_line_text
+        else []
+    )
+    total_raw = total_candidates[-1] if total_candidates else None
     supply_match = re.search(
         r"(?:부가세\s*)?과세물품가액\s*[:：]?\s*(?P<amount>[\d,]+)",
         ocr_text,
@@ -187,7 +199,7 @@ def extract_receipt_from_text(
 
     store_name, store_line = _find_store_name(lines)
     normalized_date = _normalize_date(date_match.group(1)) if date_match else None
-    total_amount = _to_int(total_match.group("amount")) if total_match else None
+    total_amount = _to_int(total_raw) if total_raw else None
     supply_amount = (
         _to_int(supply_match.group("amount")) if supply_match else None
     )
@@ -196,7 +208,7 @@ def extract_receipt_from_text(
         (
             index
             for index, line in enumerate(lines, start=1)
-            if total_match and total_match.group(0) in line
+            if total_line_text and line == total_line_text
         ),
         None,
     )
@@ -238,7 +250,7 @@ def extract_receipt_from_text(
                 ),
             },
             "total_amount": {
-                "raw_value": total_match.group(0) if total_match else None,
+                "raw_value": total_line_text,
                 "line": total_line,
             },
             "items": item_evidence,
@@ -246,9 +258,7 @@ def extract_receipt_from_text(
         "raw_values": {
             "store_name": store_name,
             "date": date_match.group(0) if date_match else None,
-            "total_amount": (
-                total_match.group("amount") if total_match else None
-            ),
+            "total_amount": total_raw,
         },
         "cleaned_values": {
             "store_name": store_name,

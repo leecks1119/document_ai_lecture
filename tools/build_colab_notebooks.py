@@ -279,10 +279,20 @@ def to_int(value):
 def extract_receipt_from_text(text, source_mode):
     lines = [line.strip() for line in text.splitlines() if line.strip()]
     date_match = re.search(r"\b(\d{4})[-./](\d{1,2})[-./](\d{1,2})\b", text)
-    total_match = re.search(
-        r"(?:합\s*계(?:\s*금액)?|결제\s*금액|총\s*액)\s*[:：]?\s*([\d,]+)",
-        text,
+    total_line = next(
+        (
+            line
+            for line in lines
+            if re.search(r"(?:합\s*계|결제\s*금액|총\s*액)", line)
+        ),
+        None,
     )
+    total_candidates = (
+        re.findall(r"(?<![\d,])\d[\d,]*(?![\d,])", total_line)
+        if total_line
+        else []
+    )
+    total_raw = total_candidates[-1] if total_candidates else None
     supply_match = re.search(
         r"(?:부가세\s*)?과세물품가액\s*[:：]?\s*([\d,]+)",
         text,
@@ -315,7 +325,7 @@ def extract_receipt_from_text(text, source_mode):
         f"{int(date_match.group(3)):02d}"
         if date_match else None
     )
-    total_value = to_int(total_match.group(1)) if total_match else None
+    total_value = to_int(total_raw) if total_raw else None
     supply_value = to_int(supply_match.group(1)) if supply_match else None
     vat_value = to_int(vat_match.group(1)) if vat_match else None
     return {
@@ -334,7 +344,7 @@ def extract_receipt_from_text(text, source_mode):
         "raw_values": {
             "store_name": lines[0] if lines else None,
             "date": date_match.group(0) if date_match else None,
-            "total_amount": total_match.group(1) if total_match else None,
+            "total_amount": total_raw,
         },
         "cleaned_values": {
             "store_name": lines[0] if lines else None,
@@ -344,9 +354,7 @@ def extract_receipt_from_text(text, source_mode):
         "evidence": {
             "store_name": {"line": 1, "raw_value": lines[0] if lines else None},
             "date": {"raw_value": date_match.group(0) if date_match else None},
-            "total_amount": {
-                "raw_value": total_match.group(0) if total_match else None
-            },
+            "total_amount": {"raw_value": total_line},
             "items": item_evidence,
         },
         "source_mode": source_mode,
@@ -621,6 +629,67 @@ def notebook_03() -> dict:
             """
             import re
 
+            def reconstruct_spatial_lines(items):
+                tokens = []
+                unpositioned = []
+                for order, item in enumerate(items):
+                    text = re.sub(r"\\s+", " ", item.get("text", "").strip())
+                    if not text:
+                        continue
+                    box = item.get("box") or []
+                    points = [
+                        point
+                        for point in box
+                        if isinstance(point, (list, tuple)) and len(point) >= 2
+                    ]
+                    if not points:
+                        unpositioned.append(text)
+                        continue
+                    xs = [float(point[0]) for point in points]
+                    ys = [float(point[1]) for point in points]
+                    tokens.append({
+                        "text": text,
+                        "x": min(xs),
+                        "y": sum(ys) / len(ys),
+                        "height": max(ys) - min(ys),
+                        "order": order,
+                    })
+
+                rows = []
+                for token in sorted(tokens, key=lambda value: (value["y"], value["x"])):
+                    if rows:
+                        row = rows[-1]
+                        tolerance = max(
+                            12.0,
+                            min(24.0, max(row["height"], token["height"]) * 0.45),
+                        )
+                    else:
+                        row = None
+                        tolerance = 12.0
+                    if row and abs(token["y"] - row["y"]) <= tolerance:
+                        row["tokens"].append(token)
+                        count = len(row["tokens"])
+                        row["y"] = (
+                            row["y"] * (count - 1) + token["y"]
+                        ) / count
+                        row["height"] = max(row["height"], token["height"])
+                    else:
+                        rows.append({
+                            "tokens": [token],
+                            "y": token["y"],
+                            "height": token["height"],
+                        })
+
+                spatial_lines = [
+                    " ".join(
+                        token["text"]
+                        for token in sorted(row["tokens"], key=lambda value: value["x"])
+                    )
+                    for row in rows
+                ]
+                return spatial_lines + unpositioned
+
+
             previous_path = OUTPUT_DIR / "ocr_result.json"
             USE_PREPARED_INPUT = VALIDATION_MODE
             if not previous_path.exists() and not USE_PREPARED_INPUT:
@@ -628,17 +697,19 @@ def notebook_03() -> dict:
             if previous_path.exists():
                 previous = json.loads(previous_path.read_text(encoding="utf-8"))
                 raw_text = "\\n".join(item["text"] for item in previous["items"])
+                layout_lines = reconstruct_spatial_lines(previous["items"])
                 INPUT_MODE = "PREVIOUS_LESSON"
             else:
                 raw_text = GOLDEN_OCR_TEXT
+                layout_lines = raw_text.splitlines()
                 INPUT_MODE = "PREPARED_FALLBACK"
             print("입력 모드:", INPUT_MODE)
 
 
-            def clean_lines(text):
+            def clean_lines(text, source_lines):
                 cleaned = []
                 changes = []
-                for raw in text.splitlines():
+                for raw in source_lines:
                     normalized = re.sub(r"\\s+", " ", raw.strip())
                     if normalized:
                         cleaned.append(normalized)
@@ -659,6 +730,7 @@ def notebook_03() -> dict:
                 return {
                     "input_mode": INPUT_MODE,
                     "raw_text": text,
+                    "layout_lines": source_lines,
                     "cleaned_lines": cleaned,
                     "groups": groups,
                     "change_log": changes,
@@ -666,7 +738,7 @@ def notebook_03() -> dict:
                 }
 
 
-            clean_result = clean_lines(raw_text)
+            clean_result = clean_lines(raw_text, layout_lines)
             output_path = OUTPUT_DIR / "clean_receipt.json"
             output_path.write_text(
                 json.dumps(clean_result, ensure_ascii=False, indent=2) + "\\n",

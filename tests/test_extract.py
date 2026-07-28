@@ -62,6 +62,13 @@ def test_public_korean_receipt_variants_are_parsed():
     assert result["evidence"]["total_amount"]["raw_value"] == "합계 금액 76,000"
 
 
+def test_total_uses_last_amount_when_ocr_adds_a_stray_token():
+    result = extract_receipt_from_text("이태리집\n합계 9 76,000")
+
+    assert result["total_amount"] == 76000
+    assert result["evidence"]["total_amount"]["raw_value"] == "합계 9 76,000"
+
+
 def test_unknown_values_remain_none():
     result = extract_receipt_from_text("상호만있는문서")
 
