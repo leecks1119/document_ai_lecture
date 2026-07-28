@@ -13,7 +13,7 @@
 | 3 | [실제 영수증 구조 주석](../lessons/assets/03/03_receipt_regions.png), raw/clean/change_log 실제 값 | 구조 지도 |
 | 4 | evidence가 있는 실제 JSON | 스키마·근거·불확실성 |
 | 5 | [실제 수업용 예제 앱 화면](../lessons/assets/screens/app_prepared_result.png)과 AppTest 통과 로그 | 최소 앱 구조 |
-| 6 | OCR_ERROR와 [수업용 예제 상태 화면](../lessons/assets/screens/app_prepared_result.png) | 처리 경로 선택 |
+| 6 | `OCR 실행 실패`와 [수업용 예제 상태 화면](../lessons/assets/screens/app_prepared_result.png) | 처리 경로 선택 |
 | 7 | [잘못된 수정값 차단 화면](../lessons/assets/screens/app_validation_blocked.png), [승인 뒤 다운로드 화면](../lessons/assets/screens/app_approved_excel.png), Excel 3시트 | 수정·재검증·승인 게이트 |
 | 8 | 문서 사진 3종과 Office 4파일 | PoC 카드 |
 
@@ -21,8 +21,8 @@
 
 - 본문 24pt 수준보다 작은 이미지는 확대해서 보여 준다.
 - 영수증 전체와 합계 크롭을 번갈아 보여 준다.
-- `직접 실행`, `COURSE_EXAMPLE`, `OCR_ERROR`는 말로만 설명하지 않고 화면 텍스트를 가리킨다.
-- JSON은 전체를 보여 주지 말고 `value`, `evidence`, `source_mode` 세 곳만 확대한다.
+- `현재 파일 직접 처리`, `제공 예제`, `OCR 실행 실패`는 말로만 설명하지 않고 화면 텍스트를 가리킨다.
+- JSON은 전체를 보여 주지 말고 값, 원문 근거, `result_source` 세 곳만 확대한다.
 - Excel은 시트 탭과 승인 기록을 한 화면에 모두 보이게 한다.
 
 ## 이미지 품질 기준

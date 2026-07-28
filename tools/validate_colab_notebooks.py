@@ -73,12 +73,46 @@ def validate_structure(path: Path, notebook: dict) -> None:
     )
     assert "Google Colab도 외부 클라우드" in source, path
     assert "## 코드 셀을 읽는 방법" in source, path
-    assert "CHECKPOINT 1/1 PASS" in source, path
+    assert "✅ 실습 완료" in source, path
     assert "TODO" in source, f"{path}: 학습자 빈칸이 없습니다."
     assert "전체 정답" in source, f"{path}: 공개 정답이 없습니다."
+    assert "RESEARCH_NOTE_CELL" in source, path
+    assert "다른 자료 실험 기록" in source, path
+    assert code_cells[0]["metadata"].get("cellView") == "form", path
+    assert code_cells[-1]["metadata"].get("cellView") == "form", path
     assert "easyocr" not in source.lower(), path
     assert "gradio" not in source.lower(), path
     assert "codex" not in visible_source.lower(), path
+    for confusing_term in (
+        "LIVE",
+        "COURSE_EXAMPLE",
+        "PROCESSING_PATH",
+        "RUN_OCR_NOW",
+        "USE_MY_FILE",
+        "USE_COURSE_EXAMPLE",
+        "INPUT_MODE",
+        "PREVIOUS_LESSON",
+        "GOLDEN_",
+        "VALIDATION_MODE",
+        "CHECKPOINT",
+        "DEFAULT_BLOCKED",
+        "REVIEWED_APPROVED",
+        "FINAL APP PASS",
+        "GO_SMALL",
+        "BLOCKED_BY_VALIDATION",
+        "APPROVED",
+        "PENDING_REVIEW",
+        "DOCUMENT_SOURCE",
+        "INPUT_CHOICE",
+        "RESULT_JSON_URL",
+        "MATERIAL_SOURCE",
+        "WHAT_WORKED",
+        "WHAT_FAILED",
+        "NEXT_QUESTION",
+    ):
+        assert confusing_term.lower() not in source.lower(), (
+            f"{path}: confusing learner term remains: {confusing_term}"
+        )
     assert "base64.b64decode" not in source, path
     assert "FALLBACK_IMAGE_BASE64" not in source, path
     assert "GOLDEN_IMAGE_BASE64" not in source, path
@@ -121,20 +155,31 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "point[0] * scale_x" in source
         assert "point[1] * scale_y" in source
     if path.name == "02_ocr_basic.ipynb":
-        assert "RUN_OCR_NOW = not VALIDATION_MODE" in source
+        assert "READ_CURRENT_IMAGE = not AUTOMATED_CHECK" in source
         assert 'lang="korean"' in source
         assert 'ocr_version="PP-OCRv5"' in source
         assert "ppocrv5_recorded_receipt_tokens.json" in source
         assert "ppocrv5_recorded_receipt_metadata.json" in source
-        assert "USE_MY_FILE = False" in source
+        assert '실습_자료 = "제공 예제"' in source
+        assert '"내 컴퓨터에서 업로드"' in source
+        assert '"인터넷 이미지 URL"' in source
+        assert "인터넷_이미지_URL" in source
         assert "OCR_COORDINATE_SIZE = receipt_image.size" in source
         assert "DISPLAY_INPUT_FILE_NAME" in source
         assert "인식한 글자와 신뢰도" in source
         assert "scaled_points + [scaled_points[0]]" in source
         assert "draw.rectangle(" not in source
+    if path.name in {
+        "03_document_structure.ipynb",
+        "04_genai_extraction.ipynb",
+        "07_validation_export.ipynb",
+    }:
+        assert '실습_자료 = "제공 예제"' in source
+        assert '"인터넷 JSON URL"' in source
+        assert "인터넷_JSON_URL" in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
-        assert '"engine": "not_executed"' in source
+        assert '"engine": "이 노트북에서는 실행하지 않음"' in source
         assert "현재 실행에서 VLM을 호출한 결과가 아닙니다." in source
     if path.name == "05_streamlit_basic.ipynb":
         assert "uploaded.getvalue()" in source
@@ -143,17 +188,17 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "read_receipt_now" in source
         assert "실제 OCR 기록 재검사 통과" in source
         assert "serve_kernel_port_as_iframe" in source
-        assert "COURSE_EXAMPLE" in source
-        assert "OCR_ERROR" in source
+        assert "현재 파일 직접 처리" in source
+        assert "OCR 실행 실패" in source
         assert "내 영수증 직접 읽기" in source
         assert "수업용 예제로 계속하기" in source
         assert "현재 업로드한 파일을 분석한 결과가 아닙니다" in source
         assert "finally:" in source and "unlink(missing_ok=True)" in source
         assert "ppocrv5_recorded_receipt_tokens.json" in source
     if path.name == "07_validation_export.ipynb":
-        assert "DEFAULT_BLOCKED PASS" in source
-        assert "REVIEWED_APPROVED PASS" in source
-        assert "FINAL APP PASS" in source
+        assert "승인 전 저장 차단 확인" in source
+        assert "승인 후 Excel 생성 확인" in source
+        assert "최종 앱 자동검사 통과" in source
         assert "final_document_ai_app" in source
         assert "make_archive" in source
         assert "st.data_editor" in (ROOT / "app.py").read_text(encoding="utf-8")
@@ -207,7 +252,7 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
                 assert payload["document_ai"]["before_validation"]["valid"] is False
                 assert payload["document_ai"]["after_validation"]["valid"] is True
                 assert payload["document_ai"]["corrected_total"] == 76000
-                assert payload["idp"]["human_review_decision"] == "APPROVED"
+                assert payload["idp"]["human_review_decision"] == "승인"
                 assert len(payload["concept_answers"]) == 5
                 assert len(payload["learner_attempts"]) == 8
                 tokens = namespace["RECORDED_PP_OCRV5_TOKENS"]
@@ -230,7 +275,7 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
                 assert namespace["OCR_COORDINATE_SIZE"] == (900, 1003)
             if path.name == "02_ocr_basic.ipynb":
                 payload = json.loads(artifact.read_text(encoding="utf-8"))
-                assert payload["processing_path"] == "COURSE_EXAMPLE"
+                assert payload["result_source"] == "제공 예제 사용"
                 assert payload["image_size"] == {
                     "width": 2558,
                     "height": 2850,
@@ -240,10 +285,14 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
                     "height": 1003,
                 }
                 assert abs(namespace["scale_x"] - namespace["scale_y"]) < 0.01
+            research_note = Path(
+                f"course_outputs/lesson{path.name[:2]}_research_note.md"
+            )
+            assert research_note.is_file(), f"{path}: missing research note"
             if path.name == "07_validation_export.ipynb":
-                assert not Path("course_outputs/pending_review.xlsx").exists()
-                assert namespace["PENDING_REVIEW"]["decision"] == "PENDING"
-                assert namespace["REVIEW_RECORD"]["decision"] == "APPROVED"
+                assert not Path("course_outputs/blocked_before_review.xlsx").exists()
+                assert namespace["review_not_started"]["decision"] == "검토 전"
+                assert namespace["REVIEW_RECORD"]["decision"] == "승인"
                 with zipfile.ZipFile(
                     "course_outputs/final_document_ai_app.zip"
                 ) as archive:
