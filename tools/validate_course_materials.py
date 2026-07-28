@@ -21,12 +21,24 @@ LESSON_FILES = [
     "08_business_application.md",
 ]
 
-REQUIRED_SECTIONS = [
-    "## 60분 뒤 남길 것",
-    "## 개념 10%",
-    "## 실습 90%",
-    "## 통과 기준",
-    "## 참고 자료",
+EXPECTED_OUTPUTS = {
+    "01": ["receipt_pipeline_trace.json"],
+    "02": ["ocr_result.json", "ocr_boxes.png", "lesson02_ocr_outputs.zip"],
+    "03": ["clean_receipt.json"],
+    "04": ["receipt.json", "vlm_comparison.json"],
+    "05": ["app_05.py"],
+    "06": ["app_06.py"],
+    "07": ["receipt_result.xlsx", "final_document_ai_app.zip"],
+    "08": ["poc_candidate_card.md", "office_format_samples.zip"],
+}
+
+INTERNAL_QA_PHRASES = [
+    "CHECKPOINT",
+    "AppTest",
+    "fixture_type",
+    "course maintainer",
+    "RECORDED LIVE REGRESSION",
+    "회귀 검사",
 ]
 
 
@@ -46,10 +58,23 @@ def validate_lesson(path: Path) -> None:
 
     limit = 360 if path.name.startswith("01_") else 230
     assert len(lines) <= limit, f"{path.name}: 초보자 교재 분량이 {limit}줄을 넘음"
-    assert all(section in text for section in REQUIRED_SECTIONS), path.name
+    assert "## 직접 해보기" in text, f"{path.name}: 수강생 실습 안내 없음"
+    assert "## 참고자료" in text, f"{path.name}: 참고자료 안내 없음"
     assert "Colab 실습 열기" in text, f"{path.name}: Colab 링크 없음"
-    assert "course_outputs/" in text, f"{path.name}: 산출물 경로 없음"
-    assert "이번 교시의 한 문장" in text, f"{path.name}: 핵심 메시지 없음"
+
+    lesson_number = path.name[:2]
+    for output in EXPECTED_OUTPUTS[lesson_number]:
+        assert output in text, f"{path.name}: 실습 산출물 설명 없음 {output}"
+
+    closing_sections = [
+        "## 이번 시간의 정리",
+        "## 결과를 해석해 봅시다",
+        "## 실습 결과",
+        "## 과정을 마치며",
+    ]
+    assert any(section in text for section in closing_sections), (
+        f"{path.name}: 학습 결과를 해석하거나 정리하는 설명 없음"
+    )
 
     image_links = [
         link
@@ -65,7 +90,6 @@ def validate_lesson(path: Path) -> None:
         target = (path.parent / link).resolve()
         assert target.exists(), f"{path.name}: 링크 대상 없음 {link}"
 
-    lesson_number = path.name[:2]
     matching_notebooks = list(COLAB.glob(f"{lesson_number}_*.ipynb"))
     assert len(matching_notebooks) == 1, f"{path.name}: Colab 노트북 연결 오류"
 
@@ -81,6 +105,9 @@ def validate_lesson(path: Path) -> None:
     ]
     for phrase in instructor_only_phrases:
         assert phrase not in text, f"{path.name}: 강사용 표현이 학생 교재에 남음 {phrase}"
+
+    for phrase in INTERNAL_QA_PHRASES:
+        assert phrase not in text, f"{path.name}: 내부 검증 표현이 학생 교재에 남음 {phrase}"
 
     if lesson_number in {"02", "04", "06"}:
         assert "PaddleOCR" in text, f"{path.name}: 최신 처리 경로 설명 없음"
@@ -105,6 +132,10 @@ def validate_repository_links() -> None:
     reference_text = (ROOT / "docs/course_references.md").read_text(encoding="utf-8")
     official_links = set(re.findall(r"https://[^)\s]+", reference_text))
     assert len(official_links) >= 10, "과정 참고자료는 공식·1차 출처 10개 이상 필요"
+
+    readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    for phrase in INTERNAL_QA_PHRASES:
+        assert phrase not in readme, f"README.md: 내부 검증 표현이 수강생 안내에 남음 {phrase}"
 
 
 def main() -> None:
