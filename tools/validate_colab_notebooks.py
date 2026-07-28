@@ -30,6 +30,21 @@ def validate_structure(path: Path, notebook: dict) -> None:
     code_cells = [cell for cell in notebook["cells"] if cell["cell_type"] == "code"]
     assert code_cells, f"{path}: no code cells"
     assert all(cell["outputs"] == [] for cell in code_cells), path
+    learning_steps = [
+        cell["metadata"].get("learning_step")
+        for cell in code_cells
+    ]
+    assert all(learning_steps), f"{path}: missing learning step metadata"
+    assert [step["current"] for step in learning_steps] == list(
+        range(1, len(code_cells) + 1)
+    ), f"{path}: invalid learning step order"
+    assert all(step["total"] == len(code_cells) for step in learning_steps), path
+    assert all(
+        step["title"] and step["action"] and step["expected"]
+        for step in learning_steps
+    ), f"{path}: incomplete learning step guide"
+    assert all("show_lab_step(" in cell["source"] for cell in code_cells), path
+    assert all("complete_lab_step(" in cell["source"] for cell in code_cells), path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
     # 생성 앱 전체 소스처럼 긴 문자열 안의 임의 문자열은 제외하고,
