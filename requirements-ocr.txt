@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# 선택 실습: PaddleOCR 3.7 + 한국어 PP-OCRv5
+paddleocr==3.7.0
+paddlepaddle>=3.2.1,<3.3

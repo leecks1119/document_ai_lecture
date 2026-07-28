@@ -1,0 +1,5 @@
+-r requirements.txt
+
+# 선택 실습: PaddleOCR-VL 1.6 전체 문서 파싱 파이프라인
+paddleocr[doc-parser]==3.7.0
+transformers>=5.8,<6

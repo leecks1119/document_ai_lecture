@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="920" viewBox="0 0 1440 920" role="img" aria-labelledby="title desc">
+  <title id="title">엔터프라이즈 Document AI와 IDP의 0단계부터 12단계 전체 지도</title>
+  <desc id="desc">업무 목표와 스키마 정의부터 입력, 형식 라우팅, 품질, 텍스트와 레이아웃, 문서 분류, 구조화, 정규화, 검증, 처리 결정, 사람 검토, 연계, 평가 개선까지의 전체 절차</desc>
+  <rect width="1440" height="920" fill="#F7FAFC"/>
+  <text x="64" y="70" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="36" font-weight="700" fill="#173B57">문서 한 장이 업무 데이터가 되기까지</text>
+  <text x="64" y="108" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="20" fill="#667085">단계는 문서와 위험도에 따라 합쳐지거나 되돌아갈 수 있습니다.</text>
+
+  <rect x="64" y="146" width="1312" height="64" rx="18" fill="#173B57"/>
+  <text x="720" y="187" text-anchor="middle" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="22" font-weight="700" fill="#FFFFFF">전 과정 횡단 통제 · 개인정보 · 접근권한 · 보안 · 감사로그 · 보존·삭제 · 비용 · 거버넌스</text>
+
+  <g font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif">
+    <rect x="64" y="254" width="230" height="132" rx="22" fill="#DDF3EE" stroke="#167D7F" stroke-width="3"/>
+    <text x="86" y="288" font-size="17" font-weight="700" fill="#167D7F">0</text><text x="179" y="320" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">업무 목표·스키마</text><text x="179" y="353" text-anchor="middle" font-size="16" fill="#516273">필드 · 성공 기준 · 오류 비용</text>
+    <rect x="326" y="254" width="230" height="132" rx="22" fill="#EAF1F8" stroke="#4B779D" stroke-width="3"/>
+    <text x="348" y="288" font-size="17" font-weight="700" fill="#4B779D">1</text><text x="441" y="320" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">입력·수집</text><text x="441" y="353" text-anchor="middle" font-size="16" fill="#516273">원본 · 출처 · 문서 ID</text>
+    <rect x="588" y="254" width="230" height="132" rx="22" fill="#FFF2D6" stroke="#D89200" stroke-width="3"/>
+    <text x="610" y="288" font-size="17" font-weight="700" fill="#A56F00">2</text><text x="703" y="320" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">형식 라우팅·분리</text><text x="703" y="353" text-anchor="middle" font-size="16" fill="#516273">텍스트층 · 셀 · 픽셀 · 페이지</text>
+    <rect x="850" y="254" width="230" height="132" rx="22" fill="#FCE8E8" stroke="#C95B5B" stroke-width="3"/>
+    <text x="872" y="288" font-size="17" font-weight="700" fill="#B24141">3</text><text x="965" y="320" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">품질·전처리</text><text x="965" y="353" text-anchor="middle" font-size="16" fill="#516273">흐림 · 잘림 · 회전 · 재촬영</text>
+    <rect x="1112" y="254" width="230" height="132" rx="22" fill="#EDE7F7" stroke="#7A5BA6" stroke-width="3"/>
+    <text x="1134" y="288" font-size="17" font-weight="700" fill="#694C92">4</text><text x="1227" y="320" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">텍스트·레이아웃</text><text x="1227" y="353" text-anchor="middle" font-size="16" fill="#516273">원본 구조 또는 OCR 근거</text>
+
+    <rect x="1112" y="458" width="230" height="132" rx="22" fill="#DDF3EE" stroke="#167D7F" stroke-width="3"/>
+    <text x="1134" y="492" font-size="17" font-weight="700" fill="#167D7F">5</text><text x="1227" y="524" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">문서 유형 분류</text><text x="1227" y="557" text-anchor="middle" font-size="16" fill="#516273">영수증 · 견적서 · 신청서</text>
+    <rect x="850" y="458" width="230" height="132" rx="22" fill="#EAF1F8" stroke="#4B779D" stroke-width="3"/>
+    <text x="872" y="492" font-size="17" font-weight="700" fill="#4B779D">6</text><text x="965" y="524" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">필드·표 구조화</text><text x="965" y="557" text-anchor="middle" font-size="16" fill="#516273">필드 JSON · 원문 근거</text>
+    <rect x="588" y="458" width="230" height="132" rx="22" fill="#FFF2D6" stroke="#D89200" stroke-width="3"/>
+    <text x="610" y="492" font-size="17" font-weight="700" fill="#A56F00">7</text><text x="703" y="524" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">정규화</text><text x="703" y="557" text-anchor="middle" font-size="16" fill="#516273">날짜 · 금액 · 코드 표준화</text>
+    <rect x="326" y="458" width="230" height="132" rx="22" fill="#FCE8E8" stroke="#C95B5B" stroke-width="3"/>
+    <text x="348" y="492" font-size="17" font-weight="700" fill="#B24141">8</text><text x="441" y="524" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">검증</text><text x="441" y="557" text-anchor="middle" font-size="16" fill="#516273">필수값 · 형식 · 합계 · 근거</text>
+    <rect x="64" y="458" width="230" height="132" rx="22" fill="#EDE7F7" stroke="#7A5BA6" stroke-width="3"/>
+    <text x="86" y="492" font-size="17" font-weight="700" fill="#694C92">9</text><text x="179" y="524" text-anchor="middle" font-size="22" font-weight="700" fill="#173B57">처리 결정</text><text x="179" y="557" text-anchor="middle" font-size="16" fill="#516273">자동 확정 · 검토 · 처리 불가</text>
+
+    <rect x="64" y="662" width="360" height="132" rx="22" fill="#DDF3EE" stroke="#167D7F" stroke-width="3"/>
+    <text x="88" y="697" font-size="17" font-weight="700" fill="#167D7F">10</text><text x="244" y="730" text-anchor="middle" font-size="23" font-weight="700" fill="#173B57">사람 검토</text><text x="244" y="764" text-anchor="middle" font-size="16" fill="#516273">원본 확인 · 수정 · 승인 · 이력</text>
+    <rect x="540" y="662" width="360" height="132" rx="22" fill="#EAF1F8" stroke="#4B779D" stroke-width="3"/>
+    <text x="564" y="697" font-size="17" font-weight="700" fill="#4B779D">11</text><text x="720" y="730" text-anchor="middle" font-size="23" font-weight="700" fill="#173B57">내보내기·업무 연계</text><text x="720" y="764" text-anchor="middle" font-size="16" fill="#516273">Excel · API · ERP · 중복 방지 키</text>
+    <rect x="1016" y="662" width="326" height="132" rx="22" fill="#FFF2D6" stroke="#D89200" stroke-width="3"/>
+    <text x="1040" y="697" font-size="17" font-weight="700" fill="#A56F00">12</text><text x="1179" y="730" text-anchor="middle" font-size="23" font-weight="700" fill="#173B57">관측·평가·개선</text><text x="1179" y="764" text-anchor="middle" font-size="16" fill="#516273">필드 오류 · 수정률 · 지연 · 비용</text>
+  </g>
+
+  <g fill="none" stroke="#7B8794" stroke-width="5" stroke-linecap="round">
+    <path d="M294 320 H312"/><path d="M556 320 H574"/><path d="M818 320 H836"/><path d="M1080 320 H1098"/>
+    <path d="M1227 386 V442"/><path d="M1112 524 H1094"/><path d="M850 524 H832"/><path d="M588 524 H570"/><path d="M326 524 H308"/>
+    <path d="M179 590 V646"/><path d="M424 728 H524"/><path d="M900 728 H1000"/>
+  </g>
+  <g fill="#7B8794">
+    <polygon points="304,310 322,320 304,330"/><polygon points="566,310 584,320 566,330"/><polygon points="828,310 846,320 828,330"/><polygon points="1090,310 1108,320 1090,330"/>
+    <polygon points="1217,434 1227,452 1237,434"/><polygon points="1102,514 1084,524 1102,534"/><polygon points="840,514 822,524 840,534"/><polygon points="578,514 560,524 578,534"/><polygon points="316,514 298,524 316,534"/>
+    <polygon points="169,638 179,656 189,638"/><polygon points="516,718 534,728 516,738"/><polygon points="992,718 1010,728 992,738"/>
+  </g>
+
+  <rect x="64" y="836" width="1312" height="46" rx="14" fill="#FFFFFF" stroke="#CBD5E1" stroke-width="2"/>
+  <text x="720" y="866" text-anchor="middle" font-family="Arial, Apple SD Gothic Neo, Noto Sans KR, sans-serif" font-size="17" fill="#516273">한 교시에 모두 구현하는 것이 아니라, 1교시에는 지도를 보고 2~8교시에서 핵심 구간을 직접 완성합니다.</text>
+</svg>

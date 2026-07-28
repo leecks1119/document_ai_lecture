@@ -1,0 +1,86 @@
+{
+  "document_type": "receipt",
+  "store_name": "이태리집",
+  "date": "2025-10-04",
+  "total_amount": 76000,
+  "items": [
+    {
+      "name": "페퍼로니 앤 치즈",
+      "quantity": 1,
+      "unit_price": 29000,
+      "line_total": 29000
+    },
+    {
+      "name": "토마토 파스타",
+      "quantity": 1,
+      "unit_price": 14000,
+      "line_total": 14000
+    },
+    {
+      "name": "수제 돈가스",
+      "quantity": 1,
+      "unit_price": 13000,
+      "line_total": 13000
+    },
+    {
+      "name": "새우 칠리치 필라",
+      "quantity": 1,
+      "unit_price": 14000,
+      "line_total": 14000
+    },
+    {
+      "name": "콜라",
+      "quantity": 3,
+      "unit_price": 2000,
+      "line_total": 6000
+    }
+  ],
+  "adjustments": {
+    "discount": 0,
+    "tax": 0,
+    "service": 0,
+    "rounding": 0
+  },
+  "tax_breakdown": {
+    "mode": "included_in_item_prices",
+    "supply_amount": 69094,
+    "vat": 6906,
+    "payable_total": 76000
+  },
+  "evidence": {
+    "store_name": {
+      "raw_value": "이태리집",
+      "line": 1
+    },
+    "date": {
+      "raw_value": "거래일시 2025-10-04 12:33:37",
+      "line": 2
+    },
+    "total_amount": {
+      "raw_value": "합계 금액 76,000",
+      "line": 8
+    }
+  },
+  "raw_values": {
+    "store_name": "이태리집",
+    "date": "2025-10-04 12:33:37",
+    "total_amount": "76,000"
+  },
+  "cleaned_values": {
+    "store_name": "이태리집",
+    "date": "2025-10-04",
+    "total_amount": 76000
+  },
+  "source_mode": "prepared_fixture_rule_extraction",
+  "provenance": {
+    "fixture_type": "human_verified_transcription_fixture",
+    "input_file": "taebaek_restaurant_2025_redacted.png",
+    "input_sha256": "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f",
+    "engine": "not_executed",
+    "engine_version": "not_applicable",
+    "target_technology": "PaddleOCR Korean",
+    "recorded_at": "2026-07-28",
+    "reviewer": "course maintainer",
+    "disclaimer": "현재 실행에서 모델을 호출한 결과가 아닙니다."
+  }
+}

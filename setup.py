@@ -1,34 +1,30 @@
-from setuptools import setup, find_packages
+from setuptools import setup
 
 setup(
     name="docai_course",
-    version="1.0.0",
-    description="Document AI 강의용 Python 패키지",
-    author="Chanhee Lee",
-    author_email="leecks1119@gmail.com",
+    version="2.0.0",
+    description="초보자용 Document AI 8교시 실습 함수",
     url="https://github.com/leecks1119/document_ai_lecture",
-    packages=find_packages(),
+    packages=["src"],
     install_requires=[
-        "opencv-python>=4.8.0",
-        "pillow>=10.0.0",
-        "numpy>=1.24.0",
-        "pandas>=2.0.0",
-        "pytesseract>=0.3.10",
-        "paddlepaddle>=2.5.0",
-        "paddleocr>=2.7.0",
-        "easyocr>=1.7.0",
-        "python-Levenshtein>=0.21.0",
-        "matplotlib>=3.7.0",
-        "scikit-image>=0.21.0",
+        "streamlit==1.60.0",
+        "openpyxl>=3.1,<4",
+        "jsonschema>=4.23,<5",
+        "pandas>=2.0,<4",
+        "Pillow>=10,<13",
+        "PyMuPDF==1.28.0",
     ],
-    python_requires=">=3.8",
+    extras_require={
+        "ocr": ["paddleocr==3.7.0", "paddlepaddle>=3.2.1,<3.3"],
+        "vlm": [
+            "paddleocr[doc-parser]==3.7.0",
+            "transformers>=5.8,<6",
+        ],
+    },
+    python_requires=">=3.12,<3.13",
     classifiers=[
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "License :: OSI Approved :: MIT License",
+        "Programming Language :: Python :: 3.12",
         "Operating System :: OS Independent",
     ],
 )
-
