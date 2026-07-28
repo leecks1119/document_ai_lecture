@@ -55,5 +55,26 @@
 - 65개 코드 셀의 단계 순서, 설명, 수정 범위, 완료 표시
 - 46개 단위·통합·Streamlit AppTest
 
-실제 Google Colab 브라우저 검증 결과는 원격 브랜치 반영 후 이 문서에
-추가한다.
+## 실제 Google Colab 브라우저 검증
+
+검증 대상 커밋: `4313c29`
+
+환경: 로그인된 Google Colab CPU 런타임, Python 3
+
+실행 방법: 각 노트북에서 `모두 실행` 후 실제 출력과 마지막 산출물 확인
+
+| 교시 | 실제 Colab 확인 결과 |
+| --- | --- |
+| 1 | 비교 보고서 JSON 생성, 마지막 체크포인트 통과 |
+| 2 | `LIVE`, PP-OCRv5 Korean 46개 영역 판독, OCR JSON·박스 이미지 생성 |
+| 3 | `PREPARED_FALLBACK`, 원문 10줄·품목 후보 5줄, 정제 JSON 생성 |
+| 4 | `prepared_fixture_rule_extraction` 출처와 총액 근거를 기록한 JSON 2개 생성 |
+| 5 | Streamlit 업로드·버튼·결과 화면 AppTest 실제 출력 통과 |
+| 6 | Streamlit 1.60.0·PaddleOCR 3.7.0 준비, 76,000원·5품목 회귀검사와 앱 연결 통과 |
+| 7 | 미승인 저장 차단, 승인 후 3시트 Excel, 최종 앱 AppTest 통과 |
+| 8 | Office 4종 ZIP, 문서별 Python·JSON ZIP, PoC 후보 카드 생성 |
+
+8/8 모두 실제 Colab에서 통과했다. 2교시 새 런타임의 패키지 설치와 첫
+모델 다운로드를 포함한 전체 실행은 약 3분 15초였다. 여러 노트북을 연속
+점검할 때는 Colab의 활성 세션 한도 경고가 발생할 수 있으므로 수업 전과
+교시 전환 시 사용하지 않는 세션을 종료해야 한다.
