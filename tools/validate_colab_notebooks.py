@@ -112,11 +112,16 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "taebaek_restaurant_2025_redacted.png" in source
         assert "ppocrv5_live_receipt_tokens.json" in source
         assert "files.upload()" in source
+        assert "OCR_COORDINATE_SIZE = (900, 1100)" in source
+        assert "point[0] * scale_x" in source
+        assert "point[1] * scale_y" in source
     if path.name == "02_ocr_basic.ipynb":
         assert "RUN_LIVE_OCR = not VALIDATION_MODE" in source
         assert 'lang="korean"' in source
         assert 'ocr_version="PP-OCRv5"' in source
         assert "receipt_ocr_fallback.json" in source
+        assert "OCR_COORDINATE_SIZE = receipt_image.size" in source
+        assert "DISPLAY_INPUT_FILE_NAME" in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
         assert '"engine": "not_executed"' in source
@@ -192,9 +197,33 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
                 assert payload["idp"]["human_review_decision"] == "APPROVED"
                 assert len(payload["concept_answers"]) == 5
                 assert len(payload["learner_attempts"]) == 8
+                tokens = namespace["RECORDED_PP_OCRV5_TOKENS"]
+                image = namespace["receipt_image"]
+                scale_x = namespace["scale_x"]
+                scale_y = namespace["scale_y"]
+                scaled_x = [
+                    point[0] * scale_x
+                    for token in tokens
+                    for point in token["box"]
+                ]
+                scaled_y = [
+                    point[1] * scale_y
+                    for token in tokens
+                    for point in token["box"]
+                ]
+                assert max(scaled_x) > image.width * 0.9
+                assert max(scaled_y) > image.height * 0.85
             if path.name == "02_ocr_basic.ipynb":
                 payload = json.loads(artifact.read_text(encoding="utf-8"))
                 assert payload["source_mode"] == "PREPARED_FALLBACK"
+                assert payload["image_size"] == {
+                    "width": 2558,
+                    "height": 2850,
+                }
+                assert payload["ocr_coordinate_size"] == {
+                    "width": 900,
+                    "height": 1100,
+                }
             if path.name == "07_validation_export.ipynb":
                 assert not Path("course_outputs/pending_review.xlsx").exists()
                 assert namespace["PENDING_REVIEW"]["decision"] == "PENDING"

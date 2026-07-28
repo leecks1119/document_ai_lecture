@@ -504,7 +504,8 @@ LESSON_CODE_EXPLANATIONS = {
         ),
         (
             "`RECORDED_PP_OCRV5_TOKENS`의 각 항목에는 글자·좌표·신뢰도가 있습니다. "
-            "반복문은 좌표를 색상 사각형으로 그립니다."
+            "`OCR_COORDINATE_SIZE`는 좌표가 기록된 기준 크기입니다. 원본 이미지 "
+            "크기에 맞게 x·y를 각각 변환한 뒤 색상 사각형을 그립니다."
         ),
         (
             "`MY_OCR_REVIEW`의 `None`만 `True` 또는 `False`로 바꿉니다. "
@@ -1484,14 +1485,29 @@ def notebook_01() -> dict:
 
             annotated_receipt = receipt_image.copy()
             draw = ImageDraw.Draw(annotated_receipt)
+            OCR_COORDINATE_SIZE = (900, 1100)
+            scale_x = annotated_receipt.width / OCR_COORDINATE_SIZE[0]
+            scale_y = annotated_receipt.height / OCR_COORDINATE_SIZE[1]
             for token in RECORDED_PP_OCRV5_TOKENS:
-                points = [tuple(point) for point in token["box"]]
+                points = [
+                    (
+                        round(point[0] * scale_x),
+                        round(point[1] * scale_y),
+                    )
+                    for point in token["box"]
+                ]
                 confidence = token["confidence"] or 0
                 color = "#18A558" if confidence >= 0.8 else "#E34A33"
                 draw.line(points + [points[0]], fill=color, width=4)
 
             annotated_preview = annotated_receipt.copy()
             annotated_preview.thumbnail((540, 660))
+            print(
+                "OCR 좌표 기준:",
+                OCR_COORDINATE_SIZE,
+                "→ 원본 이미지:",
+                receipt_image.size,
+            )
             display(annotated_preview)
 
             OCR_FOCUS = [
@@ -1965,9 +1981,10 @@ def notebook_02() -> dict:
                 SAMPLE_IMAGE_PATH,
                 PREPARED_OCR_PATH,
             )
-            receipt_image = Image.open(
+            prepared_receipt_image = Image.open(
                 io.BytesIO(lesson_assets[SAMPLE_IMAGE_PATH])
             ).convert("RGB")
+            receipt_image = prepared_receipt_image.copy()
             PREPARED_OCR_RESULT = json.loads(
                 lesson_assets[PREPARED_OCR_PATH].decode("utf-8")
             )
@@ -2054,6 +2071,18 @@ def notebook_02() -> dict:
             print("실행 모드:", SOURCE_MODE)
             if FALLBACK_REASON:
                 print("복구 사유:", FALLBACK_REASON)
+            if SOURCE_MODE == "PREPARED_FALLBACK":
+                if INPUT_FILE_NAME != "taebaek_restaurant_2025_redacted.png":
+                    print(
+                        "개인 영수증 LIVE 처리에 실패해 박스 표시는 "
+                        "공개 영수증 준비 결과로 전환합니다."
+                    )
+                receipt_image = prepared_receipt_image.copy()
+                DISPLAY_INPUT_FILE_NAME = "taebaek_restaurant_2025_redacted.png"
+                OCR_COORDINATE_SIZE = (900, 1100)
+            else:
+                DISPLAY_INPUT_FILE_NAME = INPUT_FILE_NAME
+                OCR_COORDINATE_SIZE = receipt_image.size
             print("판독 영역:", len(OCR_RESULT))
             """
         ),
@@ -2061,8 +2090,8 @@ def notebook_02() -> dict:
             """
             annotated = receipt_image.copy()
             draw = ImageDraw.Draw(annotated)
-            scale_x = annotated.width / 900
-            scale_y = annotated.height / 1100
+            scale_x = annotated.width / OCR_COORDINATE_SIZE[0]
+            scale_y = annotated.height / OCR_COORDINATE_SIZE[1]
             for item in OCR_RESULT:
                 points = item["box"]
                 xs = [point[0] * scale_x for point in points]
@@ -2078,7 +2107,15 @@ def notebook_02() -> dict:
             output = {
                 "source_mode": SOURCE_MODE,
                 "fallback_reason": FALLBACK_REASON,
-                "input_file": INPUT_FILE_NAME,
+                "input_file": DISPLAY_INPUT_FILE_NAME,
+                "image_size": {
+                    "width": annotated.width,
+                    "height": annotated.height,
+                },
+                "ocr_coordinate_size": {
+                    "width": OCR_COORDINATE_SIZE[0],
+                    "height": OCR_COORDINATE_SIZE[1],
+                },
                 "items": [
                     {**item, "matches_source": None, "review_note": ""}
                     for item in OCR_RESULT
