@@ -4,15 +4,15 @@
 
 - [ ] 계약·장소 운영시간을 확인하고 `09:00~19:00 60분안` 또는 `8시간 체류 50분안` 중 하나를 체크했다.
 - [ ] 선택한 시간표와 생략할 선택 활동을 교육담당자·수강생에게 공지했다.
-- [ ] `document_ai_lecture_2026` 브랜치의 Colab 링크 8개가 열린다.
+- [x] `document_ai_lecture_2026` 브랜치의 Colab 링크 8개가 열린다.
 - [ ] 배포한 commit SHA를 기록하고 비로그인 시크릿 창에서 Colab 링크 8개를 다시 열었다.
-- [ ] 새 Colab 런타임에서 Python 버전을 기록했다.
-- [ ] 2교시 `RUN_LIVE_OCR=True` 경로를 공개 한국 영수증으로 실행했다.
+- [x] 새 Colab 런타임에서 Python 버전을 기록했다.
+- [x] 2교시 `RUN_LIVE_OCR=True` 경로를 공개 한국 영수증으로 실행했다.
 - [ ] LIVE 결과의 `source_mode`, 인식 영역 수, 총 실행 시간을 기록했다.
 - [ ] 실패했다면 오류 종류와 `PREPARED_FALLBACK` 전환 화면을 캡처했다.
-- [ ] 5·6교시 AppTest가 통과했다.
-- [ ] 7교시 기본 차단과 승인 후 Excel이 모두 통과했다.
-- [ ] 새 Colab 창 4개에서 2→3→4→7 다운로드·업로드 handoff를 완주했다.
+- [x] 5·6교시 AppTest가 통과했다.
+- [x] 7교시 기본 차단과 승인 후 Excel이 모두 통과했다.
+- [x] 새 Colab 런타임 4개에서 2→3→4→7 다운로드·업로드 handoff를 완주했다.
 - [ ] `quotation.xlsx`, `application_form.docx`, `transaction_statement.pdf`, `table_summary.pptx`가 열린다.
 - [ ] 빔프로젝터에서 공개 영수증·bbox·JSON·Excel 글자가 읽힌다.
 
@@ -20,15 +20,15 @@
 
 | 항목 | 기록 |
 | --- | --- |
-| 점검 시각 | 미기록 |
-| Colab 런타임 | 미기록 |
-| Python | 미기록 |
-| PaddleOCR | 3.7.0 예정 |
-| 인식 모델 | PP-OCRv5 Korean 예정 |
-| 첫 실행 시간 | 미기록 |
-| 결과 | 미검증 |
-| 캡처 위치 | 미기록 |
-| 교재 배포 commit SHA | `44b938d` |
+| 점검 시각 | 2026-07-28 18:39~19:14 KST |
+| Colab 런타임 | Python 3 / Google Compute Engine / Linux 6.6.122+ |
+| Python | 3.12.13 |
+| PaddleOCR | 3.7.0 |
+| 인식 모델 | PP-OCRv5 Korean |
+| 첫 실행 시간 | 미측정 |
+| 결과 | `LIVE`, 인식 영역 44개, 8교시 전체 체크포인트 통과 |
+| 캡처 위치 | 실제 Colab 셀 출력과 강사 PC `Downloads` 산출물 |
+| 검증 대상 코드 commit SHA | `41cdaf4` |
 | 익명 HTTP URL 확인 | GitHub 8/8·Colab 8/8 상태 200 |
 | 비로그인 Colab 8개 | 미검증 |
 
