@@ -32,9 +32,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert all(cell["outputs"] == [] for cell in code_cells), path
 
     source = "\n".join(cell["source"] for cell in notebook["cells"])
-    # 8교시는 실제 Office 파일을 base64로 내장한다. 압축 바이너리 안에는
-    # 금지어와 같은 임의 문자열이 우연히 생길 수 있으므로 사람이 읽는
-    # 짧은 소스 줄만 대상으로 도구명 잔존 여부를 검사한다.
+    # 생성 앱 전체 소스처럼 긴 문자열 안의 임의 문자열은 제외하고,
+    # 사람이 읽는 짧은 코드 줄에서 도구명 잔존 여부를 검사한다.
     visible_source = "\n".join(
         line for line in source.splitlines() if len(line) < 500
     )
@@ -45,6 +44,17 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert "easyocr" not in source.lower(), path
     assert "gradio" not in source.lower(), path
     assert "codex" not in visible_source.lower(), path
+    assert "base64.b64decode" not in source, path
+    assert "FALLBACK_IMAGE_BASE64" not in source, path
+    assert "GOLDEN_IMAGE_BASE64" not in source, path
+    longest_code_line = max(
+        len(line)
+        for cell in code_cells
+        for line in cell["source"].splitlines()
+    )
+    assert longest_code_line < 500, (
+        f"{path}: unreadable code line ({longest_code_line} chars)"
+    )
     if path.name == "01_document_ai_overview.ipynb":
         assert len(notebook["cells"]) >= 20
         assert "RECORDED_PP_OCRV5_TOKENS" in source
@@ -60,10 +70,14 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "my_role_map" not in source
         assert "ANSWER_ROLE_MAP" not in source
         assert "receipt_pipeline_trace" not in source
+        assert "taebaek_restaurant_2025_redacted.png" in source
+        assert "ppocrv5_live_receipt_tokens.json" in source
+        assert "files.upload()" in source
     if path.name == "02_ocr_basic.ipynb":
         assert "RUN_LIVE_OCR = not VALIDATION_MODE" in source
         assert 'lang="korean"' in source
         assert 'ocr_version="PP-OCRv5"' in source
+        assert "receipt_ocr_fallback.json" in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
         assert '"engine": "not_executed"' in source
@@ -78,6 +92,7 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "PREPARED_FALLBACK" in source
         assert "LIVE_ERROR" in source
         assert "finally:" in source and "unlink(missing_ok=True)" in source
+        assert "ppocrv5_live_receipt_tokens.json" in source
     if path.name == "07_validation_export.ipynb":
         assert "DEFAULT_BLOCKED PASS" in source
         assert "REVIEWED_APPROVED PASS" in source
@@ -94,6 +109,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "office_format_samples.zip" in source
         assert "candidate = None" in source
         assert "score = {" in source
+        assert "sample_docs/formats/quotation.xlsx" in source
+        assert "sample_docs/extensions/quotation_photo.png" in source
 
 
 def execute_prepared_path(path: Path, notebook: dict) -> None:
@@ -101,7 +118,9 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
     with tempfile.TemporaryDirectory(prefix=f"{path.stem}_") as temp_dir:
         previous = Path.cwd()
         previous_flag = os.environ.get("COURSE_VALIDATE_PREPARED")
+        previous_asset_root = os.environ.get("COURSE_LOCAL_ASSET_ROOT")
         os.environ["COURSE_VALIDATE_PREPARED"] = "1"
+        os.environ["COURSE_LOCAL_ASSET_ROOT"] = str(ROOT)
         os.chdir(temp_dir)
         try:
             for index, cell in enumerate(notebook["cells"], start=1):
@@ -143,6 +162,10 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
                 os.environ.pop("COURSE_VALIDATE_PREPARED", None)
             else:
                 os.environ["COURSE_VALIDATE_PREPARED"] = previous_flag
+            if previous_asset_root is None:
+                os.environ.pop("COURSE_LOCAL_ASSET_ROOT", None)
+            else:
+                os.environ["COURSE_LOCAL_ASSET_ROOT"] = previous_asset_root
 
 
 def execute_sequential_handoff(paths: list[Path]) -> None:
@@ -157,7 +180,9 @@ def execute_sequential_handoff(paths: list[Path]) -> None:
     with tempfile.TemporaryDirectory(prefix="sequential_handoff_") as temp_dir:
         previous = Path.cwd()
         previous_flag = os.environ.get("COURSE_VALIDATE_PREPARED")
+        previous_asset_root = os.environ.get("COURSE_LOCAL_ASSET_ROOT")
         os.environ["COURSE_VALIDATE_PREPARED"] = "1"
+        os.environ["COURSE_LOCAL_ASSET_ROOT"] = str(ROOT)
         os.chdir(temp_dir)
         try:
             for path in selected:
@@ -201,6 +226,10 @@ def execute_sequential_handoff(paths: list[Path]) -> None:
                 os.environ.pop("COURSE_VALIDATE_PREPARED", None)
             else:
                 os.environ["COURSE_VALIDATE_PREPARED"] = previous_flag
+            if previous_asset_root is None:
+                os.environ.pop("COURSE_LOCAL_ASSET_ROOT", None)
+            else:
+                os.environ["COURSE_LOCAL_ASSET_ROOT"] = previous_asset_root
 
 
 def main() -> None:

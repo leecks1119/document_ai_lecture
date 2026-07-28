@@ -2,39 +2,13 @@
 
 from __future__ import annotations
 
-import base64
-import io
 import json
 from pathlib import Path
+from pprint import pformat
 from textwrap import dedent
-
-from PIL import Image
 
 ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
-GOLDEN_IMAGE = (
-    ROOT
-    / "sample_docs"
-    / "public_receipts"
-    / "korea"
-    / "taebaek_restaurant_2025_redacted.png"
-)
-RECORDED_PP_OCRV5_TOKENS = json.loads(
-    (ROOT / "tests" / "fixtures" / "ppocrv5_live_receipt_tokens.json").read_text(
-        encoding="utf-8"
-    )
-)
-EXTENSION_IMAGES = {
-    "quotation": ROOT / "sample_docs" / "extensions" / "quotation_photo.png",
-    "application": ROOT
-    / "sample_docs"
-    / "extensions"
-    / "application_form_photo.png",
-    "transaction_statement": ROOT
-    / "sample_docs"
-    / "extensions"
-    / "transaction_statement_photo.png",
-}
 
 GOLDEN_OCR_TEXT = """이태리집
 거래일시 2025-10-04 12:33:37
@@ -242,8 +216,70 @@ def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
     )
 
 
+def course_asset_loader_source() -> str:
+    """Colab에서는 URL, 자동 검증에서는 저장소 파일로 실습 자료를 읽는다."""
+
+    return dedent(
+        """
+        COURSE_ASSET_BASE_URL = (
+            "https://raw.githubusercontent.com/leecks1119/"
+            "document_ai_lecture/document_ai_lecture_2026/"
+        )
+
+        def load_course_assets(*relative_paths):
+            if VALIDATION_MODE:
+                local_root = os.getenv("COURSE_LOCAL_ASSET_ROOT")
+                if not local_root:
+                    raise RuntimeError(
+                        "자동 검증용 COURSE_LOCAL_ASSET_ROOT가 필요합니다."
+                    )
+                root = Path(local_root)
+                return {
+                    path: (root / path).read_bytes()
+                    for path in relative_paths
+                }
+
+            import requests
+
+            loaded = {}
+            missing = []
+            for path in relative_paths:
+                try:
+                    response = requests.get(
+                        COURSE_ASSET_BASE_URL + path,
+                        timeout=30,
+                    )
+                    response.raise_for_status()
+                    loaded[path] = response.content
+                except requests.RequestException as exc:
+                    print(f"자동 다운로드 실패: {Path(path).name} · {exc}")
+                    missing.append(path)
+
+            if missing:
+                from google.colab import files
+
+                expected = ", ".join(Path(path).name for path in missing)
+                print("다음 파일을 저장소에서 내려받아 선택하세요:", expected)
+                uploaded = files.upload()
+                uploaded_by_name = {
+                    Path(name).name: content
+                    for name, content in uploaded.items()
+                }
+                for path in missing:
+                    filename = Path(path).name
+                    if filename not in uploaded_by_name:
+                        raise FileNotFoundError(
+                            f"{filename}이 선택되지 않았습니다."
+                        )
+                    loaded[path] = uploaded_by_name[filename]
+
+            return loaded
+        """
+    ).strip()
+
+
 def runtime_cell() -> dict:
-    return code(
+    setup = dedent(
         """
         import json
         import os
@@ -287,7 +323,8 @@ def runtime_cell() -> dict:
         print("Platform:", platform.platform())
         print("공통 작업 폴더:", OUTPUT_DIR.resolve())
         """
-    )
+    ).strip()
+    return code(setup + "\n\n" + course_asset_loader_source())
 
 
 def streamlit_preview_cell(path_expression: str, port: int) -> dict:
@@ -341,20 +378,39 @@ def final_app_payload() -> dict[str, str]:
     }
 
 
-def image_base64(path: Path, max_size: tuple[int, int] = (900, 1100)) -> str:
-    with Image.open(path) as source:
-        image = source.convert("RGB")
-        image.thumbnail(max_size)
-    buffer = io.BytesIO()
-    image.save(buffer, format="JPEG", quality=88, optimize=True)
-    return base64.b64encode(buffer.getvalue()).decode("ascii")
+def readable_string_assignment(name: str, value: str) -> str:
+    """긴 문자열을 노트북에서 읽을 수 있는 인접 문자열 형태로 만든다."""
+
+    lines = value.splitlines(keepends=True)
+    if not lines:
+        return f"{name} = ''"
+    body = "\n".join(f"    {line!r}" for line in lines)
+    return f"{name} = (\n{body}\n)"
+
+
+def readable_string_mapping_assignment(
+    name: str,
+    values: dict[str, str],
+) -> str:
+    """소스 파일 묶음을 한 줄짜리 repr 대신 읽을 수 있게 배치한다."""
+
+    sections = [f"{name} = {{"]
+    for key, value in values.items():
+        sections.append(f"    {key!r}: (")
+        sections.extend(
+            f"        {line!r}"
+            for line in value.splitlines(keepends=True)
+        )
+        sections.append("    ),")
+    sections.append("}")
+    return "\n".join(sections)
 
 
 def golden_constants() -> str:
     return (
         f"GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}\n"
         f"GOLDEN_VLM_MARKDOWN = {GOLDEN_VLM_MARKDOWN!r}\n"
-        f"GOLDEN_RECEIPT = {GOLDEN_RECEIPT!r}\n"
+        f"GOLDEN_RECEIPT = {pformat(GOLDEN_RECEIPT, sort_dicts=False, width=88)}\n"
     )
 
 
@@ -535,34 +591,29 @@ def reconstruct_spatial_lines(items):
 
 
 def notebook_01() -> dict:
-    encoded_image = image_base64(GOLDEN_IMAGE)
-    recorded_tokens = repr(RECORDED_PP_OCRV5_TOKENS)
     prepared_items = repr(GOLDEN_RECEIPT["items"])
     source_image_cell = code(
-        f"""
-        RECEIPT_IMAGE_URL = (
-            "https://raw.githubusercontent.com/leecks1119/document_ai_lecture/"
-            "document_ai_lecture_2026/sample_docs/public_receipts/korea/"
+        """
+        RECEIPT_IMAGE_PATH = (
+            "sample_docs/public_receipts/korea/"
             "taebaek_restaurant_2025_redacted.png"
         )
-        FALLBACK_IMAGE_BASE64 = {encoded_image!r}
-
-        if VALIDATION_MODE:
-            receipt_image = Image.new("RGB", (900, 1100), "white")
-            image_source = "오프라인 자동 검증용 캔버스"
-        else:
-            try:
-                response = requests.get(RECEIPT_IMAGE_URL, timeout=30)
-                response.raise_for_status()
-                receipt_image = Image.open(io.BytesIO(response.content)).convert("RGB")
-                image_source = "저장소 공개 영수증"
-            except Exception:
-                import base64
-
-                receipt_image = Image.open(
-                    io.BytesIO(base64.b64decode(FALLBACK_IMAGE_BASE64))
-                ).convert("RGB")
-                image_source = "노트북 내장 공개 영수증"
+        OCR_RECORD_PATH = "tests/fixtures/ppocrv5_live_receipt_tokens.json"
+        lesson_assets = load_course_assets(
+            RECEIPT_IMAGE_PATH,
+            OCR_RECORD_PATH,
+        )
+        receipt_image = Image.open(
+            io.BytesIO(lesson_assets[RECEIPT_IMAGE_PATH])
+        ).convert("RGB")
+        RECORDED_PP_OCRV5_TOKENS = json.loads(
+            lesson_assets[OCR_RECORD_PATH].decode("utf-8")
+        )
+        image_source = (
+            "자동 검증용 저장소 파일"
+            if VALIDATION_MODE
+            else "저장소에서 내려받은 공개 영수증"
+        )
 
         preview = receipt_image.copy()
         preview.thumbnail((540, 660))
@@ -570,10 +621,6 @@ def notebook_01() -> dict:
         display(preview)
         """
     )
-    source_image_cell["metadata"] = {
-        "collapsed": True,
-        "jupyter": {"source_hidden": True},
-    }
     cells = [
         markdown(
             """
@@ -610,7 +657,6 @@ def notebook_01() -> dict:
             from pathlib import Path
 
             import pandas as pd
-            import requests
             from PIL import Image
             from PIL import ImageDraw
 
@@ -627,6 +673,7 @@ def notebook_01() -> dict:
             print("실습 준비 완료")
             """
         ),
+        code(course_asset_loader_source()),
         markdown(
             """
             ## 1. 먼저 사람의 눈으로 원본을 읽습니다
@@ -708,8 +755,7 @@ def notebook_01() -> dict:
             """
         ),
         code(
-            f"""
-            RECORDED_PP_OCRV5_TOKENS = {recorded_tokens}
+            """
             assert len(RECORDED_PP_OCRV5_TOKENS) == 44
 
             annotated_receipt = receipt_image.copy()
@@ -725,30 +771,30 @@ def notebook_01() -> dict:
             display(annotated_preview)
 
             OCR_FOCUS = [
-                {{
+                {
                     "항목": "상호명",
                     "원본": "이태리집",
                     "OCR 판독": RECORDED_PP_OCRV5_TOKENS[2]["text"],
                     "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[2]["confidence"], 3),
-                }},
-                {{
+                },
+                {
                     "항목": "거래일시",
                     "원본": "2025-10-04 12:33:37",
                     "OCR 판독": RECORDED_PP_OCRV5_TOKENS[4]["text"],
                     "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[4]["confidence"], 3),
-                }},
-                {{
+                },
+                {
                     "항목": "합계",
                     "원본": "76,000",
                     "OCR 판독": RECORDED_PP_OCRV5_TOKENS[34]["text"],
                     "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[34]["confidence"], 3),
-                }},
-                {{
+                },
+                {
                     "항목": "부가세 과세물품가액",
                     "원본": "69,094",
                     "OCR 판독": RECORDED_PP_OCRV5_TOKENS[36]["text"],
                     "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[36]["confidence"], 3),
-                }},
+                },
             ]
             display(pd.DataFrame(OCR_FOCUS))
             """
@@ -1171,59 +1217,6 @@ def notebook_01() -> dict:
 
 
 def notebook_02() -> dict:
-    encoded = image_base64(GOLDEN_IMAGE)
-    prepared = [
-        {
-            "box": [[48, 105], [360, 105], [360, 155], [48, 155]],
-            "text": "이태리집",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 345], [650, 345], [650, 395], [48, 395]],
-            "text": "거래일시 2025-10-04 12:33:37",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 475], [820, 475], [820, 515], [48, 515]],
-            "text": "페퍼로니 앤 치즈 29,000 1 29,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 515], [820, 515], [820, 555], [48, 555]],
-            "text": "토마토 파스타 14,000 1 14,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 555], [820, 555], [820, 595], [48, 595]],
-            "text": "수제 돈가스 13,000 1 13,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 595], [820, 595], [820, 635], [48, 635]],
-            "text": "새우 칠리치 필라 14,000 1 14,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 635], [820, 635], [820, 675], [48, 675]],
-            "text": "콜라 2,000 3 6,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 790], [820, 790], [820, 840], [48, 840]],
-            "text": "합계 금액 76,000",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 850], [820, 850], [820, 890], [48, 890]],
-            "text": "부가세 과세물품가액 69,094",
-            "confidence": None,
-        },
-        {
-            "box": [[48, 890], [820, 890], [820, 930], [48, 930]],
-            "text": "부가세 6,906",
-            "confidence": None,
-        },
-    ]
     cells = [
         intro(
             2,
@@ -1233,16 +1226,27 @@ def notebook_02() -> dict:
         ),
         runtime_cell(),
         code(
-            f"""
-            import base64
+            """
             import io
             from PIL import Image, ImageDraw
 
-            GOLDEN_IMAGE_BASE64 = {encoded!r}
+            SAMPLE_IMAGE_PATH = (
+                "sample_docs/public_receipts/korea/"
+                "taebaek_restaurant_2025_redacted.png"
+            )
+            PREPARED_OCR_PATH = (
+                "sample_docs/prepared/receipt_ocr_fallback.json"
+            )
+            lesson_assets = load_course_assets(
+                SAMPLE_IMAGE_PATH,
+                PREPARED_OCR_PATH,
+            )
             receipt_image = Image.open(
-                io.BytesIO(base64.b64decode(GOLDEN_IMAGE_BASE64))
+                io.BytesIO(lesson_assets[SAMPLE_IMAGE_PATH])
             ).convert("RGB")
-            PREPARED_OCR_RESULT = {prepared!r}
+            PREPARED_OCR_RESULT = json.loads(
+                lesson_assets[PREPARED_OCR_PATH].decode("utf-8")
+            )
             for item in PREPARED_OCR_RESULT:
                 item["confidence_source"] = "not_available_prepared_fixture"
             USE_MY_RECEIPT = False
@@ -1727,31 +1731,33 @@ if installed_streamlit != required_streamlit:
 
 
 def notebook_05() -> dict:
-    app_source = dedent(
-        f'''
-        import streamlit as st
+    app_source = (
+        "import streamlit as st\n\n"
+        f"GOLDEN_RECEIPT = "
+        f"{pformat(GOLDEN_RECEIPT, sort_dicts=False, width=88)}\n"
+        f"GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}\n\n"
+        + dedent(
+            f'''
+            st.set_page_config(page_title="영수증 Document AI", layout="wide")
+            st.title("영수증 Document AI 미니 앱")
+            uploaded = st.file_uploader(
+                "승인된 비식별 이미지 또는 PDF 한 장 · 최대 5MB",
+                type=["png", "jpg", "jpeg", "pdf"],
+                max_upload_size=5,
+                help="PNG, JPG, JPEG, PDF만 허용합니다. 수업에서는 한 번에 5MB 이하 한 장만 처리합니다.",
+            )
+            if uploaded is not None:
+                st.success(f"업로드 연결 확인: {{uploaded.name}} · {{len(uploaded.getvalue()):,}} bytes")
+                st.caption("이 파일은 6교시에서 실제 처리 함수와 연결합니다.")
 
-        GOLDEN_RECEIPT = {GOLDEN_RECEIPT!r}
-        GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}
-
-        st.set_page_config(page_title="영수증 Document AI", layout="wide")
-        st.title("영수증 Document AI 미니 앱")
-        uploaded = st.file_uploader(
-            "승인된 비식별 이미지 또는 PDF 한 장 · 최대 5MB",
-            type=["png", "jpg", "jpeg", "pdf"],
-            max_upload_size=5,
-            help="PNG, JPG, JPEG, PDF만 허용합니다. 수업에서는 한 번에 5MB 이하 한 장만 처리합니다.",
-        )
-        if uploaded is not None:
-            st.success(f"업로드 연결 확인: {{uploaded.name}} · {{len(uploaded.getvalue()):,}} bytes")
-            st.caption("이 파일은 6교시에서 실제 처리 함수와 연결합니다.")
-
-        if st.button("공개 샘플 준비 결과 보기"):
-            st.info("실행 모드: PREPARED_FALLBACK")
-            st.text_area("판독 원문", GOLDEN_OCR_TEXT, height=220)
-            st.json(GOLDEN_RECEIPT)
-        '''
-    ).lstrip()
+            if st.button("공개 샘플 준비 결과 보기"):
+                st.info("실행 모드: PREPARED_FALLBACK")
+                st.text_area("판독 원문", GOLDEN_OCR_TEXT, height=220)
+                st.json(GOLDEN_RECEIPT)
+            '''
+        ).lstrip()
+    )
+    app_assignment = readable_string_assignment("app_code", app_source)
     cells = [
         intro(
             5,
@@ -1762,14 +1768,13 @@ def notebook_05() -> dict:
         runtime_cell(),
         code(STREAMLIT_SETUP),
         code(
-            f"""
-            from textwrap import dedent
+            app_assignment
+            + """
 
-            app_code = {app_source!r}
-            output_path = OUTPUT_DIR / "app_05.py"
-            output_path.write_text(app_code, encoding="utf-8")
-            print("저장:", output_path)
-            """
+output_path = OUTPUT_DIR / "app_05.py"
+output_path.write_text(app_code, encoding="utf-8")
+print("저장:", output_path)
+"""
         ),
         markdown(
             """
@@ -1831,25 +1836,13 @@ def notebook_05() -> dict:
 
 
 def notebook_06() -> dict:
-    recorded_tokens = json.loads(
-        (
-            ROOT
-            / "tests"
-            / "fixtures"
-            / "ppocrv5_live_receipt_tokens.json"
-        ).read_text(encoding="utf-8")
-    )
     app_source = (
-        dedent(
-            f'''
-            import tempfile
-            from pathlib import Path
-            import streamlit as st
-
-            GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}
-            GOLDEN_RECEIPT = {GOLDEN_RECEIPT!r}
-            '''
-        ).lstrip()
+        "import tempfile\n"
+        "from pathlib import Path\n"
+        "import streamlit as st\n\n"
+        f"GOLDEN_OCR_TEXT = {GOLDEN_OCR_TEXT!r}\n"
+        f"GOLDEN_RECEIPT = "
+        f"{pformat(GOLDEN_RECEIPT, sort_dicts=False, width=88)}\n"
         + "\n"
         + spatial_reconstruction_source().strip()
         + "\n\n"
@@ -1941,6 +1934,7 @@ def notebook_06() -> dict:
         '''
         ).lstrip()
     )
+    app_assignment = readable_string_assignment("app_code", app_source)
     cells = [
         intro(
             6,
@@ -1951,22 +1945,25 @@ def notebook_06() -> dict:
         runtime_cell(),
         code(STREAMLIT_SETUP),
         code(
-            f"""
-            from textwrap import dedent
+            app_assignment
+            + """
 
-            app_code = {app_source!r}
-            output_path = OUTPUT_DIR / "app_06.py"
-            output_path.write_text(app_code, encoding="utf-8")
-            print("저장:", output_path)
-            """
+output_path = OUTPUT_DIR / "app_06.py"
+output_path.write_text(app_code, encoding="utf-8")
+print("저장:", output_path)
+"""
         ),
         code(
             spatial_reconstruction_source()
             + "\n"
             + parser_source()
-            + f"""
+            + """
 
-RECORDED_PP_OCRV5_TOKENS = {recorded_tokens!r}
+OCR_RECORD_PATH = "tests/fixtures/ppocrv5_live_receipt_tokens.json"
+recorded_asset = load_course_assets(OCR_RECORD_PATH)
+RECORDED_PP_OCRV5_TOKENS = json.loads(
+    recorded_asset[OCR_RECORD_PATH].decode("utf-8")
+)
 recorded_text = "\\n".join(
     reconstruct_spatial_lines(RECORDED_PP_OCRV5_TOKENS)
 )
@@ -2039,6 +2036,10 @@ print(
 
 def notebook_07() -> dict:
     packaged_sources = final_app_payload()
+    packaged_assignment = readable_string_mapping_assignment(
+        "packaged_sources",
+        packaged_sources,
+    )
     cells = [
         intro(
             7,
@@ -2285,28 +2286,28 @@ def notebook_07() -> dict:
             """
         ),
         code(
-            f"""
-            import shutil
+            "import shutil\n\n"
+            + packaged_assignment
+            + """
 
-            packaged_sources = {packaged_sources!r}
-            final_app_dir = OUTPUT_DIR / "final_document_ai_app"
-            for relative_path, source in packaged_sources.items():
-                target = final_app_dir / relative_path
-                target.parent.mkdir(parents=True, exist_ok=True)
-                target.write_text(source, encoding="utf-8")
+final_app_dir = OUTPUT_DIR / "final_document_ai_app"
+for relative_path, source in packaged_sources.items():
+    target = final_app_dir / relative_path
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(source, encoding="utf-8")
 
-            final_app_path = final_app_dir / "app.py"
-            archive_base = OUTPUT_DIR / "final_document_ai_app"
-            archive_path = Path(
-                shutil.make_archive(
-                    str(archive_base),
-                    "zip",
-                    root_dir=final_app_dir,
-                )
-            )
-            print("최종 앱:", final_app_path)
-            print("앱 전체 코드:", archive_path)
-            """
+final_app_path = final_app_dir / "app.py"
+archive_base = OUTPUT_DIR / "final_document_ai_app"
+archive_path = Path(
+    shutil.make_archive(
+        str(archive_base),
+        "zip",
+        root_dir=final_app_dir,
+    )
+)
+print("최종 앱:", final_app_path)
+print("앱 전체 코드:", archive_path)
+"""
         ),
         code(
             """
@@ -2336,26 +2337,6 @@ def notebook_07() -> dict:
 
 
 def notebook_08() -> dict:
-    encoded = {
-        name: image_base64(path, (520, 650))
-        for name, path in EXTENSION_IMAGES.items()
-    }
-    office_paths = {
-        "quotation.xlsx": ROOT / "sample_docs" / "formats" / "quotation.xlsx",
-        "application_form.docx": (
-            ROOT / "sample_docs" / "formats" / "application_form.docx"
-        ),
-        "transaction_statement.pdf": (
-            ROOT / "sample_docs" / "formats" / "transaction_statement.pdf"
-        ),
-        "table_summary.pptx": (
-            ROOT / "sample_docs" / "formats" / "table_summary.pptx"
-        ),
-    }
-    encoded_office = {
-        name: base64.b64encode(path.read_bytes()).decode("ascii")
-        for name, path in office_paths.items()
-    }
     cells = [
         intro(
             8,
@@ -2366,7 +2347,6 @@ def notebook_08() -> dict:
         runtime_cell(),
         code(
             f"""
-            import base64
             import io
             from PIL import Image
             try:
@@ -2374,10 +2354,19 @@ def notebook_08() -> dict:
             except ImportError:
                 display = lambda image: None
 
-            EXTENSION_IMAGES = {encoded!r}
+            EXTENSION_IMAGE_PATHS = {{
+                "quotation": "sample_docs/extensions/quotation_photo.png",
+                "application": "sample_docs/extensions/application_form_photo.png",
+                "transaction_statement": (
+                    "sample_docs/extensions/transaction_statement_photo.png"
+                ),
+            }}
             EXTENSION_EXAMPLES = {EXTENSION_EXAMPLES!r}
-            for key, payload in EXTENSION_IMAGES.items():
-                image = Image.open(io.BytesIO(base64.b64decode(payload))).convert("RGB")
+            extension_assets = load_course_assets(
+                *EXTENSION_IMAGE_PATHS.values()
+            )
+            for key, path in EXTENSION_IMAGE_PATHS.items():
+                image = Image.open(io.BytesIO(extension_assets[path])).convert("RGB")
                 image.thumbnail((320, 400))
                 print(key, image.size)
                 display(image)
@@ -2395,15 +2384,21 @@ def notebook_08() -> dict:
             """
         ),
         code(
-            f"""
+            """
             import re
             import zipfile
 
-            OFFICE_FILES = {encoded_office!r}
+            OFFICE_PATHS = [
+                "sample_docs/formats/quotation.xlsx",
+                "sample_docs/formats/application_form.docx",
+                "sample_docs/formats/transaction_statement.pdf",
+                "sample_docs/formats/table_summary.pptx",
+            ]
+            office_assets = load_course_assets(*OFFICE_PATHS)
             office_dir = OUTPUT_DIR / "office_format_samples"
             office_dir.mkdir(exist_ok=True)
-            for filename, payload in OFFICE_FILES.items():
-                (office_dir / filename).write_bytes(base64.b64decode(payload))
+            for path, payload in office_assets.items():
+                (office_dir / Path(path).name).write_bytes(payload)
 
             def xml_text_count(path, prefix, text_tag):
                 with zipfile.ZipFile(path) as archive:
