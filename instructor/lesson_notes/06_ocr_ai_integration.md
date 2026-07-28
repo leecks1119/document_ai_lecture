@@ -11,11 +11,12 @@
 | 0~6 | LIVE·LIVE_ERROR·PREPARED 화면 비교 | 세 상태 |
 | 6~11 | OCR/VLM 선택 기준 | 고정 순서 아님 |
 | 11~20 | `run_live_ocr` 한 함수 시연 | 업로드 bytes 사용 |
-| 20~35 | 앱 생성·AppTest | `app_06.py` |
-| 35~43 | 업로드 없이 LIVE 오류 | INPUT_ERROR |
-| 43~50 | 준비 결과 버튼 | 명시적 복구 |
-| 50~57 | 실제 파일 경로 또는 녹화 | LIVE 증거 |
-| 57~60 | 검증 입력 연결 | JSON |
+| 20~32 | 앱 생성·AppTest | `app_06.py` |
+| 32~38 | 업로드 없이 LIVE 오류 | INPUT_ERROR |
+| 38~44 | 준비 결과 버튼 | 명시적 복구 |
+| 44~50 | 44토큰 실제 LIVE 회귀 사례 | 합계 76000·5품목 |
+| 50~56 | LIVE 확인 필드 빈칸·미리보기 | 자기 답·직접 조작 |
+| 56~60 | 검증 입력 연결 | JSON |
 
 ## 그대로 말하기
 
@@ -33,4 +34,4 @@ LIVE 오류는 그대로 보존한 뒤 사용자가 준비 결과 버튼을 누�
 
 ## 종료 조건
 
-`app_06.py`에 `run_live_ocr`, `LIVE_ERROR`, `PREPARED_FALLBACK`이 있고 AppTest가 통과한다.
+`app_06.py`에 `run_live_ocr`, 공간 순서 복원, `LIVE_ERROR`, `PREPARED_FALLBACK`이 있고 AppTest가 통과한다. 실제 44토큰 기록이 합계 76,000원·품목 5개로 복원된다.

@@ -6,9 +6,10 @@
 
 수강생 한 명이 공개 한국 영수증 한 장을 `OCR → 구조화 → 검증 → 사람 승인 → Excel`로 완주하고, 견적서·신청서·거래명세서 중 첫 PoC 후보 하나를 설명한다.
 
-강의가 끝날 때 모든 수강생에게 다음 두 파일이 있어야 한다.
+강의가 끝날 때 모든 수강생에게 다음 핵심 파일이 있어야 한다.
 
 - `receipt_result.xlsx`
+- `final_document_ai_app.zip`
 - `poc_candidate_card.md`
 
 “모델을 봤다”가 아니라 “내가 실행했고, 실패를 구분했고, 승인 후 파일을 만들었다”가 통과 기준이다.
@@ -73,23 +74,23 @@
 | 교시 | 종료 화면 | 산출물 | 전원 전환 기준 |
 | --- | --- | --- | --- |
 | 1 | 네 역할과 합계 근거 | `receipt_pipeline_trace.json` | 파일 생성 |
-| 2 | `LIVE` 또는 복구 사유가 있는 `PREPARED_FALLBACK` | `ocr_result.json`, `ocr_boxes.png` | 모델 오류 3명 |
+| 2 | `LIVE` 또는 복구 사유가 있는 `PREPARED_FALLBACK` | `lesson02_ocr_outputs.zip` | 모델 오류 3명 |
 | 3 | 품목 후보 5줄 | `clean_receipt.json` | 이전 파일 누락은 준비 입력 |
-| 4 | 총액 76000 + evidence | `receipt.json` | 준비 결과 provenance 확인 |
-| 5 | AppTest 통과 | `app_05.py` | AppTest 오류 3명은 정답 파일 |
-| 6 | 모드·원문·JSON 표시 | `app_06.py` | LIVE 오류는 명시적 복구 |
-| 7 | 기본 차단 + 승인 후 3시트 | `receipt_result.xlsx` | 오류가 남으면 승인 금지 |
-| 8 | 세 문서 사진 비교 + 제안 | `poc_candidate_card.md` | 카드 7항목 완성 |
+| 4 | OCR+규칙 결과와 준비 VLM 구조의 provenance 구분 | `receipt.json`, `vlm_comparison.json` | 두 경로 라벨 확인 |
+| 5 | AppTest + 직접 미리보기 | `app_05.py` | AppTest 오류 3명은 정답 파일 |
+| 6 | 모드·원문·공간 복원 JSON 표시 | `app_06.py` | LIVE 오류는 명시적 복구 |
+| 7 | 잘못된 수정값 차단 + 승인 후 3시트 | `receipt_result.xlsx`, `final_document_ai_app.zip` | 오류가 남으면 승인 금지 |
+| 8 | 세 문서·Office 4종 비교 + 개인 제안 | `poc_candidate_card.md`, `office_format_samples.zip` | 카드 필드·점수·검토자·중단 조건 |
 
 ## 교시 시작에 그대로 말할 문장
 
 1. “오늘 외울 것은 제품 이름이 아니라 네 역할입니다. 읽기, 구조화, 검증, 업무 연결입니다.”
 2. “실행 전에 모드부터 보세요. LIVE는 지금 실행한 결과, PREPARED는 검수된 복구 결과입니다.”
 3. “정제는 없는 값을 만드는 일이 아닙니다. 원문을 보존한 채 관계를 다시 묶는 일입니다.”
-4. “VLM의 JSON은 정답이 아니라 초안입니다. 원본 근거가 없으면 null로 둡니다.”
+4. “OCR+규칙과 VLM은 서로 다른 초안 경로입니다. 어느 쪽이든 원본 근거가 없으면 null로 둡니다.”
 5. “파일을 올렸는데 화면 값이 달라지지 않으면 앱이 연결된 것이 아닙니다.”
 6. “처리 뒤 파일명, 실행 모드, 원문, JSON이 모두 바뀌어야 실제 처리입니다.”
-7. “오류가 없다는 것과 사람이 승인했다는 것은 다른 상태입니다.”
+7. “오류가 없다는 것과 사람이 승인했다는 것은 다른 상태입니다. 수정했다면 반드시 다시 검증합니다.”
 8. “문서 종류가 바뀌어도 흐름은 같고, 필드와 검증 규칙이 달라집니다.”
 
 공통 보안 문장:
@@ -108,10 +109,10 @@
 
 Colab 링크마다 런타임과 `/content` 파일시스템이 새로 열릴 수 있다고 가정한다.
 
-1. 2교시 종료: `ocr_result.json`, `ocr_boxes.png` 다운로드 확인
-2. 3교시 시작: `ocr_result.json` 업로드 → 종료 시 `clean_receipt.json` 다운로드
+1. 2교시 종료: `lesson02_ocr_outputs.zip` 다운로드·압축 해제 확인
+2. 3교시 시작: ZIP 안의 `ocr_result.json` 업로드 → 종료 시 `clean_receipt.json` 다운로드
 3. 4교시 시작: `clean_receipt.json` 업로드 → 종료 시 `receipt.json` 다운로드
-4. 7교시 시작: `receipt.json` 업로드 → 승인 후 `receipt_result.xlsx` 다운로드
+4. 7교시 시작: `receipt.json` 업로드 → 값 수정·재검증·승인 후 `receipt_result.xlsx`와 최종 앱 ZIP 다운로드
 
 진행 현황판에는 파일 존재뿐 아니라 `PREVIOUS_LESSON` 또는 `PREPARED_FALLBACK`을 기록한다. 파일 선택에서 3분을 넘기면 노트북의 `USE_PREPARED_INPUT=True`로 전환하되, 자신의 파일을 이어 쓴 것처럼 말하지 않는다.
 
@@ -129,6 +130,7 @@ Colab 링크마다 런타임과 `/content` 파일시스템이 새로 열릴 수 
 ## 강의 종료 전 10분
 
 - 20명 모두 `receipt_result.xlsx`의 세 시트를 연다.
+- 20명 모두 최종 앱에서 총액을 일부러 틀려 다운로드가 차단된 뒤 복구되는 것을 확인한다.
 - 승인자·승인 시각·원문 근거를 한 곳씩 찾는다.
 - 20명 모두 PoC 카드의 오류 영향과 사람 검토자를 읽는다.
 - `outcome_evidence_plan.md`의 종료 지표를 집계하고 교육담당자 보고 초안을 채운다.

@@ -14,7 +14,7 @@
 | 4 | evidence가 있는 실제 JSON | 스키마·근거·불확실성 |
 | 5 | [실제 PREPARED 앱 화면](../lessons/assets/screens/app_prepared_result.png)과 AppTest 통과 로그 | 최소 앱 구조 |
 | 6 | LIVE_ERROR와 [PREPARED 상태 화면](../lessons/assets/screens/app_prepared_result.png) | 처리 경로 선택 |
-| 7 | 미승인 파일 없음, [승인 뒤 다운로드 화면](../lessons/assets/screens/app_approved_excel.png), Excel 3시트 | 검증 세 갈래·승인 게이트 |
+| 7 | [잘못된 수정값 차단 화면](../lessons/assets/screens/app_validation_blocked.png), [승인 뒤 다운로드 화면](../lessons/assets/screens/app_approved_excel.png), Excel 3시트 | 수정·재검증·승인 게이트 |
 | 8 | 문서 사진 3종과 Office 4파일 | PoC 카드 |
 
 ## 빔프로젝터 점검

@@ -2,115 +2,119 @@
 
 검증일: 2026-07-28<br>
 대상 브랜치: `document_ai_lecture_2026`<br>
-로컬 재검증 환경: Python 3.14.3, macOS ARM64<br>
-실제 Colab 환경: Python 3.12.13, Linux 6.6.122+, Google Compute Engine
+최신 로컬 검증 환경: Python 3.14.3, macOS ARM64
 
 ## 결론
 
-공지된 8교시 제목을 유지하면서 같은 공개 한국 영수증을 `OCR → 구조화 → 근거 있는 JSON → 검증 → 사람 승인 → Excel`로 연결했다. 수강생은 모든 필수 코드를 Google Colab에서 실행하며, 준비 결과는 `LIVE`와 혼동하지 않도록 `PREPARED_FALLBACK` 또는 `PREPARED REPLAY`로 표시한다.
+공지된 8개 교시 제목을 유지하면서 공개 한국 영수증 한 장을
+`OCR → 공간 순서 복원 → 구조화 → 근거 있는 JSON → 검증 → 사람 수정·재검증
+→ 승인 → Excel`로 연결했다. 모든 필수 실습은 Google Colab 노트북이며,
+전 교시에 자기 답 빈칸·힌트·전체 정답이 있다.
 
-자동 검증은 코드, 8개 노트북의 오프라인 복구 경로, 수강생 교재 링크, Office 4종의 내부 구조를 확인했다. 로그인된 강사 PC의 실제 Colab에서도 8개 노트북을 모두 실행했다. 2교시는 PaddleOCR 3.7.0과 PP-OCRv5 Korean의 `LIVE` 경로를 사용했고, 2→3→4→7교시는 다운로드·업로드 방식으로 이어 실행했다.
+최신 저장소 코드는 자동검증 기준 **GO**다. 다만 최종 커밋을 사용한 새 Colab과
+Windows 녹화 PC 점검은 외부 사전 점검 항목으로 남긴다.
 
-## 자동 검증 결과
+## 최신 자동 검증 결과
 
 | 검증 | 결과 |
 | --- | --- |
 | Python 구문 검사 | 통과 |
-| 단위·통합·Streamlit AppTest | 42개 통과 |
-| Colab 오프라인 경로 독립 실행 | 8개 통과 |
-| 2→3→4→7 Colab 순차 인계 | 같은 공유 폴더에서 5품목·승인 Excel까지 통과 |
-| 교재 구조·로컬 링크 | 교재 8개, Colab 8개 통과 |
+| 단위·통합·Streamlit AppTest | 46개 통과 |
+| Colab 준비 경로 독립 실행 | 8/8 통과 |
+| Colab 2→3→4→7 순차 인계 | 5품목·승인 Excel·최종 앱 ZIP까지 통과 |
+| 실제 PP-OCRv5 기록 회귀 | 44토큰 → 총액 76,000원·품목 5개 |
+| 최종 앱 사람 수정 검증 | 총액 999 차단, 정상값 복구 후 승인·다운로드 |
+| 교재 구조·로컬 링크 | 교재 8개·Colab 8개 통과 |
 | Office 구조 | Excel·Word·PDF·PPT 4종 통과 |
 | 실물형 합성 문서 사진 | 견적서·신청서·거래명세서 3종 통과 |
-| PowerPoint 범위 초과 | 없음 |
-| Word·PDF·PowerPoint 렌더 | 각 1페이지·1슬라이드 확인 |
+| PowerPoint 시각 검사 | 한글·원본 이미지 표시, 오버플로 0건 |
+| Excel 시각 검사 | 3개 시트 렌더, 수식·통화 서식·가독성 확인 |
+| 최종 Streamlit 서버 | health `ok`, 루트 HTTP 200 |
 | Git 관리 대상 README | 루트 1개 |
 
-사용한 명령:
+검증 명령:
 
 ```bash
-.venv/bin/python -m compileall -q app.py src tests tools
-.venv/bin/python -m pytest -q
-.venv/bin/python tools/validate_course_materials.py
-.venv/bin/python tools/validate_colab_notebooks.py
-.venv/bin/python tools/validate_office_samples.py
+python -m compileall -q app.py src tests tools
+python -m pytest -q
+python tools/build_colab_notebooks.py
+python tools/validate_colab_notebooks.py
+python tools/validate_course_materials.py
+python tools/validate_office_samples.py
 git diff --check
 ```
 
-## 종단간 산출물
+## 교시별 실행 산출물
 
-| 교시 | 확인 산출물 |
+| 교시 | 최신 확인 산출물 |
 | --- | --- |
 | 1 | `receipt_pipeline_trace.json` |
-| 2 | `ocr_result.json`, `ocr_boxes.png` |
+| 2 | `lesson02_ocr_outputs.zip` (`ocr_result.json`, `ocr_boxes.png`) |
 | 3 | `clean_receipt.json` |
-| 4 | `receipt.json` |
+| 4 | `receipt.json`, `vlm_comparison.json` |
 | 5 | `app_05.py` |
 | 6 | `app_06.py` |
-| 7 | `receipt_result.xlsx` |
-| 8 | `poc_candidate_card.md` |
+| 7 | `receipt_result.xlsx`, `final_document_ai_app.zip` |
+| 8 | `poc_candidate_card.md`, `office_format_samples.zip` |
 
-2교시는 Colab에서 실제 PaddleOCR 실행을 기본 시도로 삼는다. 자동 검증기는 네트워크와 모델 다운로드에 의존하지 않도록 강제로 준비 결과 경로를 실행한다. 각 노트북은 새 Colab 세션에서도 이어 갈 수 있도록 선행 산출물 다운로드·업로드 함수를 제공한다. 순차 검증에서는 같은 공유 폴더에서 `02→03→04→07`을 실행해 OCR 영역 10개, 품목 후보 5개, 영수증 품목 5개, `수제 돈가스`, 승인 Excel 생성을 확인했다.
+## 실제 OCR 회귀가 필요한 이유
 
-## 강사 PC 실제 Colab 실행
+이전 LIVE 실행은 OCR 모델이 한 품목 행을 여러 토큰으로 반환했다. 토큰 배열을
+단순 줄바꿈하면 합계와 품목의 관계가 깨져 앱이 열려도 `total=null`,
+`items=[]`가 될 수 있었다.
 
-실행일: 2026-07-28<br>
-실행 브랜치: `document_ai_lecture_2026`<br>
-수정·재검증 commit: `41cdaf4`
+최신 구현은 바운딩 박스의 y좌표로 같은 행을 묶고, 행 안에서 x좌표로
+정렬한다. 실제 PP-OCRv5 LIVE 실행에서 보존한 44개 토큰을 테스트 fixture로
+고정해 다음을 매번 검사한다.
 
-| 교시 | 실제 Colab 결과 |
-| --- | --- |
-| 1 | Python 3.12.13 확인, `receipt_pipeline_trace.json`, 체크포인트 통과 |
-| 2 | `LIVE`, PaddleOCR 3.7.0·PP-OCRv5 Korean, 인식 영역 44개, `ocr_result.json` 생성·다운로드 |
-| 3 | 실제 2교시 JSON 업로드, `PREVIOUS_LESSON`, 공간 좌표로 품목 후보 5줄 복원, 체크포인트 통과 |
-| 4 | 실제 3교시 JSON 업로드, 총액 76,000원과 원문 근거 `합계 9 76,000` 확인, 체크포인트 통과 |
-| 5 | `app_05.py`, 업로드·버튼·결과 화면 체크포인트 통과 |
-| 6 | `app_06.py`, 앱 연결·모드 표시·JSON 출력 체크포인트 통과 |
-| 7 | 실제 4교시 JSON 업로드, `valid=True`, 경고·오류 0건, 미승인 Excel 차단과 승인 Excel 생성 통과 |
-| 8 | `poc_candidate_card.md`, 체크포인트 통과 |
+```text
+거래일: 2025-10-04
+총액: 76000
+품목: 5개
+```
 
-최종 다운로드한 `receipt_result.xlsx`를 다시 열어 시트가 `검토_요약`, `품목`, `원문_근거` 순서인지, 승인값이 `APPROVED`인지, 품목이 5행인지 확인했다. 테스트에서 만든 Colab 런타임은 모두 연결 해제하고 삭제했다.
+이 검사는 준비 텍스트 성공과 실제 OCR 토큰 성공을 서로 바꿔 말하지 않는다.
 
-실제 실행 중 4교시가 최초 1회 중단됐다. LIVE OCR이 한 품목 행을 여러 토큰으로 반환했는데 3교시가 토큰을 줄 단위로만 저장했고, `합계`와 `76,000` 사이의 저신뢰도 숫자 `9`를 4교시가 총액으로 선택한 것이 원인이었다. 3교시에 OCR 박스의 y좌표 기반 행 복원을 추가하고 4교시에 합계 행의 마지막 금액을 선택하도록 수정했다. 수정 후 같은 LIVE 산출물로 3→4→7을 다시 실행해 통과했다.
+## OCR·VLM 결과의 계보
 
-## 실제 화면·시각 검증
+- `receipt.json`: 3교시 OCR 정제 텍스트를 규칙으로 구조화한 기준선
+- `vlm_comparison.json`: 같은 공개 문서의 준비 VLM 구조 예시
+- 준비 VLM 예시: `engine=not_executed`, 현재 실행 결과가 아니라는 안내 포함
+- 실제 VLM: 승인된 강사 계정·비식별 샘플·예산 상한이 있을 때 한 번만 시연
 
-- 실제 Streamlit 앱에서 `PREPARED REPLAY` 상태가 크게 보이는지 확인했다.
-- 원본 대조 체크 전에는 Excel 다운로드가 없고 승인 뒤에만 나타나는지 확인했다.
-- OCR과 VLM 도식에서 두 경로 사이의 순서 화살표를 제거했다.
-- 검증 도식에서 `valid`, `warnings`, `errors`를 병렬 판정으로, 사람 승인을 별도 게이트로 표시했다.
-- Word, PDF, PowerPoint는 렌더 이미지에서 한글, 표, 여백, 잘림을 확인했다.
-- Excel은 Artifact Tool 렌더와 구조 검사로 3시트, 수식, 숫자 표시를 확인했다.
-- 앱 업로더는 화면과 서버 양쪽에서 5MB 제한을 표시·강제한다.
+따라서 정규식을 실행한 결과를 VLM 추론이라고 표시하지 않는다.
 
-## 확인한 보호 경로
+## 최종 앱에서 확인한 보호 경로
 
 - 파일 없음, 허용하지 않은 확장자, 5MB 초과
-- 손상·암호화·페이지 제한 초과 PDF
-- OCR 또는 VLM 의존성·모델 오류
-- `LIVE_ERROR` 뒤 관련 없는 준비 결과 자동 대체 금지
+- OCR 의존성·모델 오류와 명시적 준비 결과 선택
+- 상호명·날짜·총액·품목 표 편집
+- 사람의 수정값을 포함한 재검증
 - 필수값·자료형·품목 계산·합계·원문 근거 오류
-- 미승인 Excel 생성·다운로드 차단
+- 미승인 또는 오류 상태의 Excel 다운로드 차단
 - 선행 공백·제어문자 뒤 수식 접두 문자 보호
 - 승인자·승인 시각·수정 이유·처리 모드 기록
+- 승인 Excel의 `검토_요약`, `품목`, `원문_근거` 3시트
 
-## 검증 범위의 한계
+## 과거 실제 Colab 기록과 최신 코드의 경계
 
-- `document_ai_lecture_2026` 브랜치의 최초 교재 배포 커밋 `44b938d`와 실제 Colab 보정 커밋 `41cdaf4`를 원격에 게시했다. 2026-07-28 익명 HTTP 요청으로 GitHub 노트북 8개와 Colab URL 8개가 모두 상태 200임을 확인했다.
-- 로그인된 강사 PC에서는 노트북 8개와 PaddleOCR LIVE 추론을 확인했다. 비로그인 시크릿 창 8개 접근은 아직 확인하지 않았다.
-- 첫 LIVE 실행의 총 소요 시간은 별도로 재지 않아 미측정이다. 강의 T-48시간 점검에서 캐시가 없는 새 런타임으로 다시 측정한다.
-- 무료 Colab의 자원·사용 시간·모델 다운로드 속도는 보장하지 않는다.
-- 공개 샘플과 합성 문서의 성공을 일반 정확도 수치로 확대하지 않는다.
-- 실제 조직 적용 전 개인정보, 외부 전송, 접근권한, 보존·삭제 기준을 별도 승인받아야 한다.
-- 하루 강의의 가격 가치는 저장소만으로 보장할 수 없으며, 실제 완주율·평가 결과·업무 전이로 사후 확인해야 한다.
+2026-07-28 강사 PC의 로그인된 Colab에서는 PaddleOCR 3.7.0,
+PP-OCRv5 Korean LIVE 44영역과 8개 교시 체크포인트를 실행했다. 이 기록은
+공간 복원 결함을 찾는 근거로 사용했다.
 
-## 출시 판정
+그 뒤 최종 앱 수정·재검증, 전 교시 빈칸, ZIP 다운로드, Colab iframe,
+Office 파일 재임베드가 추가됐다. 이 최신 커밋 전체를 새 Colab에서 다시
+실행한 기록은 사전 점검표가 완료되기 전까지 **미검증**으로 유지한다.
 
-| 범위 | 판정 | 근거 |
-| --- | --- | --- |
-| 저장소 내부 교육자료 | **GO** | 최종 독립 감사 90/100, 내부 P0 0건, 내부 P1 0건 |
-| 원격 게시·URL 응답 | **GO** | 검증 대상 코드 SHA `41cdaf4`, GitHub·Colab 각각 8/8 HTTP 200 |
-| 강사 PC 실제 Colab | **GO** | 8/8 실행, PP-OCRv5 LIVE, 2→3→4→7 파일 인계, 승인 Excel 확인 |
-| 실제 공개·교육 시작 | **NO-GO** | 비로그인 UI·현장 20명 점검·운영시간 선택·LIVE 첫 실행 시간 측정 미완료 |
+## 남은 외부 검증
 
-출시 전에는 강사용 사전 점검표의 T-48 항목을 실제 실행 증거로 채우고, 배포 commit SHA와 8개 Colab URL의 비로그인 접근 결과를 기록한다.
+- 최종 커밋 SHA와 원격 push 결과 기록
+- 비로그인 Colab 8개 접근
+- 최종 커밋으로 새 Colab CPU 세션 재실행
+- 첫 PaddleOCR 모델 다운로드 시간 측정
+- Windows 녹화 PC의 Chrome·iframe·다운로드·Office 한글 확인
+- 20명 현장 네트워크와 복구 라인 확인
+
+무료 Colab의 자원과 실행 시간은 보장하지 않는다. 공개·합성 샘플의 성공을
+일반 정확도·비용 절감률로 확대하지 않으며, 실제 조직 적용 전 개인정보,
+외부 전송, 접근권한, 보존·삭제 기준을 별도로 승인받아야 한다.

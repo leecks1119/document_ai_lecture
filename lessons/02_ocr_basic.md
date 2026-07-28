@@ -8,11 +8,11 @@
 
 - 공개 한국 영수증에 실제 OCR을 실행합니다.
 - 텍스트·좌표·신뢰도를 원본 위에서 확인합니다.
-- `course_outputs/ocr_result.json`과 `ocr_boxes.png`를 만듭니다.
+- `course_outputs/ocr_result.json`과 `ocr_boxes.png`를 ZIP 하나로 묶습니다.
 
 ## 안전 확인
 
-Google Colab도 외부 클라우드입니다. 오늘은 제공된 비식별 공개 샘플만 사용합니다. 개인 영수증은 조직 승인과 완전한 비식별화를 거친 선택 실습에서만 사용합니다.
+Google Colab도 외부 클라우드입니다. 기본 실습은 제공된 비식별 공개 샘플을 사용합니다. 점심 영수증이나 사진첩 영수증은 조직 정책을 확인하고 상호명 외 사업자번호·전화번호·카드번호·승인번호·주소·이름을 완전히 가린 경우에만 `USE_MY_RECEIPT=True`로 선택 실습합니다.
 
 ![개인정보와 거래 식별 영역을 가린 공개 한국 영수증](../sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png)
 
@@ -98,18 +98,21 @@ PaddleOCR 3.7의 일반 OCR 기본 계열은 PP-OCRv6이지만, 한국어 전용
 }
 ```
 
+노트북의 `REVIEW_KEYWORDS` 빈칸에는 원본에서 직접 확인할 영역 두 개를 적습니다. 먼저 자기 답으로 실행하고, 막히면 힌트와 공개 정답을 사용합니다.
+
 마지막에 다음 문구가 보여야 합니다.
 
 ```text
 CHECKPOINT 1/1 PASS: ... course_outputs/ocr_result.json course_outputs/ocr_boxes.png
 ```
 
-두 파일은 자동으로 다운로드됩니다. 다음 교시 새 Colab 창에서 `ocr_result.json`을 선택해야 자신의 결과가 이어집니다.
+Chrome이 연속 다운로드를 차단하지 않도록 두 파일을 `lesson02_ocr_outputs.zip` 하나로 내려받습니다. 다음 교시 새 Colab 창에서는 ZIP을 먼저 풀고 `ocr_result.json`을 선택해야 자신의 결과가 이어집니다.
 
 ## 통과 기준
 
 - `source_mode`가 `LIVE` 또는 `PREPARED_FALLBACK`으로 명확히 표시됩니다.
-- `ocr_result.json`과 `ocr_boxes.png`가 생성되고 로컬에 다운로드되었습니다.
+- `lesson02_ocr_outputs.zip` 안에 `ocr_result.json`과 `ocr_boxes.png`가 있습니다.
+- 개인 영수증을 썼다면 JSON의 `input_file`이 자신의 파일명으로 바뀌었습니다.
 - 높은 신뢰도도 원본 확인 전에는 승인할 수 없다고 설명할 수 있습니다.
 - 실제 실행과 복구 결과를 구분할 수 있습니다.
 

@@ -8,8 +8,9 @@
 
 - 필수값·자료형·품목 계산·합계·원본 근거를 검사합니다.
 - 미승인 상태에서 Excel이 만들어지지 않는지 확인합니다.
-- 승인자·시각·수정 이유가 남는 정답 경로를 실행합니다.
-- `course_outputs/receipt_result.xlsx`를 만듭니다.
+- 추출값과 품목 표를 직접 수정한 뒤 다시 검증합니다.
+- 승인자·시각·수정 이유가 남는 최종 앱을 실행합니다.
+- `receipt_result.xlsx`와 `final_document_ai_app.zip`을 만듭니다.
 
 ## 개념 10%: 정상·경고·오류와 승인은 별개입니다
 
@@ -80,7 +81,19 @@ REVIEWED_APPROVED PASS: course_outputs/receipt_result.xlsx
 CHECKPOINT 1/1 PASS: 미승인 차단 + 승인 후 Excel
 ```
 
-### 5. Excel 세 시트를 확인합니다
+`MY_REVIEW` 빈칸에는 자신의 검토자 이름과 원본 대조 메모를 적습니다. 정답 구조는 공개되어 있으므로 문법보다 승인 기록의 의미에 집중합니다.
+
+### 5. 최종 앱에서 일부러 틀리고 고칩니다
+
+최종 앱 ZIP을 풀어 Colab 미리보기로 엽니다. 총액을 `999`처럼 잘못 바꾸면 재검증 오류가 나타나고 다운로드가 사라져야 합니다. 원본과 맞게 고친 뒤 승인하면 Excel 다운로드가 열려야 합니다. 품목명·수량·단가·금액도 표에서 직접 수정할 수 있습니다.
+
+```text
+FINAL APP PASS: 수정 표·재검증·승인·Excel 다운로드
+```
+
+![총액을 999로 바꿨을 때 합계 오류가 표시되고 Excel 다운로드가 차단된 실제 앱](assets/screens/app_validation_blocked.png)
+
+### 6. Excel 세 시트를 확인합니다
 
 ![JSON이 검토 요약, 품목, 원문 근거 시트로 변환되는 그림](assets/07/02_json_to_excel.svg)
 
@@ -99,6 +112,8 @@ CHECKPOINT 1/1 PASS: 미승인 차단 + 승인 후 Excel
 - 품목 합계와 총액이 검증됩니다.
 - 공백·탭 뒤 수식 시작 문자도 보호됩니다.
 - 세 시트가 생성됩니다.
+- 최종 앱에서 잘못된 수정값이 Excel 다운로드를 차단합니다.
+- `final_document_ai_app.zip` 안에 앱과 `src` 코드가 함께 있습니다.
 
 ## 막혔을 때
 

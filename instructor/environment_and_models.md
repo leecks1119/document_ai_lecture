@@ -10,7 +10,7 @@
 | Python | 3.12.x |
 | OCR | PaddleOCR 3.7.0 + PP-OCRv5 Korean |
 | 문서 VLM | PaddleOCR-VL 1.6 또는 승인된 상용 VLM 시연 1회 |
-| 웹앱 | Streamlit 1.60.0, 필수 검증은 AppTest |
+| 웹앱 | Streamlit 1.60.0, AppTest + Colab 내부 iframe 미리보기 |
 | 기본 비용 | 수강생 API 키·결제 없음 |
 
 정확한 버전은 재현을 위한 고정값이다. 새 버전을 쓰려면 한국어 지원, 노트북 실행, 준비 결과 전환, AppTest를 모두 다시 검증한다.
@@ -20,8 +20,10 @@
 1. Colab 링크 8개를 새 세션에서 연다.
 2. `python tools/validate_colab_notebooks.py`를 실행한다.
 3. PP-OCRv5 Korean 설치·모델 다운로드·한국 영수증 인식을 확인한다.
-4. 준비 OCR·VLM 결과와 교시별 완성 복구본을 확인한다.
-5. 상용 VLM을 시연한다면 승인 계정, 비식별 샘플, 비용 상한을 확인한다.
+4. 실제 44토큰 회귀 사례가 합계 76,000원·품목 5개를 복원하는지 확인한다.
+5. 5·6·7교시 iframe 미리보기와 잘못된 수정값 다운로드 차단을 확인한다.
+6. 준비 OCR·VLM 결과와 교시별 완성 복구본을 확인한다.
+7. 상용 VLM을 시연한다면 승인 계정, 비식별 샘플, 비용 상한을 확인한다.
 
 ## 실제 OCR 운영
 
@@ -48,6 +50,7 @@ python -m compileall .
 pytest
 python tools/validate_course_materials.py
 python tools/validate_colab_notebooks.py
+python tools/validate_office_samples.py
 ```
 
 OCR·VLM 실제 실행 검증이 필요할 때만 각각 `requirements-ocr.txt`, `requirements-vlm.txt`를 추가로 설치한다.

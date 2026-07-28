@@ -10,9 +10,12 @@
 - [x] 2교시 `RUN_LIVE_OCR=True` 경로를 공개 한국 영수증으로 실행했다.
 - [ ] LIVE 결과의 `source_mode`, 인식 영역 수, 총 실행 시간을 기록했다.
 - [ ] 실패했다면 오류 종류와 `PREPARED_FALLBACK` 전환 화면을 캡처했다.
-- [x] 5·6교시 AppTest가 통과했다.
-- [x] 7교시 기본 차단과 승인 후 Excel이 모두 통과했다.
-- [x] 새 Colab 런타임 4개에서 2→3→4→7 다운로드·업로드 handoff를 완주했다.
+- [x] 5·6·7교시 AppTest가 통과했다.
+- [x] 6교시의 실제 PP-OCRv5 44토큰 회귀 사례가 합계 76,000원·품목 5개를 복원했다.
+- [x] 7교시 최종 앱에서 잘못된 총액 수정이 다운로드를 막고 정상값 복구 뒤 승인된다.
+- [x] 로컬 실제 브라우저에서 준비 결과→총액 999 차단→76000 복구→승인 다운로드 버튼을 확인했다.
+- [x] 로컬 격리 환경에서 8개 노트북 독립 실행과 2→3→4→7 handoff를 완주했다.
+- [ ] 로그인된 새 Colab에서 수정 후 8개 노트북을 다시 실행했다.
 - [ ] `quotation.xlsx`, `application_form.docx`, `transaction_statement.pdf`, `table_summary.pptx`가 열린다.
 - [ ] 빔프로젝터에서 공개 영수증·bbox·JSON·Excel 글자가 읽힌다.
 
@@ -28,7 +31,7 @@
 | 첫 실행 시간 | 미측정 |
 | 결과 | `LIVE`, 인식 영역 44개, 8교시 전체 체크포인트 통과 |
 | 캡처 위치 | 실제 Colab 셀 출력과 강사 PC `Downloads` 산출물 |
-| 검증 대상 코드 commit SHA | `41cdaf4` |
+| 검증 대상 코드 commit SHA | 최종 커밋 후 기록 |
 | 익명 HTTP URL 확인 | GitHub 8/8·Colab 8/8 상태 200 |
 | 비로그인 Colab 8개 | 미검증 |
 
