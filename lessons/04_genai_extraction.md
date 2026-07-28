@@ -67,7 +67,7 @@ VLM이 언제나 별도의 OCR 결과를 먼저 받아야 하는 것은 아닙�
 
 ### 1. 정리된 영수증을 불러옵니다
 
-기본값 `USE_PREPARED_INPUT=True`는 새 Colab에서도 같은 공개 영수증의 검수된
+기본값 `USE_COURSE_EXAMPLE=True`는 새 Colab에서도 같은 공개 영수증의 검수된
 정제 결과로 바로 실행됩니다. 3교시 결과를 이어서 처리하려면 값을 `False`로
 바꾸고 `clean_receipt.json`을 선택합니다.
 

@@ -89,6 +89,6 @@ def parse_with_paddleocr_vl(
 
     return {
         "model": "PaddleOCR-VL-1.6",
-        "source_mode": "live_vlm",
+        "source_mode": "direct_vlm",
         "pages": pages,
     }

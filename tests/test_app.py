@@ -21,8 +21,11 @@ def test_streamlit_sample_path_shows_result():
     app.button(key="run_sample").click().run(timeout=20)
 
     assert not app.exception
-    assert app.success
-    assert "PREPARED REPLAY" in app.success[0].value
+    assert app.info
+    assert any(
+        "현재 업로드한 파일을 분석한 결과가 아닙니다" in item.value
+        for item in app.info
+    )
     assert len(app.checkbox) == 1
     assert len(app.get("download_button")) == 0
 

@@ -64,13 +64,19 @@ def process_document(
     if use_sample:
         if processor == "ocr":
             ocr_text = GOLDEN_RECEIPT_OCR_TEXT
-            extraction_mode = "prepared_fixture_rule_extraction"
-            mode = "PREPARED REPLAY — 공개 한국 영수증의 검수된 OCR 텍스트"
+            extraction_mode = "course_example_rule_extraction"
+            mode = (
+                "수업용 예제 결과를 불러왔습니다. "
+                "현재 업로드한 파일을 분석한 결과가 아닙니다."
+            )
             target_technology = "PaddleOCR Korean"
         elif processor == "vlm":
             ocr_text = GOLDEN_RECEIPT_VLM_MARKDOWN
-            extraction_mode = "prepared_vlm_structure_fixture_rule_extraction"
-            mode = "PREPARED REPLAY — 공개 한국 영수증의 VLM 구조 시연 fixture"
+            extraction_mode = "course_example_vlm_structure_rule_extraction"
+            mode = (
+                "수업용 VLM 구조 예제를 불러왔습니다. "
+                "지금 모델을 실행한 결과가 아닙니다."
+            )
             target_technology = "PaddleOCR-VL-1.6"
         else:
             return {
@@ -83,7 +89,7 @@ def process_document(
             "fixture_type": (
                 "human_verified_transcription_fixture"
                 if processor == "ocr"
-                else "prepared_demonstration_fixture"
+                else "course_example"
             ),
             "input_file": "taebaek_restaurant_2025_redacted.png",
             "input_sha256": (
@@ -114,12 +120,10 @@ def process_document(
             if processor == "ocr":
                 ocr_result = extract_with_paddleocr(Path(file_path))
                 ocr_text = ocr_text_from_result(ocr_result)
-                mode = (
-                    "LIVE PaddleOCR 3.7 / PP-OCRv5 Korean + 규칙 추출"
-                )
-                extraction_mode = "live_ocr_rule_extraction"
+                mode = "지금 이 사진을 OCR로 직접 읽었습니다."
+                extraction_mode = "direct_ocr_rule_extraction"
                 provenance = {
-                    "fixture_type": "live_inference",
+                    "fixture_type": "current_run_inference",
                     "input_file": Path(file_path).name,
                     "engine": "PaddleOCR",
                     "engine_version": "3.7 / PP-OCRv5 Korean",
@@ -130,10 +134,10 @@ def process_document(
             elif processor == "vlm":
                 vlm_result = parse_with_paddleocr_vl(Path(file_path))
                 ocr_text = vlm_text_from_result(vlm_result)
-                mode = "LIVE PaddleOCR-VL 1.6 + 규칙 추출"
-                extraction_mode = "live_vlm_rule_extraction"
+                mode = "지금 이 문서를 VLM으로 직접 읽었습니다."
+                extraction_mode = "direct_vlm_rule_extraction"
                 provenance = {
-                    "fixture_type": "live_inference",
+                    "fixture_type": "current_run_inference",
                     "input_file": Path(file_path).name,
                     "engine": "PaddleOCR-VL",
                     "engine_version": "1.6",

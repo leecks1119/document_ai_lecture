@@ -71,7 +71,7 @@
     "date": "2025-10-04",
     "total_amount": 76000
   },
-  "source_mode": "prepared_fixture_rule_extraction",
+  "source_mode": "course_example_rule_extraction",
   "provenance": {
     "fixture_type": "human_verified_transcription_fixture",
     "input_file": "taebaek_restaurant_2025_redacted.png",

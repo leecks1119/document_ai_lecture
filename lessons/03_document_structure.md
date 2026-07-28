@@ -59,7 +59,7 @@ OCR이 반환하는 글자 조각의 순서는 사람이 위에서 아래로 읽
 
 ### 1. 2교시 결과를 불러옵니다
 
-새 Colab에서도 실습이 중단되지 않도록 기본값 `USE_PREPARED_INPUT=True`는
+새 Colab에서도 실습이 중단되지 않도록 기본값 `USE_COURSE_EXAMPLE=True`는
 공개 검수 예제를 사용합니다. 2교시 결과를 이어서 처리하려면 값을 `False`로
 바꾸고, 내려받은 ZIP을 푼 뒤 `ocr_result.json`을 선택합니다. 같은 런타임의
 `course_outputs`에 파일이 남아 있다면 자동으로 그 파일을 사용합니다.

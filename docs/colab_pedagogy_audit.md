@@ -43,7 +43,7 @@
 - 4교시는 준비 입력을 사용했는데도 앞 교시 OCR 결과라고 기록하던 출처 정보를
   실제 입력 경로에 맞게 수정했다.
 - 6교시는 앞 교시 런타임에 의존하지 않고 PaddleOCR 설치 여부를 직접 확인한다.
-  LIVE 실행이 불가능하면 준비 결과로 계속 학습할 수 있다.
+  현재 파일 OCR 실행이 불가능하면 수업용 예제로 계속 학습할 수 있다.
 - 8교시는 설명만 있던 업무 문서 확장 코드를 실제 다운로드 ZIP에 포함했다.
 
 ## 자동 실행 검증 범위
@@ -53,7 +53,7 @@
 - 승인 전 잘못된 값 차단과 수정 후 승인
 - Excel·Word·PDF·PPT 예제 생성
 - 65개 코드 셀의 단계 순서, 설명, 수정 범위, 완료 표시
-- 46개 단위·통합·Streamlit AppTest
+- 47개 단위·통합·Streamlit AppTest
 
 ## 실제 Google Colab 브라우저 검증
 
@@ -66,9 +66,9 @@
 | 교시 | 실제 Colab 확인 결과 |
 | --- | --- |
 | 1 | 비교 보고서 JSON 생성, 마지막 체크포인트 통과 |
-| 2 | `LIVE`, PP-OCRv5 Korean 46개 영역 판독, OCR JSON·박스 이미지 생성 |
-| 3 | `PREPARED_FALLBACK`, 원문 10줄·품목 후보 5줄, 정제 JSON 생성 |
-| 4 | `prepared_fixture_rule_extraction` 출처와 총액 근거를 기록한 JSON 2개 생성 |
+| 2 | `직접 실행`, PP-OCRv5 Korean 46개 영역 판독, OCR JSON·박스 이미지 생성 |
+| 3 | `COURSE_EXAMPLE`, 원문 10줄·품목 후보 5줄, 정제 JSON 생성 |
+| 4 | `course_example_rule_extraction` 출처와 총액 근거를 기록한 JSON 2개 생성 |
 | 5 | Streamlit 업로드·버튼·결과 화면 AppTest 실제 출력 통과 |
 | 6 | Streamlit 1.60.0·PaddleOCR 3.7.0 준비, 76,000원·5품목 회귀검사와 앱 연결 통과 |
 | 7 | 미승인 저장 차단, 승인 후 3시트 Excel, 최종 앱 AppTest 통과 |

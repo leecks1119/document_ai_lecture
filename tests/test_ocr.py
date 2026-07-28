@@ -1,7 +1,9 @@
 import json
+import hashlib
 import fitz
 import pytest
 from pathlib import Path
+from PIL import Image
 
 from src.extract import extract_receipt_from_text
 from src.ocr import (
@@ -14,8 +16,14 @@ from src.ocr import (
 FIXTURE = (
     Path(__file__).parent
     / "fixtures"
-    / "ppocrv5_live_receipt_tokens.json"
+    / "ppocrv5_recorded_receipt_tokens.json"
 )
+METADATA_FIXTURE = (
+    Path(__file__).parent
+    / "fixtures"
+    / "ppocrv5_recorded_receipt_metadata.json"
+)
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_recorded_ppocrv5_tokens_restore_receipt_rows():
@@ -34,6 +42,40 @@ def test_recorded_ppocrv5_tokens_restore_receipt_rows():
     assert receipt["total_amount"] == 76000
     assert len(receipt["items"]) == 5
     assert receipt["items"][-1]["line_total"] == 6000
+
+
+def test_recorded_boxes_use_the_same_aspect_ratio_as_the_source_image():
+    tokens = json.loads(FIXTURE.read_text(encoding="utf-8"))
+    metadata = json.loads(METADATA_FIXTURE.read_text(encoding="utf-8"))
+    source_path = ROOT / metadata["source_image"]
+    source_bytes = source_path.read_bytes()
+
+    assert hashlib.sha256(source_bytes).hexdigest() == metadata["source_image_sha256"]
+    assert hashlib.sha256(FIXTURE.read_bytes()).hexdigest() == metadata["token_file_sha256"]
+    with Image.open(source_path) as image:
+        source_size = image.size
+
+    assert source_size == (
+        metadata["source_image_size"]["width"],
+        metadata["source_image_size"]["height"],
+    )
+    coordinate_size = (
+        metadata["coordinate_space"]["width"],
+        metadata["coordinate_space"]["height"],
+    )
+    assert coordinate_size[1] == round(
+        source_size[1] * coordinate_size[0] / source_size[0]
+    )
+    assert metadata["token_count"] == len(tokens)
+
+    max_x = max(point[0] for token in tokens for point in token["box"])
+    max_y = max(point[1] for token in tokens for point in token["box"])
+    assert max_x <= coordinate_size[0]
+    assert max_y <= coordinate_size[1]
+
+    scale_x = source_size[0] / coordinate_size[0]
+    scale_y = source_size[1] / coordinate_size[1]
+    assert abs(scale_x - scale_y) < 0.01
 
 
 def test_unpositioned_fixture_keeps_input_order():

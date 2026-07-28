@@ -17,3 +17,6 @@ venv/
 *.log
 tmp/
 temp/
+.playwright-cli/
+output/playwright/
+.lazyweb/

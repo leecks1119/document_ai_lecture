@@ -8,6 +8,7 @@ import re
 import tempfile
 import zipfile
 from pathlib import Path
+from openpyxl import load_workbook
 
 ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
@@ -46,6 +47,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
         and step["action"]
         and step["expected"]
         and step["code_help"]
+        and isinstance(step["learner_edits"], bool)
+        and step["edit_kind"] in {"required", "optional", "none"}
         for step in learning_steps
     ), f"{path}: incomplete learning step guide"
     assert all("show_lab_step(" in cell["source"] for cell in code_cells), path
@@ -110,18 +113,23 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "ANSWER_ROLE_MAP" not in source
         assert "receipt_pipeline_trace" not in source
         assert "taebaek_restaurant_2025_redacted.png" in source
-        assert "ppocrv5_live_receipt_tokens.json" in source
+        assert "ppocrv5_recorded_receipt_tokens.json" in source
+        assert "ppocrv5_recorded_receipt_metadata.json" in source
         assert "files.upload()" in source
-        assert "OCR_COORDINATE_SIZE = (900, 1100)" in source
+        assert 'OCR_RECORD_METADATA["coordinate_space"]["height"]' in source
+        assert "expected_coordinate_height" in source
         assert "point[0] * scale_x" in source
         assert "point[1] * scale_y" in source
     if path.name == "02_ocr_basic.ipynb":
-        assert "RUN_LIVE_OCR = not VALIDATION_MODE" in source
+        assert "RUN_OCR_NOW = not VALIDATION_MODE" in source
         assert 'lang="korean"' in source
         assert 'ocr_version="PP-OCRv5"' in source
-        assert "receipt_ocr_fallback.json" in source
+        assert "ppocrv5_recorded_receipt_tokens.json" in source
+        assert "ppocrv5_recorded_receipt_metadata.json" in source
+        assert "USE_MY_FILE = False" in source
         assert "OCR_COORDINATE_SIZE = receipt_image.size" in source
         assert "DISPLAY_INPUT_FILE_NAME" in source
+        assert "인식한 글자와 신뢰도" in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
         assert '"engine": "not_executed"' in source
@@ -130,13 +138,16 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "uploaded.getvalue()" in source
         assert "serve_kernel_port_as_iframe" in source
     if path.name == "06_ocr_ai_integration.ipynb":
-        assert "run_live_ocr" in source
-        assert "RECORDED LIVE REGRESSION PASS" in source
+        assert "read_receipt_now" in source
+        assert "실제 OCR 기록 재검사 통과" in source
         assert "serve_kernel_port_as_iframe" in source
-        assert "PREPARED_FALLBACK" in source
-        assert "LIVE_ERROR" in source
+        assert "COURSE_EXAMPLE" in source
+        assert "OCR_ERROR" in source
+        assert "내 영수증 직접 읽기" in source
+        assert "수업용 예제로 계속하기" in source
+        assert "현재 업로드한 파일을 분석한 결과가 아닙니다" in source
         assert "finally:" in source and "unlink(missing_ok=True)" in source
-        assert "ppocrv5_live_receipt_tokens.json" in source
+        assert "ppocrv5_recorded_receipt_tokens.json" in source
     if path.name == "07_validation_export.ipynb":
         assert "DEFAULT_BLOCKED PASS" in source
         assert "REVIEWED_APPROVED PASS" in source
@@ -161,13 +172,13 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "src/document_examples.py" in source
 
 
-def execute_prepared_path(path: Path, notebook: dict) -> None:
+def execute_course_example_path(path: Path, notebook: dict) -> None:
     namespace = {"__name__": "__notebook_validation__"}
     with tempfile.TemporaryDirectory(prefix=f"{path.stem}_") as temp_dir:
         previous = Path.cwd()
-        previous_flag = os.environ.get("COURSE_VALIDATE_PREPARED")
+        previous_flag = os.environ.get("COURSE_VALIDATE_EXAMPLE")
         previous_asset_root = os.environ.get("COURSE_LOCAL_ASSET_ROOT")
-        os.environ["COURSE_VALIDATE_PREPARED"] = "1"
+        os.environ["COURSE_VALIDATE_EXAMPLE"] = "1"
         os.environ["COURSE_LOCAL_ASSET_ROOT"] = str(ROOT)
         os.chdir(temp_dir)
         try:
@@ -213,17 +224,20 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
                 ]
                 assert max(scaled_x) > image.width * 0.9
                 assert max(scaled_y) > image.height * 0.85
+                assert abs(scale_x - scale_y) < 0.01
+                assert namespace["OCR_COORDINATE_SIZE"] == (900, 1003)
             if path.name == "02_ocr_basic.ipynb":
                 payload = json.loads(artifact.read_text(encoding="utf-8"))
-                assert payload["source_mode"] == "PREPARED_FALLBACK"
+                assert payload["processing_path"] == "COURSE_EXAMPLE"
                 assert payload["image_size"] == {
                     "width": 2558,
                     "height": 2850,
                 }
                 assert payload["ocr_coordinate_size"] == {
                     "width": 900,
-                    "height": 1100,
+                    "height": 1003,
                 }
+                assert abs(namespace["scale_x"] - namespace["scale_y"]) < 0.01
             if path.name == "07_validation_export.ipynb":
                 assert not Path("course_outputs/pending_review.xlsx").exists()
                 assert namespace["PENDING_REVIEW"]["decision"] == "PENDING"
@@ -251,9 +265,9 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
         finally:
             os.chdir(previous)
             if previous_flag is None:
-                os.environ.pop("COURSE_VALIDATE_PREPARED", None)
+                os.environ.pop("COURSE_VALIDATE_EXAMPLE", None)
             else:
-                os.environ["COURSE_VALIDATE_PREPARED"] = previous_flag
+                os.environ["COURSE_VALIDATE_EXAMPLE"] = previous_flag
             if previous_asset_root is None:
                 os.environ.pop("COURSE_LOCAL_ASSET_ROOT", None)
             else:
@@ -271,9 +285,9 @@ def execute_sequential_handoff(paths: list[Path]) -> None:
     ]
     with tempfile.TemporaryDirectory(prefix="sequential_handoff_") as temp_dir:
         previous = Path.cwd()
-        previous_flag = os.environ.get("COURSE_VALIDATE_PREPARED")
+        previous_flag = os.environ.get("COURSE_VALIDATE_EXAMPLE")
         previous_asset_root = os.environ.get("COURSE_LOCAL_ASSET_ROOT")
-        os.environ["COURSE_VALIDATE_PREPARED"] = "1"
+        os.environ["COURSE_VALIDATE_EXAMPLE"] = "1"
         os.environ["COURSE_LOCAL_ASSET_ROOT"] = str(ROOT)
         os.chdir(temp_dir)
         try:
@@ -310,14 +324,27 @@ def execute_sequential_handoff(paths: list[Path]) -> None:
                 (output_dir / "receipt.json").read_text(encoding="utf-8")
             )
             assert len(receipt_payload["items"]) == 5
-            assert receipt_payload["items"][2]["name"] == "수제 돈가스"
+            assert receipt_payload["items"][2]["name"] == "수제돈가스"
             assert (output_dir / "receipt_result.xlsx").is_file()
+            workbook = load_workbook(
+                output_dir / "receipt_result.xlsx",
+                read_only=True,
+            )
+            exported_item_names = [
+                row[0]
+                for row in workbook["품목"].iter_rows(
+                    min_row=2,
+                    values_only=True,
+                )
+            ]
+            assert "수제 돈가스" in exported_item_names
+            assert "수제돈가스" not in exported_item_names
         finally:
             os.chdir(previous)
             if previous_flag is None:
-                os.environ.pop("COURSE_VALIDATE_PREPARED", None)
+                os.environ.pop("COURSE_VALIDATE_EXAMPLE", None)
             else:
-                os.environ["COURSE_VALIDATE_PREPARED"] = previous_flag
+                os.environ["COURSE_VALIDATE_EXAMPLE"] = previous_flag
             if previous_asset_root is None:
                 os.environ.pop("COURSE_LOCAL_ASSET_ROOT", None)
             else:
@@ -330,7 +357,7 @@ def main() -> None:
     for path in paths:
         notebook = json.loads(path.read_text(encoding="utf-8"))
         validate_structure(path, notebook)
-        execute_prepared_path(path, notebook)
+        execute_course_example_path(path, notebook)
         print("OK:", path.name)
     execute_sequential_handoff(paths)
     print("OK: 02→03→04→07 동일 폴더 순차 handoff")

@@ -73,7 +73,7 @@
 | 초기 교재 설계 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/02_lesson_blueprint.md` |
 | 초기 분량·운영 검수 | 과거 기록 | `legacy_materials/review/superseded_2026_drafts/03_manager_review.md` |
 | 이전 Markdown·Colab·이미지 구현 | 과거 기준 완료 | 교재 8개, Colab 8개, 도식 16개 |
-| 전체 실행 및 내부 링크 검증 | 완료 | 테스트 46개, Colab 독립 8개·순차 인계, Office·시각 검증 통과 |
+| 전체 실행 및 내부 링크 검증 | 완료 | 테스트 47개, Colab 독립 8개·순차 인계, Office·시각 검증 통과 |
 | 이전 최종 교육 품질 검수 | 대체됨 | 과정 메시지와 최종 Excel 기준 확정 전의 검수 |
 | PaddleOCR·멀티모달 기술 정정 | 완료 | 커밋 `301754b`, `d2f1c21`, `e0e12bb` 및 최종 교재 검증 |
 | 8교시 서문·핵심 메시지 개편 | 완료 | 실제 영수증·10/90·Excel·PoC 연결 반영 |

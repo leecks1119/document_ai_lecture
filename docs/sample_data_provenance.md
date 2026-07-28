@@ -53,6 +53,6 @@
 - `synthetic_fixture`: 형식·검증 코드를 설명하기 위한 합성 데이터
 - `human_verified_transcription_fixture`: 공개 원본을 사람이 대조해 옮긴 준비 결과이며 모델 실행 기록이 아님
 - `recorded_model_run`: 특정 입력·모델·버전·시각이 기록된 실제 실행 결과
-- `live_inference`: 현재 실행에서 모델이 처리한 결과
+- `current_run_inference`: 현재 실행에서 모델이 처리한 결과
 
 이 네 유형을 같은 `model result`로 부르지 않는다.

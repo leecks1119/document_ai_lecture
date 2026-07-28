@@ -46,7 +46,7 @@ def test_sample_matches_schema_when_jsonschema_is_available():
 def test_public_korean_receipt_variants_are_parsed():
     result = extract_receipt_from_text(
         GOLDEN_RECEIPT_OCR_TEXT,
-        source_mode="prepared_fixture_rule_extraction",
+        source_mode="course_example_rule_extraction",
     )
 
     assert result["store_name"] == "이태리집"

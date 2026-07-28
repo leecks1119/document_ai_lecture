@@ -13,27 +13,27 @@ def test_explicit_sample_path_is_labeled():
     result = process_document(use_sample=True)
 
     assert result["ok"]
-    assert "PREPARED REPLAY" in result["status"]
+    assert "현재 업로드한 파일을 분석한 결과가 아닙니다" in result["status"]
     assert result["validation"]["valid"]
     assert result["review_status"] == "PENDING_REVIEW"
     assert result["xlsx_bytes"] is None
     assert result["data"]["total_amount"] == 76000
     assert result["data"]["items"][2]["name"] == "수제 돈가스"
     assert all(item["name"] != "숙제 돈가스" for item in result["data"]["items"])
-    assert result["data"]["source_mode"] == "prepared_fixture_rule_extraction"
+    assert result["data"]["source_mode"] == "course_example_rule_extraction"
 
 
 def test_explicit_vlm_sample_is_labeled_and_structured():
     result = process_document(use_sample=True, processor="vlm")
 
     assert result["ok"]
-    assert "VLM 구조 시연 fixture" in result["status"]
+    assert "지금 모델을 실행한 결과가 아닙니다" in result["status"]
     assert result["data"]["total_amount"] == 76000
     assert len(result["data"]["items"]) == 5
     assert result["data"]["provenance"]["engine"] == "not_executed"
     assert (
         result["data"]["source_mode"]
-        == "prepared_vlm_structure_fixture_rule_extraction"
+        == "course_example_vlm_structure_rule_extraction"
     )
 
 
@@ -88,7 +88,7 @@ def test_upload_rejects_multipage_pdf(tmp_path):
     assert validate_upload(path) == ["필수 실습은 PDF 한 페이지만 처리합니다."]
 
 
-def test_invalid_live_ocr_result_does_not_create_xlsx(tmp_path, monkeypatch):
+def test_invalid_direct_ocr_result_does_not_create_xlsx(tmp_path, monkeypatch):
     path = tmp_path / "receipt.png"
     path.write_bytes(b"synthetic image placeholder")
     monkeypatch.setattr(
@@ -116,7 +116,7 @@ def test_invalid_live_ocr_result_does_not_create_xlsx(tmp_path, monkeypatch):
     assert result["xlsx_bytes"] is None
 
 
-def test_live_vlm_path_uses_paddleocr_vl_markdown(tmp_path, monkeypatch):
+def test_direct_vlm_path_uses_paddleocr_vl_markdown(tmp_path, monkeypatch):
     path = tmp_path / "receipt.png"
     path.write_bytes(b"synthetic image placeholder")
     monkeypatch.setattr(
@@ -141,4 +141,4 @@ def test_live_vlm_path_uses_paddleocr_vl_markdown(tmp_path, monkeypatch):
 
     assert result["ok"]
     assert result["validation"]["valid"]
-    assert "PaddleOCR-VL 1.6" in result["status"]
+    assert "VLM으로 직접 읽었습니다" in result["status"]

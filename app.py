@@ -59,13 +59,13 @@ processor = st.radio(
     format_func=lambda value: (
         "PaddleOCR · PP-OCRv5 Korean"
         if value == "ocr"
-        else "문서 VLM · 강사 시연/준비 결과"
+        else "문서 VLM · 강사 시연 또는 수업용 예제"
     ),
 )
 
 left, right = st.columns(2)
-run_uploaded = left.button("업로드 문서 처리", type="primary", key="run_uploaded")
-run_sample = right.button("준비 결과로 실행", key="run_sample")
+run_uploaded = left.button("내 영수증 직접 읽기", type="primary", key="run_uploaded")
+run_sample = right.button("수업용 예제로 계속하기", key="run_sample")
 
 
 def _run_uploaded_file() -> dict:
@@ -95,9 +95,18 @@ if result:
         st.error(result.get("status", "처리 오류"))
         for message in result.get("errors", []):
             st.write(f"- {message}")
-        st.info("원인을 확인하거나 준비 결과로 실행하세요.")
+        st.info("원인을 확인하거나 아래 ‘수업용 예제로 계속하기’를 누르세요.")
     else:
-        st.success(result["status"])
+        is_course_example = (
+            result.get("data", {})
+            .get("provenance", {})
+            .get("engine")
+            == "not_executed"
+        )
+        if is_course_example:
+            st.info(result["status"])
+        else:
+            st.success(result["status"])
 
         tab_text, tab_json, tab_table = st.tabs(
             ["판독 원문", "구조화 JSON", "품목 표"]

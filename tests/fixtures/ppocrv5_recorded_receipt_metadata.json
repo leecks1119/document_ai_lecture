@@ -1,0 +1,22 @@
+{
+  "source_image": "sample_docs/public_receipts/korea/taebaek_restaurant_2025_redacted.png",
+  "source_image_sha256": "19227c7298a16ee69bef2d7bed65826b8a1cba5389375e4ae77d02005362641f",
+  "token_file_sha256": "089c711ac04d546a2b6e84f99cbd1369e996da76a4a1688c3fdd584ace98f436",
+  "source_image_size": {
+    "width": 2558,
+    "height": 2850
+  },
+  "coordinate_space": {
+    "width": 900,
+    "height": 1003
+  },
+  "resize": {
+    "width": 900,
+    "preserve_aspect_ratio": true
+  },
+  "engine": "PaddleOCR 3.7.0",
+  "recognition_model": "PP-OCRv5 Korean",
+  "token_count": 44,
+  "record_kind": "previous_actual_ocr_run",
+  "note": "현재 노트북 실행 결과가 아니라 같은 원본 영수증을 실제 OCR로 읽어 보존한 비교 기록"
+}

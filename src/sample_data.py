@@ -26,7 +26,7 @@ GOLDEN_RECEIPT_OCR_TEXT = """이태리집
 
 GOLDEN_RECEIPT_VLM_MARKDOWN = """# 이태리집
 
-> **PREPARED VLM STRUCTURE FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
+> **수업용 VLM 구조 예제** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
 
 거래일시: 2025-10-04 12:33:37
 
@@ -47,9 +47,9 @@ GOLDEN_RECEIPT_VLM_MARKDOWN = """# 이태리집
 GOLDEN_RECEIPT_VLM_RESULT = {
     "target_technology": "PaddleOCR-VL-1.6",
     "executed_model": None,
-    "source_mode": "prepared_vlm_structure_fixture",
+    "source_mode": "course_example_vlm_structure",
     "provenance": {
-        "fixture_type": "prepared_demonstration_fixture",
+        "fixture_type": "course_example",
         "input_file": "taebaek_restaurant_2025_redacted.png",
         "engine": "not_executed",
         "engine_version": "not_applicable",
@@ -109,7 +109,7 @@ SAMPLE_OCR_RESULT = [
 
 SAMPLE_VLM_MARKDOWN = """# 샘플문구점
 
-> **PREPARED SYNTHETIC FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
+> **수업용 합성 예제** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
 
 거래일자: 2026-07-27
 
@@ -249,7 +249,7 @@ GOLDEN_RECEIPT = {
         "date": "2025-10-04",
         "total_amount": 76000,
     },
-    "source_mode": "prepared_fixture_rule_extraction",
+    "source_mode": "course_example_rule_extraction",
 }
 
 MISSING_STORE_RECEIPT = {

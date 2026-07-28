@@ -24,7 +24,7 @@ GOLDEN_OCR_TEXT = """이태리집
 
 GOLDEN_VLM_MARKDOWN = """# 이태리집
 
-> **PREPARED VLM STRUCTURE FIXTURE** — 현재 실행에서 VLM을 호출한 결과가 아닙니다.
+> **수업용 VLM 구조 예제** — 지금 모델을 실행해 만든 결과가 아닙니다.
 
 거래일시: 2025-10-04 12:33:37
 
@@ -101,7 +101,7 @@ GOLDEN_RECEIPT = {
         "date": {"raw_value": "거래일시 2025-10-04 12:33:37", "line": 2},
         "total_amount": {"raw_value": "합계 금액 76,000", "line": 8},
     },
-    "source_mode": "prepared_fixture_rule_extraction",
+    "source_mode": "course_example_rule_extraction",
 }
 
 EXTENSION_EXAMPLES = {
@@ -134,6 +134,49 @@ NOTEBOOK_SLUGS = {
     6: "ocr_ai_integration",
     7: "validation_export",
     8: "business_application",
+}
+
+LESSON_BEGINNER_PATHS = {
+    "01_document_ai_overview.ipynb": {
+        "required": "제공된 한국 영수증 한 장에서 OCR·VLM·Document AI 결과가 어떻게 다른지 비교합니다.",
+        "edit": "원본 관찰값과 마지막 기술 선택만 필수입니다. 중간 판단·수정은 공개 정답을 보며 따라가도 됩니다.",
+        "research": "2교시에서 다른 공개 영수증이나 비식별 영수증으로 OCR을 다시 실행합니다.",
+    },
+    "02_ocr_basic.ipynb": {
+        "required": "제공된 한국 영수증을 PaddleOCR로 직접 읽고 상자가 글자 위에 맞는지 확인합니다.",
+        "edit": "`USE_MY_FILE` 한 곳만 `True`로 바꾸면 내 사진이나 인터넷에서 내려받은 공개 이미지도 시험할 수 있습니다.",
+        "research": "문서 한 장만 바꾸어 사진 기울기·해상도·언어에 따라 박스와 글자가 어떻게 달라지는지 기록합니다.",
+    },
+    "03_document_structure.ipynb": {
+        "required": "2교시 OCR 결과의 낱말 좌표를 사람이 읽는 행과 문서 영역으로 다시 묶습니다.",
+        "edit": "품목 행을 찾는 정규식 한 줄만 채웁니다. 정답을 복사해 실행해도 됩니다.",
+        "research": "2교시에서 만든 다른 이미지의 `ocr_result.json`을 넣어 행 묶기가 어디서 깨지는지 비교합니다.",
+    },
+    "04_genai_extraction.ipynb": {
+        "required": "OCR 원문에서 날짜·합계·품목과 각 값의 원문 근거를 JSON으로 만듭니다.",
+        "edit": "Excel 저장 전에 확인할 검토 결정 세 곳만 채웁니다.",
+        "research": "다른 OCR 결과를 넣어 규칙 추출과 VLM 구조 예제가 놓치는 필드를 비교합니다.",
+    },
+    "05_streamlit_basic.ipynb": {
+        "required": "지금까지 만든 처리 결과를 파일 업로드·실행 버튼·결과 영역이 있는 웹앱으로 감쌉니다.",
+        "edit": "앱 제목과 버튼 문구 두 곳만 업무에 맞게 바꿉니다.",
+        "research": "내가 고른 문서를 처음 보는 동료도 버튼의 행동을 이해할 수 있는지 확인합니다.",
+    },
+    "06_ocr_ai_integration.ipynb": {
+        "required": "웹앱에 문서 한 장을 올리고 현재 파일을 OCR로 읽어 구조화 결과까지 연결합니다.",
+        "edit": "업무에서 반드시 맞아야 할 필드 세 곳만 고릅니다.",
+        "research": "2교시에서 고른 공개 이미지를 앱에 넣어 성공·실패 이유와 필수 필드 결과를 비교합니다.",
+    },
+    "07_validation_export.ipynb": {
+        "required": "잘못된 값은 저장을 막고, 원본 확인과 승인 뒤에만 Excel을 내려받습니다.",
+        "edit": "승인 여부·검토자·원본 확인 메모 세 곳만 채웁니다.",
+        "research": "내 실험 문서에서 틀린 값 하나를 일부러 넣어 어떤 규칙이 저장을 막아야 하는지 확인합니다.",
+    },
+    "08_business_application.ipynb": {
+        "required": "견적서·신청서·거래명세서 중 한 문서를 골라 작은 PoC 후보 카드를 만듭니다.",
+        "edit": "문서 종류·점수·검토자·중단 조건만 채웁니다.",
+        "research": "공개 PDF나 비식별 캡처 한 장을 찾아 필요한 필드와 실패 조건을 카드에 추가합니다.",
+    },
 }
 
 LESSON_STEP_GUIDES = {
@@ -223,12 +266,12 @@ LESSON_STEP_GUIDES = {
         (
             "OCR 입력 한 장 준비",
             "공개 영수증과 장애 시 사용할 검수 데이터를 불러옵니다.",
-            "요청 모드와 입력 파일명이 표시되어야 합니다.",
+            "직접 읽을 파일명과 처리 계획이 표시되어야 합니다.",
         ),
         (
             "PP-OCRv5 실행",
-            "영수증 한 장을 LIVE OCR로 읽고 실패 시 복구 결과로 전환합니다.",
-            "실행 모드·복구 사유·판독 영역 수를 확인합니다.",
+            "영수증 한 장을 지금 OCR로 읽고, 실패하면 예제 결과임을 분명히 표시합니다.",
+            "처리 방식·실패 이유·판독 영역 수를 확인합니다.",
         ),
         (
             "OCR 위치 시각화와 저장",
@@ -319,7 +362,7 @@ LESSON_STEP_GUIDES = {
         (
             "웹앱·OCR 실행환경 준비",
             "Streamlit과 PaddleOCR 버전을 확인하고 필요하면 설치합니다.",
-            "웹앱 버전과 LIVE OCR 준비 결과가 표시되어야 합니다.",
+            "웹앱 버전과 직접 OCR 실행 준비 결과가 표시되어야 합니다.",
         ),
         (
             "기본 웹앱 파일 생성",
@@ -360,21 +403,21 @@ LESSON_STEP_GUIDES = {
         ),
         (
             "OCR 연동 앱 생성",
-            "LIVE OCR·오류·복구 모드를 가진 앱 파일을 저장합니다.",
+            "직접 OCR·실패·수업용 예제 경로를 가진 앱 파일을 저장합니다.",
             "`app_06.py` 저장 경로가 표시되어야 합니다.",
         ),
         (
             "실제 OCR 기록 회귀검사",
             "보존한 PP-OCRv5 좌표를 행으로 복원하고 추출값을 검사합니다.",
-            "`RECORDED LIVE REGRESSION PASS: 76000 5`를 확인합니다.",
+            "`실제 OCR 기록 재검사 통과: 76000 5`를 확인합니다.",
         ),
         (
-            "내 LIVE 통과 조건 입력",
-            "LIVE 결과에서 반드시 맞아야 할 필드 세 개를 정합니다.",
+            "내 직접 실행 통과 조건 입력",
+            "지금 OCR로 읽은 결과에서 반드시 맞아야 할 필드 세 개를 정합니다.",
             "빈칸 안내 또는 내가 입력한 세 필드가 표시되어야 합니다.",
         ),
         (
-            "LIVE 통과 조건 정답 확인",
+            "직접 실행 통과 조건 정답 확인",
             "날짜·총액·품목을 필수 확인값으로 확정합니다.",
             "세 필드가 담긴 전체 정답을 확인합니다.",
         ),
@@ -385,7 +428,7 @@ LESSON_STEP_GUIDES = {
         ),
         (
             "연동 앱 직접 조작",
-            "Colab 안에서 LIVE 처리와 준비 결과 버튼을 직접 조작합니다.",
+            "Colab 안에서 직접 읽기와 수업용 예제 버튼을 조작합니다.",
             "앱 화면 또는 검증 모드 생략 안내를 확인합니다.",
         ),
     ],
@@ -491,8 +534,9 @@ LESSON_CODE_EXPLANATIONS = {
             "Colab 업로드 창을 엽니다. 함수 내부는 수정하지 않습니다."
         ),
         (
-            "`RECEIPT_IMAGE_PATH`는 이미지, `OCR_RECORD_PATH`는 OCR 좌표 JSON입니다. "
-            "`BytesIO`가 내려받은 바이트를 PIL 이미지로 바꿉니다."
+            "`RECEIPT_IMAGE_PATH`는 이미지, `OCR_RECORD_PATH`는 OCR 좌표, "
+            "`OCR_METADATA_PATH`는 좌표를 만든 이미지 크기와 해시입니다. "
+            "세 값이 같은 원본에서 왔는지 확인한 뒤 표시합니다."
         ),
         (
             "`MY_SOURCE_OBSERVATION`이 내 답안입니다. 네 개의 `None`만 원본에서 "
@@ -503,9 +547,9 @@ LESSON_CODE_EXPLANATIONS = {
             "내 답과 정답을 한 행씩 비교하므로 수정하지 않고 실행합니다."
         ),
         (
-            "`RECORDED_PP_OCRV5_TOKENS`의 각 항목에는 글자·좌표·신뢰도가 있습니다. "
-            "`OCR_COORDINATE_SIZE`는 좌표가 기록된 기준 크기입니다. 원본 이미지 "
-            "크기에 맞게 x·y를 각각 변환한 뒤 색상 사각형을 그립니다."
+            "`RECORDED_PP_OCRV5_TOKENS`에는 글자·좌표·신뢰도가 있습니다. "
+            "`OCR_COORDINATE_SIZE`를 추측하지 않고 메타데이터에서 읽고, 원본과 "
+            "가로세로 비율이 같은지 검사한 뒤 사각형을 그립니다."
         ),
         (
             "`MY_OCR_REVIEW`의 `None`만 `True` 또는 `False`로 바꿉니다. "
@@ -550,16 +594,16 @@ LESSON_CODE_EXPLANATIONS = {
             "자료 로더를 등록하는 준비 셀이므로 수정하지 않습니다."
         ),
         (
-            "`USE_MY_RECEIPT=False`면 공개 영수증을 사용합니다. 내 영수증을 쓰려면 "
-            "비식별 처리 후 이 값만 `True`로 바꿉니다."
+            "`USE_MY_FILE=False`면 공개 한국 영수증을 사용합니다. 내 사진이나 "
+            "인터넷에서 찾은 공개 문서 이미지를 시험할 때만 `True`로 바꿉니다."
         ),
         (
-            "`RUN_LIVE_OCR`이 실제 모델 실행 여부를 정합니다. `try`가 성공하면 "
-            "`LIVE`, 실패하면 검수된 `PREPARED_FALLBACK` 결과를 사용합니다."
+            "`RUN_OCR_NOW`는 현재 이미지를 실제 OCR로 읽을지 정합니다. "
+            "학생은 바꾸지 않고 실행하며 화면의 처리 결과만 확인합니다."
         ),
         (
-            "`OCR_RESULT`의 좌표를 이미지에 그리고 JSON으로 저장합니다. "
-            "`scale_x`와 `scale_y`는 이미지 크기가 달라도 좌표를 맞춥니다."
+            "`OCR_RESULT`를 원본 위에 그리고 인식 글자·신뢰도 표를 바로 표시합니다. "
+            "`PROCESSING_PATH`를 함께 저장해 현재 실행과 이전 기록을 구분합니다."
         ),
         (
             "`review_keywords`의 세 `None`만 원본 대조에 사용할 문자열로 바꿉니다. "
@@ -577,14 +621,14 @@ LESSON_CODE_EXPLANATIONS = {
         ),
         (
             "`GOLDEN_OCR_TEXT`와 `GOLDEN_RECEIPT`는 파일 인계가 막힐 때만 쓰는 "
-            "공개 복구 데이터입니다. 실습 정답과 LIVE 결과를 구분합니다."
+            "공개 복구 데이터입니다. 수업용 예제와 지금 실행한 결과를 구분합니다."
         ),
         (
             "`reconstruct_spatial_lines()`는 y좌표가 가까운 토큰을 같은 행으로 묶고 "
             "x좌표 순서로 정렬합니다. OCR 글자를 읽기 순서로 복원하는 함수입니다."
         ),
         (
-            "`USE_PREPARED_INPUT=True`면 새 Colab에서 공개 입력을 씁니다. 앞 교시 "
+            "`USE_COURSE_EXAMPLE=True`면 새 Colab에서 공개 입력을 씁니다. 앞 교시 "
             "파일을 이어 쓰려면 `False`로 바꾸며, `groups`가 문서 영역을 나눕니다."
         ),
         (
@@ -610,7 +654,7 @@ LESSON_CODE_EXPLANATIONS = {
             "각 값의 원문 근거까지 함께 반환합니다."
         ),
         (
-            "`USE_PREPARED_INPUT=True`는 공개 입력, `False`는 3교시 파일 업로드입니다. "
+            "`USE_COURSE_EXAMPLE=True`는 공개 입력, `False`는 3교시 파일 업로드입니다. "
             "`source_mode`와 `vlm_demo_mode`를 보고 두 결과의 출처를 구분합니다."
         ),
         (
@@ -670,19 +714,19 @@ LESSON_CODE_EXPLANATIONS = {
             "`extract_receipt_from_text()` 결과의 날짜·총액·품목 수를 검사합니다."
         ),
         (
-            "`my_live_checks`의 세 `None`만 필드명으로 바꿉니다. 앱이 열리는 것과 "
+            "`my_ocr_checks`의 세 `None`만 필드명으로 바꿉니다. 앱이 열리는 것과 "
             "추출값이 맞는 것은 다르므로 업무 통과 조건을 고릅니다."
         ),
         (
-            "`ANSWER_LIVE_CHECKS`는 날짜·총액·품목을 필수 확인값으로 제시합니다. "
+            "`ANSWER_OCR_CHECKS`는 날짜·총액·품목을 필수 확인값으로 제시합니다. "
             "내 답과 비교하고 수정 없이 실행합니다."
         ),
         (
-            "`AppTest`가 준비 결과 버튼을 누르고 실행 모드와 JSON이 화면에 "
+            "`AppTest`가 수업용 예제 버튼을 누르고 처리 방식과 JSON이 화면에 "
             "나오는지 검사합니다. 실제 OCR 정확도 검사는 앞의 회귀 셀이 담당합니다."
         ),
         (
-            "Streamlit 서버를 Colab iframe으로 열어 LIVE와 복구 버튼을 직접 조작합니다. "
+            "Streamlit 서버를 Colab iframe으로 열어 직접 읽기와 수업용 예제 버튼을 조작합니다. "
             "서버 프로세스와 자동검증 분기를 수정하지 않습니다."
         ),
     ],
@@ -704,7 +748,7 @@ LESSON_CODE_EXPLANATIONS = {
             "이 셀은 데이터를 등록하므로 수정하지 않습니다."
         ),
         (
-            "`USE_PREPARED_INPUT=True`는 공개 입력, `False`는 4교시 JSON 업로드입니다. "
+            "`USE_COURSE_EXAMPLE=True`는 공개 입력, `False`는 4교시 JSON 업로드입니다. "
             "`validate_receipt()` 결과의 오류와 경고를 확인합니다."
         ),
         (
@@ -722,8 +766,9 @@ LESSON_CODE_EXPLANATIONS = {
             "원본 대조를 끝낸 뒤 실제 검토 기록을 남기는 단계입니다."
         ),
         (
-            "`REVIEW_RECORD`가 공개 승인 정답과 현재 한국 시각을 기록하고 Excel을 "
-            "생성합니다. 저장된 시트 이름과 승인 상태를 다시 열어 검사합니다."
+            "`reviewed_receipt`에 공개 샘플의 원본 대조 정답을 적용하고 "
+            "`REVIEW_RECORD`와 함께 Excel을 만듭니다. 내 자료는 내가 승인 기록을 "
+            "채우기 전까지 저장하지 않습니다."
         ),
         (
             "`FINAL_APP_SOURCE_PATHS`는 최종 앱에 필요한 파일 목록입니다. "
@@ -810,10 +855,23 @@ def learning_progress_source() -> str:
                 print(markdown_text)
 
 
-        def show_lab_step(current, total, title, action, expected, code_help):
+        def show_lab_step(
+            current,
+            total,
+            title,
+            action,
+            expected,
+            code_help,
+            edit_kind,
+        ):
+            cell_kind = {
+                "required": "🟠 내가 짧게 바꾸는 셀",
+                "optional": "🔵 원하면 바꾸는 셀",
+                "none": "🟢 그대로 실행하는 셀",
+            }[edit_kind]
             _show_learning_message(
                 f"""---
-        ### 🧪 실습 단계 {current}/{total} · {title}
+        ### {cell_kind} · {current}/{total} · {title}
 
         **지금 할 일:** {action}
 
@@ -870,6 +928,14 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
             "action": action,
             "expected": expected,
             "code_help": explanation,
+            "learner_edits": "# TODO" in cell["source"],
+            "edit_kind": (
+                "optional"
+                if "# TODO(선택)" in cell["source"]
+                else "required"
+                if "# TODO" in cell["source"]
+                else "none"
+            ),
         }
         comment_lines = [
             "# ── 코드 읽기 ─────────────────────────────────────────────",
@@ -880,9 +946,16 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
             "# ──────────────────────────────────────────────────────────"
         )
         comment_block = "\n".join(comment_lines)
+        edit_kind = (
+            "optional"
+            if "# TODO(선택)" in cell["source"]
+            else "required"
+            if "# TODO" in cell["source"]
+            else "none"
+        )
         start = (
             f"show_lab_step({current}, {total}, {title!r}, "
-            f"{action!r}, {expected!r}, {explanation!r})"
+            f"{action!r}, {expected!r}, {explanation!r}, {edit_kind!r})"
         )
         finish = f"complete_lab_step({current}, {total}, {expected!r})"
         original = cell["source"].rstrip()
@@ -905,15 +978,31 @@ def notebook(name: str, cells: list[dict]) -> dict:
     first_markdown = next(
         cell for cell in cells if cell["cell_type"] == "markdown"
     )
+    beginner_path = LESSON_BEGINNER_PATHS[name]
     first_markdown["source"] += dedent(
-        """
+        f"""
+
+        ## 이 노트북에서 내가 하는 일
+
+        - **필수 실습:** {beginner_path["required"]}
+        - **내가 바꾸는 곳:** {beginner_path["edit"]}
+        - **인터넷 자료로 다시 실험:** {beginner_path["research"]}
+
+        먼저 제공 샘플로 끝까지 실행해 `CHECKPOINT PASS`를 만드세요. 그다음
+        [공개·비식별 실습 자료 찾기](https://github.com/leecks1119/document_ai_lecture/blob/master/docs/public_practice_sources.md)를 보고
+        입력 한 장만 바꾸어 다시 실행합니다. 2교시에서 고른 자료와 결과 파일은
+        3~7교시에 그대로 이어 쓰므로 매 시간 새 자료를 찾을 필요가 없습니다.
+
+        > `🟢 그대로 실행하는 셀`은 수정하지 않습니다. `🟠 내가 짧게 바꾸는
+        > 셀`만 필수이고, `🔵 원하면 바꾸는 셀`은 시간이 남을 때 합니다.
+        > 정답은 모두 공개되어 있으므로 정답을 먼저 복사하고 결과를 관찰해도 됩니다.
 
         ## 코드 셀을 읽는 방법
 
         각 코드 셀의 맨 위에는 `코드 읽기` 주석이 있습니다.
 
         1. `수정하지 않습니다`라고 적힌 셀은 설명을 읽고 그대로 실행합니다.
-        2. `TODO`가 있는 셀은 안내된 `None` 또는 짧은 값만 바꿉니다.
+        2. 주황색 필수 `TODO`만 채웁니다. 파란색 선택 `TODO`는 건너뛰어도 됩니다.
         3. 실행 출력에서 `코드 읽는 법`과 `확인할 결과`를 다시 확인합니다.
         4. `단계 실행 완료`가 나온 뒤 다음 코드 셀로 이동합니다.
 
@@ -957,11 +1046,11 @@ def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
         > 업로드하지 않습니다. 필수 실습은 저장소의 비식별 공개·합성 샘플만
         > 사용합니다.
 
-        화면의 실행 모드를 먼저 확인합니다.
+        화면의 **처리 방식**을 먼저 확인합니다.
 
-        - `LIVE`: 현재 파일에 실제 모델을 실행한 결과
-        - `PREPARED_FALLBACK`: 공개 샘플을 사람이 검수해 둔 복구 결과
-        - 3분 이상 멈추면 실행을 중지하고 복구 결과로 계속합니다.
+        - **지금 이 사진을 직접 읽었습니다:** 현재 파일에 OCR 모델을 실행한 결과입니다.
+        - **수업용 예제 결과를 불러왔습니다:** 현재 파일을 분석한 결과가 아닙니다.
+        - 3분 이상 멈추면 실행을 중지하고 수업용 예제로 계속합니다.
         - 각 교시 끝에서 `CHECKPOINT PASS`와 산출물 파일을 확인합니다.
         """
     )
@@ -1040,7 +1129,7 @@ def runtime_cell() -> dict:
 
         OUTPUT_DIR = Path("course_outputs")
         OUTPUT_DIR.mkdir(exist_ok=True)
-        VALIDATION_MODE = os.getenv("COURSE_VALIDATE_PREPARED") == "1"
+        VALIDATION_MODE = os.getenv("COURSE_VALIDATE_EXAMPLE") == "1"
 
         def upload_previous_artifact(filename):
             target = OUTPUT_DIR / filename
@@ -1055,7 +1144,7 @@ def runtime_cell() -> dict:
             if filename not in uploaded:
                 raise FileNotFoundError(
                     f"{filename}이 선택되지 않았습니다. 준비 입력을 쓰려면 "
-                    "USE_PREPARED_INPUT=True로 바꾸세요."
+                    "USE_COURSE_EXAMPLE=True로 바꾸세요."
                 )
             target.write_bytes(uploaded[filename])
             return target
@@ -1316,23 +1405,38 @@ def reconstruct_spatial_lines(items):
 
 
 def notebook_01() -> dict:
-    prepared_items = repr(GOLDEN_RECEIPT["items"])
+    course_example_items = repr(GOLDEN_RECEIPT["items"])
     source_image_cell = code(
         """
         RECEIPT_IMAGE_PATH = (
             "sample_docs/public_receipts/korea/"
             "taebaek_restaurant_2025_redacted.png"
         )
-        OCR_RECORD_PATH = "tests/fixtures/ppocrv5_live_receipt_tokens.json"
+        OCR_RECORD_PATH = "tests/fixtures/ppocrv5_recorded_receipt_tokens.json"
+        OCR_METADATA_PATH = "tests/fixtures/ppocrv5_recorded_receipt_metadata.json"
         lesson_assets = load_course_assets(
             RECEIPT_IMAGE_PATH,
             OCR_RECORD_PATH,
+            OCR_METADATA_PATH,
         )
         receipt_image = Image.open(
             io.BytesIO(lesson_assets[RECEIPT_IMAGE_PATH])
         ).convert("RGB")
         RECORDED_PP_OCRV5_TOKENS = json.loads(
             lesson_assets[OCR_RECORD_PATH].decode("utf-8")
+        )
+        OCR_RECORD_METADATA = json.loads(
+            lesson_assets[OCR_METADATA_PATH].decode("utf-8")
+        )
+        assert hashlib.sha256(
+            lesson_assets[RECEIPT_IMAGE_PATH]
+        ).hexdigest() == OCR_RECORD_METADATA["source_image_sha256"]
+        assert hashlib.sha256(
+            lesson_assets[OCR_RECORD_PATH]
+        ).hexdigest() == OCR_RECORD_METADATA["token_file_sha256"]
+        assert receipt_image.size == (
+            OCR_RECORD_METADATA["source_image_size"]["width"],
+            OCR_RECORD_METADATA["source_image_size"]["height"],
         )
         image_source = (
             "자동 검증용 저장소 파일"
@@ -1376,6 +1480,7 @@ def notebook_01() -> dict:
         code(
             """
             import copy
+            import hashlib
             import io
             import json
             import os
@@ -1393,7 +1498,7 @@ def notebook_01() -> dict:
 
             OUTPUT_DIR = Path("course_outputs")
             OUTPUT_DIR.mkdir(exist_ok=True)
-            VALIDATION_MODE = os.getenv("COURSE_VALIDATE_PREPARED") == "1"
+            VALIDATION_MODE = os.getenv("COURSE_VALIDATE_EXAMPLE") == "1"
 
             print("실습 준비 완료")
             """
@@ -1485,7 +1590,16 @@ def notebook_01() -> dict:
 
             annotated_receipt = receipt_image.copy()
             draw = ImageDraw.Draw(annotated_receipt)
-            OCR_COORDINATE_SIZE = (900, 1100)
+            OCR_COORDINATE_SIZE = (
+                OCR_RECORD_METADATA["coordinate_space"]["width"],
+                OCR_RECORD_METADATA["coordinate_space"]["height"],
+            )
+            expected_coordinate_height = round(
+                receipt_image.height
+                * OCR_COORDINATE_SIZE[0]
+                / receipt_image.width
+            )
+            assert OCR_COORDINATE_SIZE[1] == expected_coordinate_height
             scale_x = annotated_receipt.width / OCR_COORDINATE_SIZE[0]
             scale_y = annotated_receipt.height / OCR_COORDINATE_SIZE[1]
             for token in RECORDED_PP_OCRV5_TOKENS:
@@ -1541,7 +1655,7 @@ def notebook_01() -> dict:
         ),
         code(
             """
-            # TODO: 위 표와 원본을 비교해 True 또는 False로 채우세요.
+            # TODO(선택): 위 표와 원본을 비교해 True 또는 False로 채우세요.
             MY_OCR_REVIEW = {
                 "상호명이 원본과 같다": None,
                 "거래일시가 원본과 같다": None,
@@ -1605,7 +1719,7 @@ def notebook_01() -> dict:
             VLM_DRAFT_WITH_ERROR = {{
                 "store_name": "이태리집",
                 "date": "2025-10-04",
-                "items": {prepared_items},
+                "items": {course_example_items},
                 "total_amount": 16000,
                 "evidence": {{}},
             }}
@@ -1634,7 +1748,7 @@ def notebook_01() -> dict:
         ),
         code(
             """
-            # TODO: VLM 초안을 보고 True 또는 False로 채우세요.
+            # TODO(선택): VLM 초안을 보고 True 또는 False로 채우세요.
             MY_VLM_REVIEW = {
                 "JSON 구조가 만들어졌다": None,
                 "품목이 반복 행으로 정리되었다": None,
@@ -1731,7 +1845,7 @@ def notebook_01() -> dict:
         ),
         code(
             """
-            # TODO: 원본을 보고 두 값을 채운 뒤 이 셀을 다시 실행하세요.
+            # TODO(선택): 원본을 보고 두 값을 채운 뒤 이 셀을 다시 실행하세요.
             MY_CORRECTED_TOTAL = None
             MY_TOTAL_EVIDENCE = None
 
@@ -1807,7 +1921,7 @@ def notebook_01() -> dict:
         ),
         code(
             """
-            # TODO: 원본 확인을 마쳤다면 "APPROVED", 아니면 "PENDING"을 적으세요.
+            # TODO(선택): 원본 확인을 마쳤다면 "APPROVED", 아니면 "PENDING"을 적으세요.
             MY_REVIEW_DECISION = None
 
             if not AFTER_VALIDATION["valid"]:
@@ -1917,7 +2031,7 @@ def notebook_01() -> dict:
                 },
                 "source_observation": ANSWER_SOURCE_OBSERVATION,
                 "ocr": {
-                    "engine": "PP-OCRv5 recorded live result",
+                    "engine": "PP-OCRv5 실제 실행 기록",
                     "token_count": len(RECORDED_PP_OCRV5_TOKENS),
                     "review_answer": ANSWER_OCR_REVIEW,
                 },
@@ -1967,46 +2081,87 @@ def notebook_02() -> dict:
         runtime_cell(),
         code(
             """
+            import hashlib
             import io
+            import pandas as pd
             from PIL import Image, ImageDraw
+            try:
+                from IPython.display import display
+            except ImportError:
+                def display(value):
+                    print(value)
 
             SAMPLE_IMAGE_PATH = (
                 "sample_docs/public_receipts/korea/"
                 "taebaek_restaurant_2025_redacted.png"
             )
-            PREPARED_OCR_PATH = (
-                "sample_docs/prepared/receipt_ocr_fallback.json"
+            RECORDED_OCR_PATH = (
+                "tests/fixtures/ppocrv5_recorded_receipt_tokens.json"
+            )
+            OCR_METADATA_PATH = (
+                "tests/fixtures/ppocrv5_recorded_receipt_metadata.json"
             )
             lesson_assets = load_course_assets(
                 SAMPLE_IMAGE_PATH,
-                PREPARED_OCR_PATH,
+                RECORDED_OCR_PATH,
+                OCR_METADATA_PATH,
             )
-            prepared_receipt_image = Image.open(
+            course_example_image = Image.open(
                 io.BytesIO(lesson_assets[SAMPLE_IMAGE_PATH])
             ).convert("RGB")
-            receipt_image = prepared_receipt_image.copy()
-            PREPARED_OCR_RESULT = json.loads(
-                lesson_assets[PREPARED_OCR_PATH].decode("utf-8")
+            receipt_image = course_example_image.copy()
+            COURSE_EXAMPLE_OCR_RESULT = json.loads(
+                lesson_assets[RECORDED_OCR_PATH].decode("utf-8")
             )
-            for item in PREPARED_OCR_RESULT:
-                item["confidence_source"] = "not_available_prepared_fixture"
-            USE_MY_RECEIPT = False
+            OCR_RECORD_METADATA = json.loads(
+                lesson_assets[OCR_METADATA_PATH].decode("utf-8")
+            )
+            assert hashlib.sha256(
+                lesson_assets[SAMPLE_IMAGE_PATH]
+            ).hexdigest() == OCR_RECORD_METADATA["source_image_sha256"]
+            assert hashlib.sha256(
+                lesson_assets[RECORDED_OCR_PATH]
+            ).hexdigest() == OCR_RECORD_METADATA["token_file_sha256"]
+            assert course_example_image.size == (
+                OCR_RECORD_METADATA["source_image_size"]["width"],
+                OCR_RECORD_METADATA["source_image_size"]["height"],
+            )
+            for item in COURSE_EXAMPLE_OCR_RESULT:
+                item["confidence_source"] = "previous_actual_ocr_run"
+
+            # TODO(선택): 내 사진이나 다른 공개 이미지를 시험할 때만 True로 바꾸세요.
+            USE_MY_FILE = False
             INPUT_FILE_NAME = "taebaek_restaurant_2025_redacted.png"
-            if USE_MY_RECEIPT and not VALIDATION_MODE:
+            if USE_MY_FILE and not VALIDATION_MODE:
                 from google.colab import files
                 print(
-                    "카드·승인·전화·회원번호 등을 먼저 가린 "
-                    "영수증 이미지 한 장만 선택하세요."
+                    "JPG·JPEG·PNG·WEBP 사진 한 장을 선택하세요. "
+                    "인터넷 자료는 이용조건을 확인하고, 내 문서는 카드·전화·"
+                    "회원번호 등 식별정보를 먼저 가립니다."
                 )
                 uploaded = files.upload()
                 if len(uploaded) != 1:
-                    raise ValueError("비식별 영수증 이미지 한 장만 선택하세요.")
+                    raise ValueError("문서 이미지 한 장만 선택하세요.")
                 INPUT_FILE_NAME, uploaded_bytes = next(iter(uploaded.items()))
+                if Path(INPUT_FILE_NAME).suffix.lower() not in {
+                    ".jpg", ".jpeg", ".png", ".webp"
+                }:
+                    raise ValueError(
+                        "2교시는 JPG·JPEG·PNG·WEBP 한 장을 사용합니다. "
+                        "PDF·Office 문서는 8교시에서 체험합니다."
+                    )
                 receipt_image = Image.open(
                     io.BytesIO(uploaded_bytes)
                 ).convert("RGB")
-            RUN_LIVE_OCR = not VALIDATION_MODE
-            print("요청 모드:", "LIVE" if RUN_LIVE_OCR else "PREPARED_FALLBACK")
+            RUN_OCR_NOW = not VALIDATION_MODE
+            print(
+                "처리 계획:",
+                (
+                    "지금 이 사진을 OCR로 직접 읽습니다."
+                    if RUN_OCR_NOW
+                    else "자동검사에서는 수업용 예제 결과를 사용합니다."
+                ),
+            )
             print("입력 파일:", INPUT_FILE_NAME)
             """
         ),
@@ -2014,21 +2169,22 @@ def notebook_02() -> dict:
             """
             ## 실행
 
-            기본값은 `LIVE`입니다. Colab에서 PaddleOCR 3.7과
-            `PP-OCRv5 Korean`을 사용합니다. PP-OCRv6가 최신 기본 계열이어도
-            한국어 전용 인식 모델은 PP-OCRv5 Korean을 사용합니다.
+            **PaddleOCR**는 실행 도구이고, **PP-OCRv5 Korean**은 그 안에서
+            사용하는 한국어 OCR 모델입니다. 이 노트북은 PaddleOCR 3.7에서
+            현재 이미지 한 장을 실제로 읽습니다.
 
             설치·모델 다운로드가 3분을 넘기면 중지합니다. 오류 메시지를 보존한
-            채 `PREPARED_FALLBACK`으로 전환하며, 전환 사실을 결과 JSON에 남깁니다.
+            채 같은 공개 영수증을 이전에 실제로 읽어 보존한 결과로 전환합니다.
+            이때 현재 사진을 분석한 결과가 아니라는 안내가 표시됩니다.
             """
         ),
         code(
             """
-            OCR_RESULT = PREPARED_OCR_RESULT
-            SOURCE_MODE = "PREPARED_FALLBACK"
-            FALLBACK_REASON = "offline validator"
+            OCR_RESULT = COURSE_EXAMPLE_OCR_RESULT
+            PROCESSING_PATH = "COURSE_EXAMPLE"
+            OCR_ERROR = "자동검사용 실행"
 
-            if RUN_LIVE_OCR:
+            if RUN_OCR_NOW:
                 import subprocess
                 try:
                     subprocess.check_call(
@@ -2052,7 +2208,7 @@ def notebook_02() -> dict:
                     result = payload.get("res", payload)
                     OCR_RESULT = [
                         {
-                            "box": box,
+                            "box": box.tolist() if hasattr(box, "tolist") else box,
                             "text": text,
                             "confidence": float(score),
                         }
@@ -2062,24 +2218,37 @@ def notebook_02() -> dict:
                             result.get("rec_scores", []),
                         )
                     ]
-                    SOURCE_MODE = "LIVE"
-                    FALLBACK_REASON = ""
+                    PROCESSING_PATH = "DIRECT_OCR"
+                    OCR_ERROR = ""
                 except Exception as exc:
-                    SOURCE_MODE = "PREPARED_FALLBACK"
-                    FALLBACK_REASON = f"{type(exc).__name__}: {exc}"
+                    PROCESSING_PATH = "COURSE_EXAMPLE"
+                    OCR_ERROR = f"{type(exc).__name__}: {exc}"
 
-            print("실행 모드:", SOURCE_MODE)
-            if FALLBACK_REASON:
-                print("복구 사유:", FALLBACK_REASON)
-            if SOURCE_MODE == "PREPARED_FALLBACK":
+            if PROCESSING_PATH == "DIRECT_OCR":
+                print("처리 방식: 지금 이 사진을 OCR로 직접 읽었습니다.")
+            else:
+                print("처리 방식: 이전 실제 OCR 기록을 불러왔습니다.")
+                print("중요: 현재 사진을 분석한 결과가 아닙니다.")
+            if OCR_ERROR:
+                print("직접 읽지 못한 이유:", OCR_ERROR)
+            if PROCESSING_PATH == "COURSE_EXAMPLE":
                 if INPUT_FILE_NAME != "taebaek_restaurant_2025_redacted.png":
                     print(
-                        "개인 영수증 LIVE 처리에 실패해 박스 표시는 "
-                        "공개 영수증 준비 결과로 전환합니다."
+                        "내 영수증을 직접 읽지 못해 박스 표시는 "
+                        "공개 영수증의 이전 실제 OCR 기록으로 바꿉니다."
                     )
-                receipt_image = prepared_receipt_image.copy()
+                receipt_image = course_example_image.copy()
                 DISPLAY_INPUT_FILE_NAME = "taebaek_restaurant_2025_redacted.png"
-                OCR_COORDINATE_SIZE = (900, 1100)
+                OCR_COORDINATE_SIZE = (
+                    OCR_RECORD_METADATA["coordinate_space"]["width"],
+                    OCR_RECORD_METADATA["coordinate_space"]["height"],
+                )
+                expected_height = round(
+                    receipt_image.height
+                    * OCR_COORDINATE_SIZE[0]
+                    / receipt_image.width
+                )
+                assert OCR_COORDINATE_SIZE[1] == expected_height
             else:
                 DISPLAY_INPUT_FILE_NAME = INPUT_FILE_NAME
                 OCR_COORDINATE_SIZE = receipt_image.size
@@ -2104,9 +2273,28 @@ def notebook_02() -> dict:
             annotated_path = OUTPUT_DIR / "ocr_boxes.png"
             annotated.save(annotated_path)
 
+            annotated_preview = annotated.copy()
+            annotated_preview.thumbnail((650, 800))
+            print("1) 원본 위 OCR 탐지 영역")
+            display(annotated_preview)
+
+            result_table = pd.DataFrame(
+                [
+                    {
+                        "OCR 글자": item["text"],
+                        "신뢰도": round(float(item["confidence"] or 0), 3),
+                    }
+                    for item in OCR_RESULT
+                    if item.get("text")
+                ]
+            )
+            print("2) 인식한 글자와 신뢰도")
+            display(result_table)
+            print("3) 확인할 곳: 상자가 글자를 감싸는지, 낮은 신뢰도 글자가 틀렸는지")
+
             output = {
-                "source_mode": SOURCE_MODE,
-                "fallback_reason": FALLBACK_REASON,
+                "processing_path": PROCESSING_PATH,
+                "ocr_error": OCR_ERROR,
                 "input_file": DISPLAY_INPUT_FILE_NAME,
                 "image_size": {
                     "width": annotated.width,
@@ -2126,7 +2314,17 @@ def notebook_02() -> dict:
                 json.dumps(output, ensure_ascii=False, indent=2) + "\\n",
                 encoding="utf-8",
             )
-            print("CHECKPOINT 1/1 PASS:", SOURCE_MODE, output_path, annotated_path)
+            checkpoint_label = (
+                "직접 OCR 실행"
+                if PROCESSING_PATH == "DIRECT_OCR"
+                else "이전 실제 OCR 기록 사용"
+            )
+            print(
+                "CHECKPOINT 1/1 PASS:",
+                checkpoint_label,
+                output_path,
+                annotated_path,
+            )
             """
         ),
         markdown(
@@ -2201,8 +2399,8 @@ def notebook_03() -> dict:
             previous_path = OUTPUT_DIR / "ocr_result.json"
             # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
             # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
-            USE_PREPARED_INPUT = True
-            if not previous_path.exists() and not USE_PREPARED_INPUT:
+            USE_COURSE_EXAMPLE = True
+            if not previous_path.exists() and not USE_COURSE_EXAMPLE:
                 upload_previous_artifact("ocr_result.json")
             if previous_path.exists():
                 previous = json.loads(previous_path.read_text(encoding="utf-8"))
@@ -2212,8 +2410,17 @@ def notebook_03() -> dict:
             else:
                 raw_text = GOLDEN_OCR_TEXT
                 layout_lines = raw_text.splitlines()
-                INPUT_MODE = "PREPARED_FALLBACK"
-            print("입력 모드:", INPUT_MODE)
+                INPUT_MODE = "COURSE_EXAMPLE"
+            print(
+                "입력 자료:",
+                (
+                    "2교시에서 만든 OCR 결과를 불러왔습니다."
+                    if INPUT_MODE == "PREVIOUS_LESSON"
+                    else "수업용 예제 OCR 결과를 불러왔습니다."
+                ),
+            )
+            if INPUT_MODE == "COURSE_EXAMPLE":
+                print("중요: 지금 새로 OCR을 실행한 결과가 아닙니다.")
 
 
             def clean_lines(text, source_lines):
@@ -2321,9 +2528,9 @@ def notebook_04() -> dict:
 
             - **내 문서 경로**: 3교시 OCR 결과에 규칙 추출을 적용합니다.
             - **VLM 비교 경로**: 같은 공개 영수증을 표 Markdown으로 구조화한
-              `PREPARED VLM STRUCTURE FIXTURE`를 사용합니다.
+              수업용 VLM 구조 예제를 사용합니다.
 
-            비교 fixture는 실제 모델 실행이 아닙니다. 강사의 LIVE VLM 시연 또는
+            비교 예제는 지금 모델을 실행한 결과가 아닙니다. 강사의 VLM 직접 시연 또는
             녹화가 실제 호출 경험을 담당하며, 필수 실습에서는 비용·GPU·계정
             변수를 없앱니다. 어느 경로든 다음 세 가지를 확인합니다.
 
@@ -2337,8 +2544,8 @@ def notebook_04() -> dict:
             previous_path = OUTPUT_DIR / "clean_receipt.json"
             # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
             # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
-            USE_PREPARED_INPUT = True
-            if not previous_path.exists() and not USE_PREPARED_INPUT:
+            USE_COURSE_EXAMPLE = True
+            if not previous_path.exists() and not USE_COURSE_EXAMPLE:
                 upload_previous_artifact("clean_receipt.json")
             if previous_path.exists():
                 clean_result = json.loads(previous_path.read_text(encoding="utf-8"))
@@ -2346,12 +2553,12 @@ def notebook_04() -> dict:
                 INPUT_MODE = "PREVIOUS_LESSON"
             else:
                 source_text = GOLDEN_OCR_TEXT
-                INPUT_MODE = "PREPARED_FALLBACK"
+                INPUT_MODE = "COURSE_EXAMPLE"
 
             receipt_source_mode = (
                 "ocr_rule_extraction_from_previous_lesson"
                 if INPUT_MODE == "PREVIOUS_LESSON"
-                else "prepared_fixture_rule_extraction"
+                else "course_example_rule_extraction"
             )
             receipt = extract_receipt_from_text(
                 source_text,
@@ -2366,7 +2573,7 @@ def notebook_04() -> dict:
                 "input_file": (
                     "clean_receipt.json"
                     if INPUT_MODE == "PREVIOUS_LESSON"
-                    else "prepared GOLDEN_OCR_TEXT"
+                    else "course example GOLDEN_OCR_TEXT"
                 ),
                 "engine": "course_rule_extractor",
                 "engine_version": "v2",
@@ -2384,10 +2591,10 @@ def notebook_04() -> dict:
 
             vlm_demo = extract_receipt_from_text(
                 GOLDEN_VLM_MARKDOWN,
-                "prepared_vlm_structure_fixture_rule_extraction",
+                "course_example_vlm_structure_rule_extraction",
             )
             vlm_demo["provenance"] = {
-                "fixture_type": "prepared_demonstration_fixture",
+                "fixture_type": "course_example",
                 "input_file": "taebaek_restaurant_2025_redacted.png",
                 "engine": "not_executed",
                 "engine_version": "not_applicable",
@@ -2400,7 +2607,7 @@ def notebook_04() -> dict:
             comparison = {
                 field: {
                     "ocr_rule": receipt.get(field),
-                    "prepared_vlm_structure": vlm_demo.get(field),
+                    "course_example_vlm_structure": vlm_demo.get(field),
                     "must_check_source": True,
                 }
                 for field in ("store_name", "date", "total_amount", "items")
@@ -2408,7 +2615,7 @@ def notebook_04() -> dict:
             comparison_path = OUTPUT_DIR / "vlm_comparison.json"
             comparison_path.write_text(
                 json.dumps({
-                    "warning": "prepared VLM structure fixture, not live inference",
+                    "warning": "수업용 VLM 구조 예제이며 지금 모델을 실행한 결과가 아님",
                     "comparison": comparison,
                     "vlm_provenance": vlm_demo["provenance"],
                 }, ensure_ascii=False, indent=2) + "\\n",
@@ -2418,7 +2625,7 @@ def notebook_04() -> dict:
             assert receipt["total_amount"] is None or isinstance(
                 receipt["total_amount"], int
             )
-            if INPUT_MODE == "PREPARED_FALLBACK":
+            if INPUT_MODE == "COURSE_EXAMPLE":
                 assert receipt["total_amount"] == 76000
             assert vlm_demo["total_amount"] == 76000
             assert len(vlm_demo["items"]) == 5
@@ -2539,15 +2746,15 @@ else:
             PADDLEOCR_READY = True
         except Exception as exc:
             PADDLEOCR_READY = False
-            print("LIVE OCR 준비 실패:", type(exc).__name__, exc)
+            print("영수증 직접 읽기 준비 실패:", type(exc).__name__, exc)
 
 print("Streamlit:", importlib.metadata.version("streamlit"))
 print(
-    "PaddleOCR LIVE:",
+    "영수증 직접 읽기:",
     (
-        importlib.metadata.version("paddleocr")
+        f"준비 완료 · PaddleOCR {importlib.metadata.version('paddleocr')}"
         if PADDLEOCR_READY
-        else "준비 실패 · PREPARED_FALLBACK 사용"
+        else "준비하지 못했습니다 · 수업용 예제로 계속할 수 있습니다."
     ),
 )
 """
@@ -2573,8 +2780,11 @@ def notebook_05() -> dict:
                 st.success(f"업로드 연결 확인: {{uploaded.name}} · {{len(uploaded.getvalue()):,}} bytes")
                 st.caption("이 파일은 6교시에서 실제 처리 함수와 연결합니다.")
 
-            if st.button("공개 샘플 준비 결과 보기"):
-                st.info("실행 모드: PREPARED_FALLBACK")
+            if st.button("수업용 예제 결과 보기"):
+                st.info(
+                    "수업용 예제 결과를 불러왔습니다. "
+                    "현재 업로드한 파일을 분석한 결과가 아닙니다."
+                )
                 st.text_area("판독 원문", GOLDEN_OCR_TEXT, height=220)
                 st.json(GOLDEN_RECEIPT)
             '''
@@ -2632,7 +2842,7 @@ print("저장:", output_path)
                 "영수증 Document AI 미니 앱",
                 ANSWER_APP_TITLE,
             ).replace(
-                "공개 샘플 준비 결과 보기",
+                "수업용 예제 결과 보기",
                 ANSWER_BUTTON_LABEL,
             )
             output_path.write_text(app_code, encoding="utf-8")
@@ -2649,7 +2859,10 @@ print("저장:", output_path)
             assert len(app_test.file_uploader) == 1
             assert len(app_test.button) == 1
             app_test.button[0].click().run(timeout=20)
-            assert any("PREPARED_FALLBACK" in item.value for item in app_test.info)
+            assert any(
+                "현재 업로드한 파일을 분석한 결과가 아닙니다" in item.value
+                for item in app_test.info
+            )
             print("CHECKPOINT 1/1 PASS: 업로드·버튼·결과 화면")
             """
         ),
@@ -2673,7 +2886,7 @@ def notebook_06() -> dict:
         + "\n\n"
         + dedent(
         f'''
-        def run_live_ocr(uploaded):
+        def read_receipt_now(uploaded):
             suffix = Path(uploaded.name).suffix.lower()
             with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp:
                 temp.write(uploaded.getvalue())
@@ -2709,27 +2922,27 @@ def notebook_06() -> dict:
                 Path(path).unlink(missing_ok=True)
 
 
-        def process_document(uploaded=None, *, use_prepared=False):
-            if use_prepared:
+        def process_document(uploaded=None, *, use_course_example=False):
+            if use_course_example:
                 text = GOLDEN_OCR_TEXT
-                mode = "PREPARED_FALLBACK"
+                mode = "COURSE_EXAMPLE"
             elif uploaded is None:
                 return {{"ok": False, "mode": "INPUT_ERROR", "error": "파일을 선택하세요."}}
             else:
                 try:
-                    text = run_live_ocr(uploaded)
-                    mode = "LIVE"
+                    text = read_receipt_now(uploaded)
+                    mode = "DIRECT_OCR"
                 except Exception as exc:
                     return {{
                         "ok": False,
-                        "mode": "LIVE_ERROR",
+                        "mode": "OCR_ERROR",
                         "error": f"{{type(exc).__name__}}: {{exc}}",
-                        "recovery": "공개 샘플 준비 결과 버튼을 선택하세요.",
+                        "recovery": "아래 ‘수업용 예제로 계속하기’를 누르세요.",
                     }}
             data = extract_receipt_from_text(
                 text,
-                "live_ocr_rule_extraction" if mode == "LIVE"
-                else "prepared_fixture_rule_extraction",
+                "direct_ocr_rule_extraction" if mode == "DIRECT_OCR"
+                else "course_example_rule_extraction",
             )
             return {{"ok": True, "mode": mode, "ocr_text": text, "data": data}}
 
@@ -2742,16 +2955,29 @@ def notebook_06() -> dict:
             help="PNG, JPG, JPEG, PDF만 허용합니다. 수업에서는 한 번에 5MB 이하 한 장만 처리합니다.",
         )
         left, right = st.columns(2)
-        run_live = left.button("업로드 파일 LIVE 처리")
-        run_prepared = right.button("공개 샘플 준비 결과")
-        if run_live or run_prepared:
-            result = process_document(uploaded, use_prepared=run_prepared)
+        run_ocr_now = left.button("내 영수증 직접 읽기", type="primary")
+        use_example = right.button("수업용 예제로 계속하기")
+        if run_ocr_now or use_example:
+            result = process_document(
+                uploaded,
+                use_course_example=use_example,
+            )
             if result["ok"]:
-                st.success(f"실행 모드: {{result['mode']}}")
+                if result["mode"] == "DIRECT_OCR":
+                    st.success("지금 이 사진을 OCR로 직접 읽었습니다.")
+                else:
+                    st.info(
+                        "수업용 예제 결과를 불러왔습니다. "
+                        "현재 업로드한 파일을 분석한 결과가 아닙니다."
+                    )
                 st.text_area("OCR 원문", result["ocr_text"], height=220)
                 st.json(result["data"])
             else:
-                st.error(f"{{result['mode']}} · {{result['error']}}")
+                if result["mode"] == "INPUT_ERROR":
+                    st.error("먼저 영수증 파일을 선택하세요.")
+                else:
+                    st.error("사진을 직접 읽지 못했습니다.")
+                    st.caption(f"원인: {{result['error']}}")
                 if result.get("recovery"):
                     st.info(result["recovery"])
         '''
@@ -2763,7 +2989,7 @@ def notebook_06() -> dict:
             6,
             "OCR 및 정보 추출 기능 연동",
             "app_06.py",
-            "업로드한 파일을 실제 OCR 함수에 연결하고 LIVE·오류·복구 모드를 화면에서 구분합니다.",
+            "업로드한 파일을 OCR 함수에 연결하고 직접 읽기·실패·수업용 예제를 화면에서 구분합니다.",
         ),
         runtime_cell(),
         code(STREAMLIT_SETUP + PADDLEOCR_SETUP),
@@ -2782,7 +3008,7 @@ print("저장:", output_path)
             + parser_source()
             + """
 
-OCR_RECORD_PATH = "tests/fixtures/ppocrv5_live_receipt_tokens.json"
+OCR_RECORD_PATH = "tests/fixtures/ppocrv5_recorded_receipt_tokens.json"
 recorded_asset = load_course_assets(OCR_RECORD_PATH)
 RECORDED_PP_OCRV5_TOKENS = json.loads(
     recorded_asset[OCR_RECORD_PATH].decode("utf-8")
@@ -2798,7 +3024,7 @@ assert recorded_receipt["date"] == "2025-10-04"
 assert recorded_receipt["total_amount"] == 76000
 assert len(recorded_receipt["items"]) == 5
 print(
-    "RECORDED LIVE REGRESSION PASS:",
+    "실제 OCR 기록 재검사 통과:",
     recorded_receipt["total_amount"],
     len(recorded_receipt["items"]),
 )
@@ -2806,17 +3032,17 @@ print(
         ),
         markdown(
             """
-            ## 내가 직접 정하는 LIVE 통과 조건 3개
+            ## 내가 직접 정하는 OCR 통과 조건 3개
 
-            앱이 오류 없이 열리는 것과 추출값이 맞는 것은 다릅니다. LIVE 경로가
-            반드시 확인해야 할 값을 세 개 고릅니다.
+            앱이 오류 없이 열리는 것과 추출값이 맞는 것은 다릅니다. 내 영수증을
+            직접 읽은 뒤 반드시 확인해야 할 값을 세 개 고릅니다.
             """
         ),
         code(
             """
             # TODO: 확인할 필드 세 개를 채우세요.
-            my_live_checks = [None, None, None]
-            if any(value is None for value in my_live_checks):
+            my_ocr_checks = [None, None, None]
+            if any(value is None for value in my_ocr_checks):
                 print("빈칸이 있습니다. 아래 전체 정답과 비교하세요.")
             """
         ),
@@ -2831,11 +3057,11 @@ print(
         ),
         code(
             """
-            ANSWER_LIVE_CHECKS = ["date", "total_amount", "items"]
+            ANSWER_OCR_CHECKS = ["date", "total_amount", "items"]
             assert recorded_receipt["date"]
             assert recorded_receipt["total_amount"] is not None
             assert recorded_receipt["items"]
-            print("전체 정답 · LIVE 필수 확인:", ANSWER_LIVE_CHECKS)
+            print("전체 정답 · 직접 OCR 실행 후 필수 확인:", ANSWER_OCR_CHECKS)
             """
         ),
         code(
@@ -2847,7 +3073,10 @@ print(
             assert app_test.title[0].value == "영수증 Document AI 연결 앱"
             assert len(app_test.button) == 2
             app_test.button[1].click().run(timeout=20)
-            assert any("PREPARED_FALLBACK" in item.value for item in app_test.success)
+            assert any(
+                "현재 업로드한 파일을 분석한 결과가 아닙니다" in item.value
+                for item in app_test.info
+            )
             assert app_test.json
             print("CHECKPOINT 1/1 PASS: 앱 연결·모드 표시·JSON 출력")
             """
@@ -2886,15 +3115,15 @@ def notebook_07() -> dict:
             input_path = OUTPUT_DIR / "receipt.json"
             # 기본값 True: 새 Colab에서도 공개 준비 입력으로 바로 실행합니다.
             # 앞 교시 파일을 이어 쓰려면 False로 바꾸고 업로드 창에서 선택합니다.
-            USE_PREPARED_INPUT = True
-            if not input_path.exists() and not USE_PREPARED_INPUT:
+            USE_COURSE_EXAMPLE = True
+            if not input_path.exists() and not USE_COURSE_EXAMPLE:
                 upload_previous_artifact("receipt.json")
             if input_path.exists():
                 receipt = json.loads(input_path.read_text(encoding="utf-8"))
                 INPUT_MODE = "PREVIOUS_LESSON"
             else:
                 receipt = deepcopy(GOLDEN_RECEIPT)
-                INPUT_MODE = "PREPARED_FALLBACK"
+                INPUT_MODE = "COURSE_EXAMPLE"
 
 
             def validate_receipt(data):
@@ -2951,7 +3180,16 @@ def notebook_07() -> dict:
 
             validation = validate_receipt(receipt)
             source_text = receipt.get("source_text") or GOLDEN_OCR_TEXT
-            print("입력 모드:", INPUT_MODE)
+            print(
+                "입력 자료:",
+                (
+                    "4교시에서 만든 JSON을 불러왔습니다."
+                    if INPUT_MODE == "PREVIOUS_LESSON"
+                    else "수업용 예제 JSON을 불러왔습니다."
+                ),
+            )
+            if INPUT_MODE == "COURSE_EXAMPLE":
+                print("중요: 지금 업로드한 문서를 새로 분석한 결과가 아닙니다.")
             print("검증:", validation)
             if not validation["valid"]:
                 print(
@@ -3072,18 +3310,72 @@ def notebook_07() -> dict:
             from datetime import datetime, timedelta, timezone
 
             KST = timezone(timedelta(hours=9))
+            IS_COURSE_SAMPLE = (
+                receipt.get("date") == "2025-10-04"
+                and receipt.get("total_amount") == 76000
+                and len(receipt.get("items") or []) == 5
+            )
+            reviewed_receipt = deepcopy(receipt)
+            item_corrections = []
+            if IS_COURSE_SAMPLE:
+                for item, answer_item in zip(
+                    reviewed_receipt["items"],
+                    GOLDEN_RECEIPT["items"],
+                ):
+                    if item["name"] != answer_item["name"]:
+                        item_corrections.append({
+                            "OCR 판독": item["name"],
+                            "원본 대조 후": answer_item["name"],
+                        })
+                        item["name"] = answer_item["name"]
+                if item_corrections:
+                    print("공개 샘플의 품목명 원본 대조 정답:")
+                    for correction in item_corrections:
+                        print(
+                            "-",
+                            correction["OCR 판독"],
+                            "→",
+                            correction["원본 대조 후"],
+                        )
+
+            learner_completed_review = None not in (
+                my_decision,
+                my_reviewer,
+                my_review_note,
+            )
+            default_decision = "CHANGED" if item_corrections else "APPROVED"
             REVIEW_RECORD = {
-                "decision": my_decision or "APPROVED",
-                "reviewer": my_reviewer or "learner",
+                "decision": (
+                    my_decision
+                    if learner_completed_review
+                    else default_decision if IS_COURSE_SAMPLE else "PENDING"
+                ),
+                "reviewer": (
+                    my_reviewer
+                    if learner_completed_review
+                    else "공개 정답" if IS_COURSE_SAMPLE else ""
+                ),
                 "reviewed_at": datetime.now(KST).isoformat(timespec="seconds"),
                 "note": (
                     my_review_note
-                    or "공개 비식별 원본과 상호명·날짜·품목·총액 대조 완료"
+                    if learner_completed_review
+                    else (
+                        "공개 비식별 원본 대조 후 OCR 품목명 수정"
+                        if item_corrections
+                        else "공개 비식별 원본과 주요 필드 대조 완료"
+                    )
+                    if IS_COURSE_SAMPLE
+                    else ""
                 ),
             }
+            reviewed_validation = validate_receipt(reviewed_receipt)
             output_path = OUTPUT_DIR / "receipt_result.xlsx"
             excel_created = save_reviewed_excel(
-                receipt, validation, REVIEW_RECORD, output_path, source_text
+                reviewed_receipt,
+                reviewed_validation,
+                REVIEW_RECORD,
+                output_path,
+                source_text,
             )
             if excel_created:
                 saved = load_workbook(output_path)

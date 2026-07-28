@@ -41,7 +41,7 @@ INTERNAL_QA_PHRASES = [
     "AppTest",
     "fixture_type",
     "course maintainer",
-    "RECORDED LIVE REGRESSION",
+    "실제 OCR 기록 재검사",
     "회귀 검사",
 ]
 
@@ -151,8 +151,8 @@ def validate_repository_links() -> None:
         ),
         "05_streamlit_basic.md": ("공개 영수증 결과 확인",),
         "06_ocr_ai_integration.md": (
-            "공개 샘플 준비 결과",
-            "업로드 파일 LIVE 처리",
+            "수업용 예제로 계속하기",
+            "내 영수증 직접 읽기",
         ),
     }
     for lesson_name, phrases in lesson_specific_checks.items():

@@ -192,7 +192,7 @@ def main() -> None:
             "total_amount": 76000,
         },
         "ocr": {
-            "engine": "PP-OCRv5 recorded live result",
+            "engine": "PP-OCRv5 실제 실행 기록",
             "token_count": 44,
             "observed_errors": {
                 "store_name": {"expected": "이태리집", "read": "이태리쉽!"},
