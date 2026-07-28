@@ -2262,12 +2262,16 @@ def notebook_02() -> dict:
             scale_x = annotated.width / OCR_COORDINATE_SIZE[0]
             scale_y = annotated.height / OCR_COORDINATE_SIZE[1]
             for item in OCR_RESULT:
-                points = item["box"]
-                xs = [point[0] * scale_x for point in points]
-                ys = [point[1] * scale_y for point in points]
-                draw.rectangle(
-                    (min(xs), min(ys), max(xs), max(ys)),
-                    outline="#0F766E",
+                scaled_points = [
+                    (
+                        round(point[0] * scale_x),
+                        round(point[1] * scale_y),
+                    )
+                    for point in item["box"]
+                ]
+                draw.line(
+                    scaled_points + [scaled_points[0]],
+                    fill="#0F766E",
                     width=4,
                 )
             annotated_path = OUTPUT_DIR / "ocr_boxes.png"
@@ -2290,7 +2294,10 @@ def notebook_02() -> dict:
             )
             print("2) 인식한 글자와 신뢰도")
             display(result_table)
-            print("3) 확인할 곳: 상자가 글자를 감싸는지, 낮은 신뢰도 글자가 틀렸는지")
+            print(
+                "3) 확인할 곳: 기울어진 글자도 선이 따라가는지, "
+                "낮은 신뢰도 글자가 틀렸는지"
+            )
 
             output = {
                 "processing_path": PROCESSING_PATH,

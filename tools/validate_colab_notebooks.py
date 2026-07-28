@@ -130,6 +130,8 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "OCR_COORDINATE_SIZE = receipt_image.size" in source
         assert "DISPLAY_INPUT_FILE_NAME" in source
         assert "인식한 글자와 신뢰도" in source
+        assert "scaled_points + [scaled_points[0]]" in source
+        assert "draw.rectangle(" not in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
         assert '"engine": "not_executed"' in source
