@@ -84,7 +84,7 @@ def validate_structure(path: Path, notebook: dict) -> None:
         step = cell["metadata"]["learning_step"]
         if (
             step["edit_kind"] == "none"
-            and len(cell["source"].splitlines()) >= 45
+            and len(cell["source"].splitlines()) >= 35
         ):
             assert cell["metadata"].get("cellView") == "form", (
                 f"{path}: 긴 읽기 전용 코드가 펼쳐져 있습니다: {step['title']}"

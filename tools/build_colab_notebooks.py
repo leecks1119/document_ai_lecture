@@ -1000,7 +1000,7 @@ def attach_learning_guides(name: str, cells: list[dict]) -> None:
         original = cell["source"].rstrip()
         fold_long_read_only_code = (
             edit_kind == "none"
-            and len(original.splitlines()) >= 35
+            and len(original.splitlines()) >= 28
         )
         if current == 1:
             original = (
