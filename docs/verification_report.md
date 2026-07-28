@@ -48,7 +48,7 @@ git diff --check
 
 | 교시 | 최신 확인 산출물 |
 | --- | --- |
-| 1 | `receipt_pipeline_trace.json` |
+| 1 | `lesson01_comparison_report.json` |
 | 2 | `lesson02_ocr_outputs.zip` (`ocr_result.json`, `ocr_boxes.png`) |
 | 3 | `clean_receipt.json` |
 | 4 | `receipt.json`, `vlm_comparison.json` |
@@ -56,6 +56,27 @@ git diff --check
 | 6 | `app_06.py` |
 | 7 | `receipt_result.xlsx`, `final_document_ai_app.zip` |
 | 8 | `poc_candidate_card.md`, `office_format_samples.zip` |
+
+## 1교시 전면 교체 검수
+
+기존의 기술명과 파일명 연결 실습은 학습 목표와 맞지 않아 폐기했다. 새 1교시는
+한 장의 한국 영수증에서 실제 OCR 결과, 교육용 VLM 오류 초안, Document AI
+검증, 사람 승인을 연속해서 경험하도록 다시 만들었다.
+
+| 검수 항목 | 확인한 증거 | 결과 |
+| --- | --- | --- |
+| 주제 부합성 | OCR 글자·위치·신뢰도, VLM 구조 초안, Document AI 검증, IDP 승인 경험 | 통과 |
+| 실제성 | 같은 영수증의 PP-OCRv5 LIVE 기록 44토큰과 오인식 두 곳 사용 | 통과 |
+| 출처 정직성 | VLM 결과를 현재 모델 호출이 아닌 교육용 오류 삽입 초안으로 명시 | 통과 |
+| 수강생 행동 | 원본 관찰·OCR 검토·VLM 검토·값 수정·승인·개념 선택의 TODO 6개 | 통과 |
+| 입력 반영 | 수강생이 작성한 8개 시도가 최종 `learner_attempts`에 저장 | 통과 |
+| 검증 경험 | 16,000원 초안에서 오류 3개 발견, 76,000원과 원문 근거 수정 뒤 통과 | 통과 |
+| 시각 확인 | 실제 이미지 위 44개 사각형의 위치와 신뢰도 색상 정렬 확인 | 통과 |
+| 실행 복구 | 원격 공개 이미지 실패 시 노트북 내장 비식별 이미지로 자동 전환 | 통과 |
+| 다음 교시 연결 | 1교시는 결과 비교, 2교시는 PP-OCRv5 실제 실행으로 역할 분리 | 통과 |
+
+자동 검증은 20개 이상의 셀, TODO 6개, 기존 파일명 연결 코드 부재,
+수정 전 실패·수정 후 성공, 사람 승인, 다섯 개 개념 정답을 별도로 검사한다.
 
 ## 실제 OCR 회귀가 필요한 이유
 

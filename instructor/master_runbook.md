@@ -73,7 +73,7 @@
 
 | 교시 | 종료 화면 | 산출물 | 전원 전환 기준 |
 | --- | --- | --- | --- |
-| 1 | 네 역할과 합계 근거 | `receipt_pipeline_trace.json` | 파일 생성 |
+| 1 | 실제 OCR 오인식·VLM 합계 오류·수정 후 검증 통과 | `lesson01_comparison_report.json` | 오류 발견과 개념 구분 |
 | 2 | `LIVE` 또는 복구 사유가 있는 `PREPARED_FALLBACK` | `lesson02_ocr_outputs.zip` | 모델 오류 3명 |
 | 3 | 품목 후보 5줄 | `clean_receipt.json` | 이전 파일 누락은 준비 입력 |
 | 4 | OCR+규칙 결과와 준비 VLM 구조의 provenance 구분 | `receipt.json`, `vlm_comparison.json` | 두 경로 라벨 확인 |

@@ -183,41 +183,47 @@ def main() -> None:
         )
     )
 
-    fields = {
-        "net_amount": {
-            "raw_value": "69,094",
-            "normalized_value": 69094,
-            "evidence": "원본의 공급가액 행",
-        },
-        "tax_amount": {
-            "raw_value": "6,906",
-            "normalized_value": 6906,
-            "evidence": "원본의 부가세 행",
-        },
-        "total_amount": {
-            "raw_value": "76,000",
-            "normalized_value": 76000,
-            "evidence": "원본의 합계 행",
-        },
-    }
-    pipeline_trace = {
+    lesson01_comparison_report = {
         "source_document": "taebaek_restaurant_2025_redacted.png",
-        "source_mode": "human_verified_transcription_fixture",
-        "provenance": golden_receipt["provenance"],
-        "schema_fields": list(fields),
-        "raw_text": "공급가액 69,094 / 부가세 6,906 / 합계 76,000",
-        "fields": fields,
-        "validation": {
-            "amount_math_ok": 69094 + 6906 == 76000,
-            "evidence_present": True,
+        "source_observation": {
+            "store_name": "이태리집",
+            "date": "2025-10-04",
+            "item_count": 5,
+            "total_amount": 76000,
         },
-        "routing_decision": "REVIEW",
-        "routing_reason": "정책상 원본을 보는 사람 확인 필수",
-        "human_decision": "APPROVED_AFTER_SOURCE_CHECK",
-        "next_step": "7교시에서 receipt_result.xlsx 생성",
+        "ocr": {
+            "engine": "PP-OCRv5 recorded live result",
+            "token_count": 44,
+            "observed_errors": {
+                "store_name": {"expected": "이태리집", "read": "이태리쉽!"},
+                "tax_base": {"expected": "69,094", "read": "639,094"},
+            },
+        },
+        "vlm": {
+            "example": "교육용 오류 삽입 구조 초안",
+            "model_called_in_this_notebook": False,
+            "draft_total": 16000,
+        },
+        "document_ai": {
+            "before_validation": {
+                "valid": False,
+                "errors": [
+                    "품목 합계 76,000원과 문서 합계 16,000원이 다름",
+                    "원본 확인값 76,000원과 문서 합계가 다름",
+                    "합계의 원본 근거가 없거나 원문과 다름",
+                ],
+            },
+            "after_validation": {"valid": True, "errors": []},
+            "corrected_total": 76000,
+            "source_evidence": "합계 금액 76,000",
+        },
+        "idp": {
+            "human_review_decision": "APPROVED",
+            "export_rule": "검증 통과와 사람 승인 뒤 Excel 저장",
+        },
     }
-    (SAMPLE_OUTPUTS / "receipt_pipeline_trace.json").write_text(
-        json.dumps(pipeline_trace, ensure_ascii=False, indent=2) + "\n",
+    (SAMPLE_OUTPUTS / "lesson01_comparison_report.json").write_text(
+        json.dumps(lesson01_comparison_report, ensure_ascii=False, indent=2) + "\n",
         encoding="utf-8",
     )
 

@@ -38,7 +38,7 @@
 
 | 교시 | 핵심 산출물 | 기본 실습 |
 | --- | --- | --- |
-| 1교시 | `receipt_pipeline_trace.json` | 한국 실물 영수증에서 원문·근거·검증·처리 결정과 0~12 전체 흐름 추적 |
+| 1교시 | `lesson01_comparison_report.json` | 실제 PP-OCRv5 오인식·교육용 VLM 오류 초안·수정 전후 검증·사람 승인 비교 |
 | 2교시 | `lesson02_ocr_outputs.zip` | 공개 영수증에 실제 OCR을 시도하고 선택적으로 완전 비식별 개인 영수증으로 반복 |
 | 3교시 | `clean_receipt.json` | OCR 원문을 보존해 키-값과 품목 행으로 정리 |
 | 4교시 | `receipt.json`, `vlm_comparison.json` | OCR+규칙 기준선과 준비 VLM 구조 예시의 계보 비교 |
@@ -73,7 +73,7 @@
 | 이전 최종 교육 품질 검수 | 대체됨 | 과정 메시지와 최종 Excel 기준 확정 전의 검수 |
 | PaddleOCR·멀티모달 기술 정정 | 완료 | 커밋 `301754b`, `d2f1c21`, `e0e12bb` 및 최종 교재 검증 |
 | 8교시 서문·핵심 메시지 개편 | 완료 | 실제 영수증·10/90·Excel·PoC 연결 반영 |
-| Colab·Streamlit 앱·샘플 산출물 동기화 | 완료 | `ocr_result.json`, `receipt_pipeline_trace.json`, `receipt_result.xlsx` 생성 및 검증 |
+| Colab·Streamlit 앱·샘플 산출물 동기화 | 완료 | `ocr_result.json`, `lesson01_comparison_report.json`, `receipt_result.xlsx` 생성 및 검증 |
 | 학생·강사 자료 분리 | 완료 | `lessons/` 학생 교재, `instructor/` 운영·교시별 노트 |
 | 공식·1차 참고자료 확장 | 완료 | `docs/course_references.md`에 21개 자료와 교시별 적용 범위 |
 | 프리미엄 품질 기준선 감사 | 완료 | 전문가 46/100, 초보자 강사 38/100, 이전 99/100 철회 |

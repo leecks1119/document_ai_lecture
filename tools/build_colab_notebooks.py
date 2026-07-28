@@ -19,6 +19,11 @@ GOLDEN_IMAGE = (
     / "korea"
     / "taebaek_restaurant_2025_redacted.png"
 )
+RECORDED_PP_OCRV5_TOKENS = json.loads(
+    (ROOT / "tests" / "fixtures" / "ppocrv5_live_receipt_tokens.json").read_text(
+        encoding="utf-8"
+    )
+)
 EXTENSION_IMAGES = {
     "quotation": ROOT / "sample_docs" / "extensions" / "quotation_photo.png",
     "application": ROOT
@@ -530,108 +535,634 @@ def reconstruct_spatial_lines(items):
 
 
 def notebook_01() -> dict:
-    encoded = image_base64(GOLDEN_IMAGE)
+    encoded_image = image_base64(GOLDEN_IMAGE)
+    recorded_tokens = repr(RECORDED_PP_OCRV5_TOKENS)
+    prepared_items = repr(GOLDEN_RECEIPT["items"])
+    source_image_cell = code(
+        f"""
+        RECEIPT_IMAGE_URL = (
+            "https://raw.githubusercontent.com/leecks1119/document_ai_lecture/"
+            "document_ai_lecture_2026/sample_docs/public_receipts/korea/"
+            "taebaek_restaurant_2025_redacted.png"
+        )
+        FALLBACK_IMAGE_BASE64 = {encoded_image!r}
+
+        if VALIDATION_MODE:
+            receipt_image = Image.new("RGB", (900, 1100), "white")
+            image_source = "오프라인 자동 검증용 캔버스"
+        else:
+            try:
+                response = requests.get(RECEIPT_IMAGE_URL, timeout=30)
+                response.raise_for_status()
+                receipt_image = Image.open(io.BytesIO(response.content)).convert("RGB")
+                image_source = "저장소 공개 영수증"
+            except Exception:
+                import base64
+
+                receipt_image = Image.open(
+                    io.BytesIO(base64.b64decode(FALLBACK_IMAGE_BASE64))
+                ).convert("RGB")
+                image_source = "노트북 내장 공개 영수증"
+
+        preview = receipt_image.copy()
+        preview.thumbnail((540, 660))
+        print("이미지 출처:", image_source)
+        display(preview)
+        """
+    )
+    source_image_cell["metadata"] = {
+        "collapsed": True,
+        "jupyter": {"source_hidden": True},
+    }
     cells = [
-        intro(
-            1,
-            "한국 영수증으로 구분하는 OCR·VLM·Document AI",
-            "receipt_pipeline_trace.json",
-            "실제 영수증과 최종 Excel 사이의 역할 네 가지를 직접 연결합니다.",
+        markdown(
+            """
+            # 1교시. 한국 영수증으로 구분하는 OCR·VLM·Document AI
+
+            [![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/document_ai_lecture_2026/colab/01_document_ai_overview.ipynb)
+
+            ## 오늘의 도전
+
+            같은 영수증을 세 가지 결과로 살펴봅니다.
+
+            1. 실제 PP-OCRv5 실행에서 기록한 **글자·위치·신뢰도**
+            2. 이미지와 지시문을 함께 본다고 가정한 **VLM 구조 초안**
+            3. 원본 근거와 계산 규칙으로 초안을 검사한 **Document AI 결과**
+
+            일부러 잘못 넣은 합계 `16,000원`을 찾아 `76,000원`으로 고치고,
+            사람 확인 전에는 Excel로 보낼 수 없는 이유까지 확인합니다.
+
+            > Google Colab도 외부 클라우드입니다. 필수 실습은 개인정보를 가린
+            > 공개 한국 영수증을 사용합니다. 조직 승인 없는 개인·회사 문서는
+            > 업로드하지 않습니다.
+
+            이번 시간에는 모델 설치에 시간을 쓰지 않습니다. OCR 화면은 이 영수증에
+            PP-OCRv5를 실제 실행해 보존한 결과이고, VLM 화면은 개념 비교를 위해
+            오류를 넣어 만든 교육용 구조 초안입니다. 실제 OCR 실행은 2교시에서 진행합니다.
+            """
         ),
-        runtime_cell(),
         code(
-            f"""
-            import base64
+            """
+            import copy
             import io
+            import json
+            import os
+            from pathlib import Path
+
+            import pandas as pd
+            import requests
             from PIL import Image
+            from PIL import ImageDraw
 
-            GOLDEN_IMAGE_BASE64 = {encoded!r}
-            receipt_image = Image.open(
-                io.BytesIO(base64.b64decode(GOLDEN_IMAGE_BASE64))
-            ).convert("RGB")
-            receipt_image.thumbnail((720, 900))
-            receipt_image
+            try:
+                from IPython.display import display
+            except ImportError:
+                def display(value):
+                    print(value)
+
+            OUTPUT_DIR = Path("course_outputs")
+            OUTPUT_DIR.mkdir(exist_ok=True)
+            VALIDATION_MODE = os.getenv("COURSE_VALIDATE_PREPARED") == "1"
+
+            print("실습 준비 완료")
             """
         ),
         markdown(
             """
-            ## 기억할 네 문장
+            ## 1. 먼저 사람의 눈으로 원본을 읽습니다
 
-            - **OCR**은 문서 이미지에서 글자와 위치를 읽습니다.
-            - **VLM**은 이미지와 언어를 함께 보고 문서의 의미·구조 초안을 만듭니다.
-            - **Document AI**는 분류·읽기·구조화·검증을 문서 처리 능력으로 묶습니다.
-            - **IDP**는 사람 승인, 예외 처리, 업무 시스템 연결, 운영 개선까지 포함합니다.
+            AI 결과를 보기 전에 원본에서 다음 네 가지를 직접 찾아보세요.
 
-            이 네 용어는 경쟁 제품 이름이 아니라 **포함 범위가 넓어지는 관계**입니다.
-            `OCR → VLM`은 반드시 거치는 고정 순서가 아닙니다.
+            - 상호명
+            - 거래 날짜
+            - 품목 수
+            - 합계 금액
             """
         ),
-        markdown(
-            """
-            ## 내가 직접 채우는 4줄
-
-            네 역할이 남기는 산출물을 연결합니다. 모르면 빈칸으로 실행한 뒤
-            바로 아래 힌트·전체 정답과 비교합니다.
-            """
-        ),
+        source_image_cell,
         code(
             """
-            # TODO: None 네 곳을 채우세요.
-            my_role_map = {
-                "OCR": None,
-                "VLM": None,
-                "Document AI": None,
-                "IDP": None,
+            # TODO: 영수증 원본을 보고 None 네 곳을 채우세요.
+            MY_SOURCE_OBSERVATION = {
+                "store_name": None,
+                "date": None,
+                "item_count": None,
+                "total_amount": None,
             }
-            print("내 연결:", my_role_map)
+            display(pd.DataFrame([MY_SOURCE_OBSERVATION]))
             """
         ),
         markdown(
             """
             <details>
-            <summary>힌트와 전체 정답 보기</summary>
+            <summary>힌트 보기</summary>
 
-            읽은 결과, 구조 초안, 검증 결과, 업무 파일 순서로 연결합니다.
+            합계는 영수증 아래쪽의 `합계` 행에 있습니다. 품목은 표 안에서
+            다섯 줄을 찾습니다. 금액은 쉼표를 제외한 정수로 적습니다.
             </details>
             """
         ),
         code(
             """
-            ANSWER_ROLE_MAP = {
-                "OCR": "ocr_result.json",
-                "VLM": "receipt_draft.json",
-                "Document AI": "validated_receipt.json",
-                "IDP": "receipt_result.xlsx",
+            # 전체 정답: 원본을 다시 보면서 자신의 관찰과 비교하세요.
+            ANSWER_SOURCE_OBSERVATION = {
+                "store_name": "이태리집",
+                "date": "2025-10-04",
+                "item_count": 5,
+                "total_amount": 76000,
             }
-            assert len(ANSWER_ROLE_MAP) == 4
-            print("전체 정답:", ANSWER_ROLE_MAP)
+            SOURCE_LABELS = {
+                "store_name": "상호명",
+                "date": "거래 날짜",
+                "item_count": "품목 수",
+                "total_amount": "합계 금액",
+            }
+            source_comparison = pd.DataFrame(
+                [
+                    {
+                        "항목": SOURCE_LABELS[key],
+                        "내 관찰": MY_SOURCE_OBSERVATION[key],
+                        "원본 확인값": value,
+                        "일치": (
+                            "미작성"
+                            if MY_SOURCE_OBSERVATION[key] is None
+                            else MY_SOURCE_OBSERVATION[key] == value
+                        ),
+                    }
+                    for key, value in ANSWER_SOURCE_OBSERVATION.items()
+                ]
+            )
+            display(source_comparison)
+            """
+        ),
+        markdown(
+            """
+            ## 2. OCR 결과에서 글자·위치·신뢰도를 관찰합니다
+
+            아래 결과는 같은 영수증에 PP-OCRv5를 실제 실행해 기록한 44개 글자
+            조각입니다. 초록색 사각형은 신뢰도 0.8 이상, 빨간색 사각형은
+            0.8 미만입니다.
+
+            OCR은 글자를 잘 읽은 곳과 틀린 곳을 동시에 보여 줍니다. 특히
+            상호명과 부가세 과세물품가액을 원본과 비교해 보세요.
             """
         ),
         code(
             f"""
-            pipeline_trace = {{
-                "source_document": "taebaek_restaurant_2025_redacted.png",
-                "input_policy": "approved_redacted_public_sample",
-                "roles": [
-                    {{"role": "OCR", "action": "글자·위치 판독", "artifact": "ocr_result.json"}},
-                    {{"role": "VLM", "action": "문서 의미·구조 초안", "artifact": "receipt_draft.json"}},
-                    {{"role": "Document AI", "action": "스키마·근거·규칙 검증", "artifact": "validated_receipt.json"}},
-                    {{"role": "IDP", "action": "사람 승인 후 Excel 연결", "artifact": "receipt_result.xlsx"}},
-                ],
-                "evidence_example": {{
-                    "field": "total_amount",
-                    "value": 76000,
-                    "source_text": "합계 금액 76,000",
-                    "decision": "REVIEW_BEFORE_EXPORT",
+            RECORDED_PP_OCRV5_TOKENS = {recorded_tokens}
+            assert len(RECORDED_PP_OCRV5_TOKENS) == 44
+
+            annotated_receipt = receipt_image.copy()
+            draw = ImageDraw.Draw(annotated_receipt)
+            for token in RECORDED_PP_OCRV5_TOKENS:
+                points = [tuple(point) for point in token["box"]]
+                confidence = token["confidence"] or 0
+                color = "#18A558" if confidence >= 0.8 else "#E34A33"
+                draw.line(points + [points[0]], fill=color, width=4)
+
+            annotated_preview = annotated_receipt.copy()
+            annotated_preview.thumbnail((540, 660))
+            display(annotated_preview)
+
+            OCR_FOCUS = [
+                {{
+                    "항목": "상호명",
+                    "원본": "이태리집",
+                    "OCR 판독": RECORDED_PP_OCRV5_TOKENS[2]["text"],
+                    "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[2]["confidence"], 3),
                 }},
-                "scope_note": "0~12 전체 지도는 참고용이며 오늘은 한 장 경로를 구현합니다.",
+                {{
+                    "항목": "거래일시",
+                    "원본": "2025-10-04 12:33:37",
+                    "OCR 판독": RECORDED_PP_OCRV5_TOKENS[4]["text"],
+                    "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[4]["confidence"], 3),
+                }},
+                {{
+                    "항목": "합계",
+                    "원본": "76,000",
+                    "OCR 판독": RECORDED_PP_OCRV5_TOKENS[34]["text"],
+                    "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[34]["confidence"], 3),
+                }},
+                {{
+                    "항목": "부가세 과세물품가액",
+                    "원본": "69,094",
+                    "OCR 판독": RECORDED_PP_OCRV5_TOKENS[36]["text"],
+                    "신뢰도": round(RECORDED_PP_OCRV5_TOKENS[36]["confidence"], 3),
+                }},
+            ]
+            display(pd.DataFrame(OCR_FOCUS))
+            """
+        ),
+        code(
+            """
+            # TODO: 위 표와 원본을 비교해 True 또는 False로 채우세요.
+            MY_OCR_REVIEW = {
+                "상호명이 원본과 같다": None,
+                "거래일시가 원본과 같다": None,
+                "합계가 원본과 같다": None,
+                "과세물품가액이 원본과 같다": None,
+                "높은 신뢰도는 업무 승인을 뜻한다": None,
+            }
+
+            ANSWER_OCR_REVIEW = {
+                "상호명이 원본과 같다": False,
+                "거래일시가 원본과 같다": True,
+                "합계가 원본과 같다": True,
+                "과세물품가액이 원본과 같다": False,
+                "높은 신뢰도는 업무 승인을 뜻한다": False,
+            }
+
+            ocr_review_result = pd.DataFrame(
+                [
+                    {
+                        "확인 질문": key,
+                        "내 답": MY_OCR_REVIEW[key],
+                        "전체 정답": expected,
+                        "결과": (
+                            "미작성"
+                            if MY_OCR_REVIEW[key] is None
+                            else "맞음"
+                            if MY_OCR_REVIEW[key] == expected
+                            else "다시 원본 확인"
+                        ),
+                    }
+                    for key, expected in ANSWER_OCR_REVIEW.items()
+                ]
+            )
+            display(ocr_review_result)
+            """
+        ),
+        markdown(
+            """
+            **관찰 결과**
+
+            OCR은 합계 `76,000`을 높은 신뢰도로 읽었지만 상호명은
+            `이태리쉽!`, 과세물품가액은 `639,094`로 잘못 읽었습니다.
+            신뢰도는 모델의 판독 확신이지 업무 승인 점수가 아닙니다.
+            """
+        ),
+        markdown(
+            """
+            ## 3. VLM 구조 초안에서 문맥과 오류를 함께 봅니다
+
+            VLM은 문서 이미지와 “상호명·날짜·품목·합계를 JSON으로 정리하라”는
+            지시문을 함께 받을 수 있습니다. 아래 결과는 VLM이 일반적으로 만드는
+            구조를 이해하기 위한 **교육용 예제**이며, 현재 Colab에서 모델을 호출한
+            결과가 아닙니다.
+
+            표 구조는 잘 정리되어 있지만 합계에 일부러 오류가 들어 있습니다.
+            원본과 품목 금액을 이용해 오류를 찾아보세요.
+            """
+        ),
+        code(
+            f"""
+            VLM_DRAFT_WITH_ERROR = {{
+                "store_name": "이태리집",
+                "date": "2025-10-04",
+                "items": {prepared_items},
+                "total_amount": 16000,
+                "evidence": {{}},
             }}
-            output_path = OUTPUT_DIR / "receipt_pipeline_trace.json"
+
+            display(
+                pd.DataFrame(
+                    [
+                        {{
+                            "상호명": VLM_DRAFT_WITH_ERROR["store_name"],
+                            "날짜": VLM_DRAFT_WITH_ERROR["date"],
+                            "품목 수": len(VLM_DRAFT_WITH_ERROR["items"]),
+                            "품목 합계": sum(
+                                item["line_total"]
+                                for item in VLM_DRAFT_WITH_ERROR["items"]
+                            ),
+                            "VLM 합계 초안": VLM_DRAFT_WITH_ERROR["total_amount"],
+                            "합계 근거": VLM_DRAFT_WITH_ERROR["evidence"].get(
+                                "total_amount"
+                            ),
+                        }}
+                    ]
+                )
+            )
+            display(pd.DataFrame(VLM_DRAFT_WITH_ERROR["items"]))
+            """
+        ),
+        code(
+            """
+            # TODO: VLM 초안을 보고 True 또는 False로 채우세요.
+            MY_VLM_REVIEW = {
+                "JSON 구조가 만들어졌다": None,
+                "품목이 반복 행으로 정리되었다": None,
+                "합계가 원본과 같다": None,
+                "합계의 원본 근거가 있다": None,
+                "지금 바로 Excel로 보내도 안전하다": None,
+            }
+
+            ANSWER_VLM_REVIEW = {
+                "JSON 구조가 만들어졌다": True,
+                "품목이 반복 행으로 정리되었다": True,
+                "합계가 원본과 같다": False,
+                "합계의 원본 근거가 있다": False,
+                "지금 바로 Excel로 보내도 안전하다": False,
+            }
+
+            vlm_review_result = pd.DataFrame(
+                [
+                    {
+                        "확인 질문": key,
+                        "내 답": MY_VLM_REVIEW[key],
+                        "전체 정답": expected,
+                        "결과": (
+                            "미작성"
+                            if MY_VLM_REVIEW[key] is None
+                            else "맞음"
+                            if MY_VLM_REVIEW[key] == expected
+                            else "다시 결과 확인"
+                        ),
+                    }
+                    for key, expected in ANSWER_VLM_REVIEW.items()
+                ]
+            )
+            display(vlm_review_result)
+            """
+        ),
+        markdown(
+            """
+            ## 4. Document AI 검증으로 잘못된 합계를 찾습니다
+
+            Document AI는 모델 이름 하나가 아니라 문서를 업무 데이터로 바꾸는
+            기술과 과정입니다. 여기서는 VLM 초안에 다음 검사를 적용합니다.
+
+            - 각 품목에서 `수량 × 단가 = 품목 금액`인가?
+            - 품목 금액을 모두 더한 값과 합계가 같은가?
+            - 합계가 원본에서 사람이 확인한 값과 같은가?
+            - 합계가 나온 원본 문자열을 함께 저장했는가?
+            """
+        ),
+        code(
+            """
+            EXPECTED_SOURCE_TOTAL = 76000
+            EXPECTED_SOURCE_TEXT = "합계 금액 76,000"
+
+            def validate_candidate(candidate):
+                errors = []
+                for index, item in enumerate(candidate["items"], start=1):
+                    calculated = item["quantity"] * item["unit_price"]
+                    if calculated != item["line_total"]:
+                        errors.append(
+                            f"{index}번째 품목: 수량×단가와 품목 금액이 다름"
+                        )
+
+                item_sum = sum(item["line_total"] for item in candidate["items"])
+                if item_sum != candidate["total_amount"]:
+                    errors.append(
+                        f"품목 합계 {item_sum:,}원과 문서 합계 "
+                        f"{candidate['total_amount']:,}원이 다름"
+                    )
+                if candidate["total_amount"] != EXPECTED_SOURCE_TOTAL:
+                    errors.append(
+                        f"원본 확인값 {EXPECTED_SOURCE_TOTAL:,}원과 문서 합계가 다름"
+                    )
+
+                evidence = candidate.get("evidence", {}).get("total_amount")
+                if evidence != EXPECTED_SOURCE_TEXT:
+                    errors.append("합계의 원본 근거가 없거나 원문과 다름")
+
+                return {
+                    "valid": not errors,
+                    "item_sum": item_sum,
+                    "errors": errors,
+                    "next_action": (
+                        "사람 원본 확인"
+                        if not errors
+                        else "값 수정 후 다시 검증"
+                    ),
+                }
+
+            BEFORE_VALIDATION = validate_candidate(VLM_DRAFT_WITH_ERROR)
+            assert BEFORE_VALIDATION["valid"] is False
+            display(pd.DataFrame({"발견한 문제": BEFORE_VALIDATION["errors"]}))
+            """
+        ),
+        code(
+            """
+            # TODO: 원본을 보고 두 값을 채운 뒤 이 셀을 다시 실행하세요.
+            MY_CORRECTED_TOTAL = None
+            MY_TOTAL_EVIDENCE = None
+
+            learner_candidate = copy.deepcopy(VLM_DRAFT_WITH_ERROR)
+            if MY_CORRECTED_TOTAL is not None:
+                learner_candidate["total_amount"] = MY_CORRECTED_TOTAL
+            if MY_TOTAL_EVIDENCE is not None:
+                learner_candidate["evidence"]["total_amount"] = MY_TOTAL_EVIDENCE
+
+            LEARNER_VALIDATION = validate_candidate(learner_candidate)
+            display(
+                pd.DataFrame(
+                    [
+                        {
+                            "수정한 합계": learner_candidate["total_amount"],
+                            "원본 근거": learner_candidate["evidence"].get(
+                                "total_amount"
+                            ),
+                            "검증 통과": LEARNER_VALIDATION["valid"],
+                            "다음 행동": LEARNER_VALIDATION["next_action"],
+                        }
+                    ]
+                )
+            )
+            if LEARNER_VALIDATION["errors"]:
+                display(pd.DataFrame({"남은 문제": LEARNER_VALIDATION["errors"]}))
+            """
+        ),
+        markdown(
+            """
+            <details>
+            <summary>수정 힌트와 전체 정답 보기</summary>
+
+            - 합계는 정수 `76000`입니다.
+            - 근거에는 원본의 줄 전체인 `합계 금액 76,000`을 적습니다.
+            </details>
+            """
+        ),
+        code(
+            """
+            ANSWER_CORRECTED_TOTAL = 76000
+            ANSWER_TOTAL_EVIDENCE = "합계 금액 76,000"
+
+            VALIDATED_RECEIPT = copy.deepcopy(VLM_DRAFT_WITH_ERROR)
+            VALIDATED_RECEIPT["total_amount"] = ANSWER_CORRECTED_TOTAL
+            VALIDATED_RECEIPT["evidence"]["total_amount"] = ANSWER_TOTAL_EVIDENCE
+            AFTER_VALIDATION = validate_candidate(VALIDATED_RECEIPT)
+
+            assert AFTER_VALIDATION["valid"] is True
+            display(
+                pd.DataFrame(
+                    [
+                        {
+                            "수정 전": VLM_DRAFT_WITH_ERROR["total_amount"],
+                            "수정 후": VALIDATED_RECEIPT["total_amount"],
+                            "품목 합계": AFTER_VALIDATION["item_sum"],
+                            "원본 근거": VALIDATED_RECEIPT["evidence"]["total_amount"],
+                            "검증 결과": "통과",
+                        }
+                    ]
+                )
+            )
+            """
+        ),
+        markdown(
+            """
+            ## 5. 검증 통과와 사람 승인을 구분합니다
+
+            계산 규칙을 통과해도 Excel이 바로 만들어지지는 않습니다. 담당자가
+            원본과 수정 결과를 비교하고 승인해야 합니다. 예외 처리, 사람 승인,
+            업무 시스템 연결까지 운영하는 범위를 IDP라고 설명할 수 있습니다.
+            """
+        ),
+        code(
+            """
+            # TODO: 원본 확인을 마쳤다면 "APPROVED", 아니면 "PENDING"을 적으세요.
+            MY_REVIEW_DECISION = None
+
+            if not AFTER_VALIDATION["valid"]:
+                learner_export_status = "검증 오류로 저장 차단"
+            elif MY_REVIEW_DECISION != "APPROVED":
+                learner_export_status = "사람 승인 전이므로 저장 대기"
+            else:
+                learner_export_status = "Excel 저장 가능"
+
+            print("내 결정:", MY_REVIEW_DECISION)
+            print("현재 상태:", learner_export_status)
+
+            # 전체 정답: 공개 원본을 대조한 뒤 승인한 경우
+            ANSWER_REVIEW_DECISION = "APPROVED"
+            EXCEL_PREVIEW = pd.DataFrame(
+                [
+                    {
+                        "상호명": VALIDATED_RECEIPT["store_name"],
+                        "날짜": VALIDATED_RECEIPT["date"],
+                        "품목 수": len(VALIDATED_RECEIPT["items"]),
+                        "합계": VALIDATED_RECEIPT["total_amount"],
+                        "검토 결정": ANSWER_REVIEW_DECISION,
+                    }
+                ]
+            )
+            display(EXCEL_PREVIEW)
+            """
+        ),
+        markdown(
+            """
+            ## 6. 어떤 기술의 역할인지 직접 구분합니다
+
+            다음 상황에서 가장 중심이 되는 개념을 적어 보세요.
+
+            - `멀티모달 AI`는 이미지·텍스트처럼 여러 정보 형식을 함께 다루는 상위 범주입니다.
+            - `VLM`은 그중 이미지와 언어를 함께 처리하는 모델입니다.
+            - OCR과 VLM은 필요에 따라 선택하거나 조합할 수 있으며 고정 순서가 아닙니다.
+            """
+        ),
+        code(
+            """
+            # TODO: OCR, 멀티모달 AI, VLM, Document AI, IDP 중에서 고르세요.
+            MY_CONCEPT_CHOICES = {
+                "글자의 문자열·위치·신뢰도를 얻는다": None,
+                "이미지와 텍스트 등 여러 형식을 함께 다룬다": None,
+                "문서 이미지와 지시문으로 JSON 초안을 만든다": None,
+                "스키마·원본 근거·업무 규칙으로 결과를 검사한다": None,
+                "예외·사람 승인·Excel 연결을 운영한다": None,
+            }
+
+            ANSWER_CONCEPT_CHOICES = {
+                "글자의 문자열·위치·신뢰도를 얻는다": "OCR",
+                "이미지와 텍스트 등 여러 형식을 함께 다룬다": "멀티모달 AI",
+                "문서 이미지와 지시문으로 JSON 초안을 만든다": "VLM",
+                "스키마·원본 근거·업무 규칙으로 결과를 검사한다": "Document AI",
+                "예외·사람 승인·Excel 연결을 운영한다": "IDP",
+            }
+
+            concept_quiz = pd.DataFrame(
+                [
+                    {
+                        "상황": situation,
+                        "내 답": MY_CONCEPT_CHOICES[situation],
+                        "전체 정답": answer,
+                        "결과": (
+                            "미작성"
+                            if MY_CONCEPT_CHOICES[situation] is None
+                            else "맞음"
+                            if MY_CONCEPT_CHOICES[situation] == answer
+                            else "다시 비교"
+                        ),
+                    }
+                    for situation, answer in ANSWER_CONCEPT_CHOICES.items()
+                ]
+            )
+            display(concept_quiz)
+            """
+        ),
+        markdown(
+            """
+            ## 한눈에 정리
+
+            | 개념 | 이번 영수증에서 본 역할 | 결과를 바로 믿으면 안 되는 이유 |
+            | --- | --- | --- |
+            | OCR | 글자·위치·신뢰도 판독 | 높은 신뢰도에서도 글자가 틀릴 수 있음 |
+            | 멀티모달 AI | 이미지와 텍스트를 함께 다루는 상위 범주 | 특정 처리 단계나 제품 이름이 아님 |
+            | VLM | 문맥을 이용해 JSON 구조 초안 생성 | 그럴듯한 잘못된 값을 만들 수 있음 |
+            | Document AI | 추출·정규화·근거·업무 규칙 검증 | 규칙이 놓치는 오류는 사람이 확인해야 함 |
+            | IDP | 예외 처리·사람 승인·Excel 연결·운영 개선 | 모델만으로 회사 업무가 완성되지 않음 |
+
+            2교시에서는 이 가운데 OCR을 직접 실행해 글자·위치·신뢰도를 만들어 봅니다.
+            """
+        ),
+        code(
+            """
+            comparison_report = {
+                "source_document": "taebaek_restaurant_2025_redacted.png",
+                "learner_attempts": {
+                    "source_observation": MY_SOURCE_OBSERVATION,
+                    "ocr_review": MY_OCR_REVIEW,
+                    "vlm_review": MY_VLM_REVIEW,
+                    "corrected_total": MY_CORRECTED_TOTAL,
+                    "total_evidence": MY_TOTAL_EVIDENCE,
+                    "validation": LEARNER_VALIDATION,
+                    "review_decision": MY_REVIEW_DECISION,
+                    "concept_choices": MY_CONCEPT_CHOICES,
+                },
+                "source_observation": ANSWER_SOURCE_OBSERVATION,
+                "ocr": {
+                    "engine": "PP-OCRv5 recorded live result",
+                    "token_count": len(RECORDED_PP_OCRV5_TOKENS),
+                    "review_answer": ANSWER_OCR_REVIEW,
+                },
+                "vlm": {
+                    "example": "교육용 오류 삽입 구조 초안",
+                    "model_called_in_this_notebook": False,
+                    "review_answer": ANSWER_VLM_REVIEW,
+                },
+                "document_ai": {
+                    "before_validation": BEFORE_VALIDATION,
+                    "after_validation": AFTER_VALIDATION,
+                    "corrected_total": VALIDATED_RECEIPT["total_amount"],
+                    "source_evidence": VALIDATED_RECEIPT["evidence"]["total_amount"],
+                },
+                "idp": {
+                    "human_review_decision": ANSWER_REVIEW_DECISION,
+                    "export_rule": "검증 통과와 사람 승인 뒤 Excel 저장",
+                },
+                "concept_answers": ANSWER_CONCEPT_CHOICES,
+            }
+
+            output_path = OUTPUT_DIR / "lesson01_comparison_report.json"
             output_path.write_text(
-                json.dumps(pipeline_trace, ensure_ascii=False, indent=2) + "\\n",
+                json.dumps(comparison_report, ensure_ascii=False, indent=2) + "\\n",
                 encoding="utf-8",
             )
-            assert len(pipeline_trace["roles"]) == 4
+
+            assert comparison_report["ocr"]["token_count"] == 44
+            assert comparison_report["document_ai"]["before_validation"]["valid"] is False
+            assert comparison_report["document_ai"]["after_validation"]["valid"] is True
+            assert comparison_report["idp"]["human_review_decision"] == "APPROVED"
             print("CHECKPOINT 1/1 PASS:", output_path)
             """
         ),

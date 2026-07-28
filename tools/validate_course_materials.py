@@ -22,7 +22,7 @@ LESSON_FILES = [
 ]
 
 EXPECTED_OUTPUTS = {
-    "01": ["receipt_pipeline_trace.json"],
+    "01": ["lesson01_comparison_report.json"],
     "02": ["ocr_result.json", "ocr_boxes.png", "lesson02_ocr_outputs.zip"],
     "03": ["clean_receipt.json"],
     "04": ["receipt.json", "vlm_comparison.json"],

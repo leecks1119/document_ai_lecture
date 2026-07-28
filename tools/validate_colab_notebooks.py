@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 COLAB_DIR = ROOT / "colab"
 
 EXPECTED_ARTIFACTS = {
-    "01_document_ai_overview.ipynb": "receipt_pipeline_trace.json",
+    "01_document_ai_overview.ipynb": "lesson01_comparison_report.json",
     "02_ocr_basic.ipynb": "ocr_result.json",
     "03_document_structure.ipynb": "clean_receipt.json",
     "04_genai_extraction.ipynb": "receipt.json",
@@ -45,6 +45,21 @@ def validate_structure(path: Path, notebook: dict) -> None:
     assert "easyocr" not in source.lower(), path
     assert "gradio" not in source.lower(), path
     assert "codex" not in visible_source.lower(), path
+    if path.name == "01_document_ai_overview.ipynb":
+        assert len(notebook["cells"]) >= 20
+        assert "RECORDED_PP_OCRV5_TOKENS" in source
+        assert "VLM_DRAFT_WITH_ERROR" in source
+        assert "MY_OCR_REVIEW" in source
+        assert "MY_CORRECTED_TOTAL" in source
+        assert "validate_candidate" in source
+        assert "MY_CONCEPT_CHOICES" in source
+        assert "멀티모달 AI" in source
+        assert "learner_attempts" in source
+        assert source.count("# TODO") >= 6
+        assert "16000" in source and "76000" in source
+        assert "my_role_map" not in source
+        assert "ANSWER_ROLE_MAP" not in source
+        assert "receipt_pipeline_trace" not in source
     if path.name == "02_ocr_basic.ipynb":
         assert "RUN_LIVE_OCR = not VALIDATION_MODE" in source
         assert 'lang="korean"' in source
@@ -105,6 +120,16 @@ def execute_prepared_path(path: Path, notebook: dict) -> None:
             artifact = Path("course_outputs") / EXPECTED_ARTIFACTS[path.name]
             assert artifact.is_file(), f"{path}: missing {artifact.name}"
             assert artifact.stat().st_size > 0, f"{path}: empty {artifact.name}"
+            if path.name == "01_document_ai_overview.ipynb":
+                payload = json.loads(artifact.read_text(encoding="utf-8"))
+                assert payload["ocr"]["token_count"] == 44
+                assert payload["vlm"]["model_called_in_this_notebook"] is False
+                assert payload["document_ai"]["before_validation"]["valid"] is False
+                assert payload["document_ai"]["after_validation"]["valid"] is True
+                assert payload["document_ai"]["corrected_total"] == 76000
+                assert payload["idp"]["human_review_decision"] == "APPROVED"
+                assert len(payload["concept_answers"]) == 5
+                assert len(payload["learner_attempts"]) == 8
             if path.name == "02_ocr_basic.ipynb":
                 payload = json.loads(artifact.read_text(encoding="utf-8"))
                 assert payload["source_mode"] == "PREPARED_FALLBACK"

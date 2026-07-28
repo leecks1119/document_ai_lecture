@@ -81,8 +81,8 @@
 ## 4. 하루를 관통하는 산출물
 
 ```text
-1교시  receipt_pipeline_trace.json
-        └─ 원문·정규화 값·근거·검증·처리 결정 추적
+1교시  lesson01_comparison_report.json
+        └─ 실제 OCR 오인식·VLM 오류 초안·수정 전후 검증·사람 승인 비교
           ↓
 2교시  lesson02_ocr_outputs.zip
         └─ ocr_result.json·ocr_boxes.png·원본 대조 표시
@@ -111,7 +111,7 @@
 
 | 교시 | 공지된 주제 | 핵심 메시지 | 기본 실습 | 산출물 |
 | --- | --- | --- | --- | --- |
-| 1교시 | 한국 영수증으로 구분하는 OCR·VLM·Document AI | OCR·VLM은 선택·조합 가능한 기술이고, 실제 문서 자동화는 목표 정의부터 검증·사람 확인·운영 개선까지 이어진다. | 한국 실물 영수증의 원문·정규화 값·근거·검증·처리 결정을 0~12 지도에서 추적한다. | `receipt_pipeline_trace.json` |
+| 1교시 | 한국 영수증으로 구분하는 OCR·VLM·Document AI | OCR은 글자·위치, VLM은 구조 초안, Document AI는 근거·규칙 검증을 담당하며 실제 업무에는 사람 승인과 시스템 연결이 필요하다. | 같은 한국 영수증에서 실제 PP-OCRv5 오인식과 오류를 넣은 VLM 구조 초안을 비교하고, 합계·원본 근거를 수정해 검증한 뒤 사람 승인 조건까지 확인한다. | `lesson01_comparison_report.json` |
 | 2교시 | OCR 기반 텍스트 추출 실습 | OCR 결과는 정답이 아니라 판독 초안이므로 숫자와 읽기 순서를 원본과 대조해야 한다. | 공개 영수증에 PP-OCRv5 Korean을 실행하고, 선택적으로 완전 비식별 개인 영수증으로 반복한다. | `lesson02_ocr_outputs.zip` |
 | 3교시 | 문서 구조 이해 및 추출 결과 정제 | 글자를 읽은 뒤 키-값과 반복 행의 관계를 다시 구성해야 업무 데이터가 된다. | OCR 원문을 보존하면서 상호명·날짜·품목·합계를 정리한다. | `clean_receipt.json` |
 | 4교시 | 멀티모달·생성형 AI 기반 핵심 정보 추출 | OCR+규칙과 VLM은 서로 다른 초안 경로이며 둘 다 근거 확인이 필요하다. | 3교시 텍스트로 OCR+규칙 기준선을 만들고, 같은 문서의 준비 VLM 구조 예시와 provenance를 비교한다. | `receipt.json`, `vlm_comparison.json` |
