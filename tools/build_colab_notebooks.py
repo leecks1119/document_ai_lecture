@@ -3185,7 +3185,13 @@ def notebook_04() -> dict:
             }, ensure_ascii=False, indent=2))
             print("\\n--- 실제 VLM이 읽은 품목 ---")
             if vlm_receipt["items"]:
-                display(pd.DataFrame(vlm_receipt["items"]))
+                for index, item in enumerate(vlm_receipt["items"], start=1):
+                    print(
+                        f"{index}. {item['name']} | "
+                        f"수량 {item['quantity']} | "
+                        f"단가 {item['unit_price']:,}원 | "
+                        f"금액 {item['line_total']:,}원"
+                    )
             else:
                 print("품목을 업무 JSON으로 옮기지 못했습니다. 실제 Markdown 표를 확인하세요.")
             print("✅ 실습 완료:", ocr_path, vlm_path, comparison_path)
