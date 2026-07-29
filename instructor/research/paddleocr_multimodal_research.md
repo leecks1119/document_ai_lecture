@@ -46,15 +46,19 @@ RUN_PADDLEOCR = False
 처리한다. 최초 모델 다운로드 실패가 수업 전체를 막지 않도록 mock OCR 결과를
 기본 경로로 유지한다.
 
-### 실제 멀티모달 선택 셀
+### 실제 멀티모달 필수 셀
 
 ```python
-RUN_PADDLEOCR_VL = False
+pipeline = PaddleOCRVL(
+    pipeline_version="v1.6",
+    engine="transformers",
+)
+page_results = list(pipeline.predict(str(VLM_INPUT_PATH)))
 ```
 
-`True`일 때만 GPU 런타임과 `PaddleOCRVL(engine="transformers")`를 사용한다.
-필수 경로에서는 준비된 PaddleOCR-VL Markdown·레이아웃 결과를 읽어 동일한
-학습 목표를 수행한다.
+4교시 필수 경로는 현재 이미지 픽셀을 실제 모델에 전달한다. 빠른 저장소
+자동검사만 모델 다운로드를 생략하며, 이 경우 `model_executed=false`와
+VLM 값 `null`을 유지한다. 준비된 Markdown을 실제 추론 결과로 대체하지 않는다.
 
 ## 초보자 범위
 

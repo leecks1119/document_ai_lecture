@@ -35,7 +35,8 @@ def parse_with_paddleocr_vl(
         from paddleocr import PaddleOCRVL
     except ImportError as exc:
         raise RuntimeError(
-            "PaddleOCR-VL 의존성이 없습니다. '샘플로 계속'을 선택하세요."
+            "PaddleOCR-VL 의존성이 없습니다. "
+            "requirements-vlm.txt를 설치한 뒤 다시 실행하세요."
         ) from exc
 
     path = Path(document_path)
@@ -88,7 +89,11 @@ def parse_with_paddleocr_vl(
         )
 
     return {
-        "model": "PaddleOCR-VL-1.6",
+        "model_executed": True,
+        "pipeline": "PaddleOCR-VL-1.6",
+        "vlm_model": "PaddleOCR-VL-1.6-0.9B",
+        "engine": engine,
         "source_mode": "direct_vlm",
+        "input_file": path.name,
         "pages": pages,
     }

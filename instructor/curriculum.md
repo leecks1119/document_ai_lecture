@@ -28,7 +28,7 @@
 | 실습 방식 | 제공 시작 코드·빈칸·전체 정답을 Google Colab에서 실행 |
 | 실습 언어 | Python 3.12.x |
 | 기본 OCR | PaddleOCR 3.7 + PP-OCRv5 Korean |
-| 문서 VLM | PaddleOCR-VL 1.6 또는 상용 VLM의 강사 시연 1회 |
+| 문서 VLM | PaddleOCR-VL-1.6 전체 파이프라인 + PaddleOCR-VL-1.6-0.9B 실제 모델 |
 | 웹앱 | Streamlit 1.60.0 |
 | 기본 비용 | 별도 API 과금 없음, 학습자 API 키 불필요 |
 | 최종 결과물 | 추출값 수정·재검증·승인 후 `receipt_result.xlsx`를 내려받는 Document AI 미니 프로토타입 |
@@ -76,7 +76,7 @@
 - 개인 영수증과 회사 문서는 공개 웹앱 주소나 외부 API에 올리지 않는다.
 - 필수 실습은 공개 터널 없이 Colab의 Streamlit AppTest로 확인한다.
 - 학습자가 실제 영수증으로 OCR을 실행한 뒤에는 셀 출력과 런타임 파일을 삭제한다.
-- 상용 VLM은 강사 계정과 비식별 샘플로 한 번만 시연한다.
+- 4교시 오픈소스 문서 VLM은 공개 비식별 샘플과 Colab GPU로 실제 실행한다.
 
 ## 4. 하루를 관통하는 산출물
 
@@ -90,8 +90,9 @@
 3교시  clean_receipt.json
         └─ raw OCR·정제값·키-값·반복 품목
           ↓
-4교시  receipt.json + vlm_comparison.json
-        └─ OCR+규칙 기준선·준비 VLM 구조 비교·원문 근거
+4교시  paddleocr_vl_raw.json + paddleocr_vl_result.md
+        + receipt.json + receipt_vlm.json + vlm_comparison.json
+        └─ 실제 문서 VLM 실행·OCR+규칙 기준선 비교·원문 근거
           ↓
 5교시  app_05.py
         └─ 파일 입력·버튼·결과 화면
@@ -115,7 +116,7 @@
 | 1교시 | 한국 영수증으로 구분하는 OCR·VLM·Document AI | OCR은 글자·위치, VLM은 구조 초안, Document AI는 근거·규칙 검증을 담당하며 실제 업무에는 사람 승인과 시스템 연결이 필요하다. | 같은 한국 영수증에서 실제 PP-OCRv5 오인식과 오류를 넣은 VLM 구조 초안을 비교하고, 합계·원본 근거를 수정해 검증한 뒤 사람 승인 조건까지 확인한다. | `lesson01_comparison_report.json` |
 | 2교시 | OCR 기반 텍스트 추출 실습 | OCR 결과는 정답이 아니라 판독 초안이므로 숫자와 읽기 순서를 원본과 대조해야 한다. | 공개 영수증에 PP-OCRv5 Korean을 실행하고, 선택적으로 완전 비식별 개인 영수증으로 반복한다. | `lesson02_ocr_outputs.zip` |
 | 3교시 | 문서 구조 이해 및 추출 결과 정제 | 글자를 읽은 뒤 키-값과 반복 행의 관계를 다시 구성해야 업무 데이터가 된다. | OCR 원문을 보존하면서 상호명·날짜·품목·합계를 정리한다. | `clean_receipt.json` |
-| 4교시 | 멀티모달·생성형 AI 기반 핵심 정보 추출 | OCR+규칙과 VLM은 서로 다른 초안 경로이며 둘 다 근거 확인이 필요하다. | 3교시 텍스트로 OCR+규칙 기준선을 만들고, 같은 문서의 준비 VLM 구조 예시와 provenance를 비교한다. | `receipt.json`, `vlm_comparison.json` |
+| 4교시 | 멀티모달·생성형 AI 기반 핵심 정보 추출 | OCR+규칙과 실제 문서 VLM은 서로 다른 초안 경로이며 둘 다 근거 확인이 필요하다. | 공개 영수증을 PaddleOCR-VL-1.6-0.9B로 직접 읽어 Markdown·구조 JSON을 만들고 OCR+규칙 기준선과 비교한다. | `paddleocr_vl_raw.json`, `paddleocr_vl_result.md`, `receipt.json`, `receipt_vlm.json`, `vlm_comparison.json` |
 | 5교시 | 문서 자동화 웹 애플리케이션 기본 구현 | Python 함수에 입력과 결과 화면을 붙이면 사람이 사용할 수 있는 작은 도구가 된다. | Streamlit 파일 입력·버튼·결과 화면을 만들고 AppTest와 Colab 미리보기로 검사한다. | `app_05.py` |
 | 6교시 | OCR 및 정보 추출 기능 연동 | 입력에 맞는 가장 단순한 경로를 골라 판독 결과와 JSON 추출 함수를 연결한다. | `파일 → OCR 또는 수업용 예제 → 공간 순서 복원 → 추출 함수 → JSON` 경로와 실제 OCR 실행 회귀 사례를 확인한다. | `app_06.py` |
 | 7교시 | 추출 결과 검증 및 데이터 저장 | 사람이 값을 수정해도 재검증을 통과한 승인 결과만 Excel이 된다. | 잘못된 수정값의 저장을 막고 최종 앱에서 원본 대조·수정·재검증·승인·Excel 다운로드를 완주한다. | `receipt_result.xlsx`, `final_document_ai_app.zip` |
@@ -139,7 +140,13 @@
 
 ### 4교시. 멀티모달·생성형 AI 기반 핵심 정보 추출
 
-강사가 PaddleOCR-VL 1.6 또는 상용 VLM을 비식별 샘플로 한 번 시연한다. 학습자 필수 코드는 3교시 OCR 텍스트에 규칙을 적용한 기준선이며 이를 VLM 결과라고 부르지 않는다. 별도의 준비 VLM 구조 예시는 `engine=not_executed`로 표시한다. 두 결과에서 각 값의 원문 근거를 확인하고 찾을 수 없으면 `null`로 둔다.
+모든 학습자가 Colab GPU에서 공개 비식별 영수증 한 장을
+`PaddleOCRVL(pipeline_version="v1.6", engine="transformers")`로 직접
+처리한다. 전체 파이프라인은 레이아웃 분석·영역 자르기·읽기 순서·
+`PaddleOCR-VL-1.6-0.9B` 인식·결과 조립을 수행한다. 실제 모델의
+Markdown·구조 JSON과 이를 Python 규칙으로 업무 필드에 옮긴 JSON을
+분리해 저장한다. `model_executed=true`가 아니면 VLM 실습 완료로 보지 않으며,
+찾을 수 없는 값은 `null`로 둔다.
 
 ### 5교시. 문서 자동화 웹 애플리케이션 기본 구현
 
@@ -214,7 +221,8 @@ Office 원본, 텍스트 PDF, 표 캡처, 사진에 맞는 입력 라우팅은 �
 ## 11. 2026-07-27 기술 기준
 
 - 한국어 OCR 기본 경로: PaddleOCR 3.7의 `lang="korean"`, `ocr_version="PP-OCRv5"`
-- 문서 VLM 시연 후보: PaddleOCR-VL 1.6
+- 문서 VLM 필수 경로: PaddleOCR-VL-1.6 전체 파이프라인과
+  PaddleOCR-VL-1.6-0.9B 실제 모델
 - 2024년의 유명 사례와 발표 자료는 문제 구조와 스토리 설명에 활용할 수 있다.
 - 모델 버전·가격·성능·지원 언어·보안 정책은 2026-07-27 현재 공식 자료로 다시 확인한다.
 - 무료 Colab은 별도 이용료가 없지만 자원·GPU·사용 시간을 보장하지 않는다.

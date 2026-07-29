@@ -64,7 +64,7 @@ git diff --check
 | 1 | `lesson01_comparison_report.json` |
 | 2 | `lesson02_ocr_outputs.zip` (`ocr_result.json`, `ocr_boxes.png`) |
 | 3 | `clean_receipt.json` |
-| 4 | `receipt.json`, `vlm_comparison.json` |
+| 4 | `paddleocr_vl_raw.json`, `paddleocr_vl_result.md`, `receipt.json`, `receipt_vlm.json`, `vlm_comparison.json` |
 | 5 | `app_05.py` |
 | 6 | `app_06.py` |
 | 7 | `receipt_result.xlsx`, `final_document_ai_app.zip` |
@@ -112,11 +112,15 @@ git diff --check
 ## OCR·VLM 결과의 계보
 
 - `receipt.json`: 3교시 OCR 정제 텍스트를 규칙으로 구조화한 기준선
-- `vlm_comparison.json`: 같은 공개 문서의 준비 VLM 구조 예시
-- 준비 VLM 예시: `engine=not_executed`, 현재 실행 결과가 아니라는 안내 포함
-- 실제 VLM: 승인된 강사 계정·비식별 샘플·예산 상한이 있을 때 한 번만 시연
+- `paddleocr_vl_raw.json`: 4교시 현재 이미지의 PaddleOCR-VL-1.6 실제 구조 결과
+- `paddleocr_vl_result.md`: 실제 모델이 복원한 Markdown
+- `receipt_vlm.json`: 실제 Markdown에 공개된 업무 규칙을 적용한 결과
+- `vlm_comparison.json`: OCR+규칙 기준선과 실제 VLM 결과의 필드별 비교
+- 저장소 빠른 자동검사는 모델 다운로드를 생략하며 `model_executed=false`,
+  VLM 값 `null`, Markdown 미생성을 확인한다.
 
-따라서 정규식을 실행한 결과를 VLM 추론이라고 표시하지 않는다.
+따라서 정규식을 실행한 결과를 VLM 추론이라고 표시하지 않으며, Colab에서는
+`model_executed=true`와 실제 Markdown을 모두 확인해야 VLM 실습 완료로 본다.
 
 ## 최종 앱에서 확인한 보호 경로
 

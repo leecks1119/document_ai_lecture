@@ -66,7 +66,7 @@
 | 1 | 한국 영수증으로 구분하는 OCR·VLM·Document AI | 같은 영수증의 OCR 결과, VLM 초안, 검증 결과를 비교하며 역할 차이를 확인합니다. | 기술 비교·오류 수정 보고서 |
 | 2 | OCR 기반 텍스트 추출 실습 | OCR이 읽은 글자뿐 아니라 위치와 신뢰도도 함께 확인해야 합니다. | OCR 결과와 위치 표시 이미지 |
 | 3 | 문서 구조 이해 및 추출 결과 정제 | 흩어진 글자를 키-값과 품목 행으로 다시 묶어야 데이터가 됩니다. | 정리된 영수증 JSON |
-| 4 | 멀티모달·생성형 AI 기반 핵심 정보 추출 | OCR과 규칙을 쓰는 방법, VLM을 쓰는 방법의 차이를 비교합니다. | 업무용 영수증 JSON |
+| 4 | 멀티모달·생성형 AI 기반 핵심 정보 추출 | 공개 영수증을 PaddleOCR-VL-1.6-0.9B로 직접 읽고 OCR+규칙 결과와 비교합니다. | 실제 VLM 원본 결과·업무용 영수증 JSON |
 | 5 | 문서 자동화 웹 애플리케이션 기본 구현 | 파일을 올리고 결과를 확인할 수 있는 간단한 화면을 만듭니다. | Streamlit 미니 앱 |
 | 6 | OCR 및 정보 추출 기능 연동 | 화면에 올린 파일이 실제 OCR과 정보 추출 함수를 거치도록 연결합니다. | 문서 처리 앱 |
 | 7 | 추출 결과 검증 및 데이터 저장 | 잘못 읽은 값을 수정하고 승인한 결과만 Excel로 저장합니다. | 검토 가능한 최종 앱과 Excel |
@@ -81,7 +81,7 @@
 | 1 | [OCR·VLM·Document AI 이해하기](lessons/01_document_ai_overview.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/01_document_ai_overview.ipynb) |
 | 2 | [OCR로 영수증 읽기](lessons/02_ocr_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/02_ocr_basic.ipynb) |
 | 3 | [읽힌 글자를 문서 구조로 정리하기](lessons/03_document_structure.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/03_document_structure.ipynb) |
-| 4 | [OCR·규칙과 VLM 비교하기](lessons/04_genai_extraction.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/04_genai_extraction.ipynb) |
+| 4 | [OCR·규칙과 실제 PaddleOCR-VL 비교하기](lessons/04_genai_extraction.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/04_genai_extraction.ipynb) |
 | 5 | [문서 자동화 화면 만들기](lessons/05_streamlit_basic.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/05_streamlit_basic.ipynb) |
 | 6 | [화면과 실제 문서 처리 연결하기](lessons/06_ocr_ai_integration.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/06_ocr_ai_integration.ipynb) |
 | 7 | [검증하고 Excel로 저장하기](lessons/07_validation_export.md) | [Colab 열기](https://colab.research.google.com/github/leecks1119/document_ai_lecture/blob/master/colab/07_validation_export.ipynb) |

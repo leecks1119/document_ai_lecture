@@ -45,7 +45,7 @@
 | 1교시 | `lesson01_comparison_report.json` | 실제 PP-OCRv5 오인식·교육용 VLM 오류 초안·수정 전후 검증·사람 승인 비교 |
 | 2교시 | `lesson02_ocr_outputs.zip` | 공개 영수증에 실제 OCR을 시도하고 선택적으로 완전 비식별 개인 영수증으로 반복 |
 | 3교시 | `clean_receipt.json` | OCR 원문을 보존해 키-값과 품목 행으로 정리 |
-| 4교시 | `receipt.json`, `vlm_comparison.json` | OCR+규칙 기준선과 준비 VLM 구조 예시의 계보 비교 |
+| 4교시 | `paddleocr_vl_raw.json`, `paddleocr_vl_result.md`, `receipt.json`, `receipt_vlm.json`, `vlm_comparison.json` | 공개 영수증에 PaddleOCR-VL-1.6-0.9B를 실제 실행하고 OCR+규칙 기준선과 비교 |
 | 5교시 | 기본 Streamlit 앱 | AppTest와 Colab 내부 미리보기로 화면 확인 |
 | 6교시 | 통합 미니 앱 | 파일 → OCR → 공간 순서 복원 → JSON 연결 |
 | 7교시 | Excel·최종 앱 ZIP | 사람의 수정값 재검증·승인 후 Excel 저장 |

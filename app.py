@@ -59,7 +59,7 @@ processor = st.radio(
     format_func=lambda value: (
         "PaddleOCR · PP-OCRv5 Korean"
         if value == "ocr"
-        else "문서 VLM · 강사 시연 또는 수업용 예제"
+        else "PaddleOCR-VL 1.6 · 실제 모델(설치·GPU 필요)"
     ),
 )
 

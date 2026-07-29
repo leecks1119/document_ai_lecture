@@ -153,9 +153,9 @@ LESSON_BEGINNER_PATHS = {
         "research": "2교시에서 만든 다른 이미지의 `ocr_result.json`을 넣어 행 묶기가 어디서 깨지는지 비교합니다.",
     },
     "04_genai_extraction.ipynb": {
-        "required": "OCR 원문에서 날짜·합계·품목과 각 값의 원문 근거를 JSON으로 만듭니다.",
-        "edit": "Excel 저장 전에 확인할 검토 결정 세 곳만 채웁니다.",
-        "research": "다른 OCR 결과를 넣어 규칙 추출과 VLM 구조 예제가 놓치는 필드를 비교합니다.",
+        "required": "공개 영수증 한 장을 PaddleOCR-VL-1.6으로 직접 읽고 OCR+규칙 결과와 비교합니다.",
+        "edit": "이미지 출처와 Excel 저장 전 검토 결정 세 곳만 바꿉니다.",
+        "research": "다른 공개·비식별 이미지로 실제 VLM을 다시 실행해 잘 읽은 구조와 빠진 필드를 기록합니다.",
     },
     "05_streamlit_basic.ipynb": {
         "required": "지금까지 만든 처리 결과를 파일 업로드·실행 버튼·결과 영역이 있는 웹앱으로 감쌉니다.",
@@ -351,13 +351,8 @@ LESSON_STEP_GUIDES = {
     "04_genai_extraction.ipynb": [
         (
             "공통 환경 준비",
-            "이전 구조화 결과를 받을 폴더와 복구 기능을 준비합니다.",
+            "모델 결과를 저장할 폴더와 실습 자료 다운로드 기능을 준비합니다.",
             "Python·Platform·공통 작업 폴더가 표시되어야 합니다.",
-        ),
-        (
-            "추출 정답과 비교 자료 준비",
-            "영수증 원문·구조 초안·정답 스키마를 등록합니다.",
-            "오류 없이 끝나면 비교 자료가 준비된 것입니다.",
         ),
         (
             "규칙 추출 함수 준비",
@@ -365,9 +360,24 @@ LESSON_STEP_GUIDES = {
             "오류 없이 끝나면 추출 함수를 사용할 수 있습니다.",
         ),
         (
-            "OCR 경로와 VLM 경로 비교",
-            "이전 구조 결과를 읽어 두 경로의 결과와 출처를 구분합니다.",
-            "총액·원문 근거·결과 출처와 두 JSON 파일을 확인합니다.",
+            "VLM 입력 이미지 준비",
+            "제공 예제·내 파일·인터넷 주소 중 이미지 한 장을 선택합니다.",
+            "선택한 자료·파일명·이미지 크기와 원본 화면을 확인합니다.",
+        ),
+        (
+            "GPU와 VLM 실행환경 확인",
+            "Colab GPU를 확인하고 PaddleOCR-VL 실행 패키지를 설치합니다.",
+            "GPU 이름·파이프라인·VLM 모델명이 표시되어야 합니다.",
+        ),
+        (
+            "PaddleOCR-VL 실제 실행",
+            "현재 이미지 픽셀을 PaddleOCR-VL-1.6에 전달해 Markdown과 JSON을 만듭니다.",
+            "`모델 실행 완료: True`와 실제 Markdown 일부를 확인합니다.",
+        ),
+        (
+            "업무 JSON 변환과 비교",
+            "실제 VLM Markdown을 업무 JSON으로 바꾸고 OCR+규칙 기준선과 비교합니다.",
+            "세 결과 파일과 모델 실행 여부·총액·원문 근거를 확인합니다.",
         ),
         (
             "내 검토 결정 입력",
@@ -669,20 +679,28 @@ LESSON_CODE_EXPLANATIONS = {
     ],
     "04_genai_extraction.ipynb": [
         (
-            "3교시의 `clean_receipt.json`을 받을 폴더와 복구 기능을 준비합니다. "
-            "설정 코드이므로 수정하지 않습니다."
-        ),
-        (
-            "`SAMPLE_VLM_MARKDOWN`은 현재 모델 호출 결과가 아니라 비교용 구조 초안입니다. "
-            "실제 실행 결과와 준비 예제를 혼동하지 않습니다."
+            "`OUTPUT_DIR`는 모델 원본 결과와 업무 JSON을 모으는 폴더이고 "
+            "`load_course_assets()`는 공개 이미지를 받습니다. 수정하지 않습니다."
         ),
         (
             "`extract_receipt_from_text()`는 정규식으로 날짜·합계·품목을 찾고 "
             "각 값의 원문 근거까지 함께 반환합니다."
         ),
         (
-            "`실습_자료`에서 제공 예제·파일 업로드·인터넷 JSON 주소를 고릅니다. "
-            "화면의 `입력 자료`와 원문 근거를 보고 결과가 어디서 왔는지 확인합니다."
+            "`실습_자료`에서 제공 예제·내 파일·인터넷 이미지 주소를 고릅니다. "
+            "`VLM_INPUT_PATH`가 실제 모델에 전달할 현재 이미지입니다."
+        ),
+        (
+            "`torch.cuda.is_available()`로 GPU를 확인한 뒤 `paddleocr[doc-parser]`와 "
+            "`transformers`를 설치합니다. GPU가 없으면 안내대로 런타임을 바꿉니다."
+        ),
+        (
+            "`PaddleOCRVL`은 `pipeline_version='v1.6'`과 `engine='transformers'`로 "
+            "현재 이미지에 실제 추론합니다. 실패 시 예제 결과로 바꾸지 않습니다."
+        ),
+        (
+            "`vlm_markdown`은 실제 모델 출력이고 `vlm_receipt`은 이를 업무 스키마로 "
+            "옮긴 결과입니다. `model_executed`와 두 경로의 값 차이를 확인합니다."
         ),
         (
             "`my_review`의 세 `None`만 채웁니다. 중요 필드, 원문 근거 유무, "
@@ -1157,6 +1175,16 @@ def notebook(name: str, cells: list[dict]) -> dict:
 
 def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
     slug = NOTEBOOK_SLUGS[lesson]
+    recovery_note = (
+        "4교시는 제공 이미지를 실제 VLM으로 읽어야 완료됩니다. GPU가 없거나\n"
+        "        모델 실행이 실패하면 준비 결과로 성공 처리하지 않습니다. T4 GPU를\n"
+        "        선택하고 GPU 확인 셀부터 다시 실행합니다."
+        if lesson == 4
+        else (
+            "모델 설치가 3분 이상 진행되지 않으면 실행을 중지하고 제공 예제로\n"
+            "        핵심 단계를 계속합니다."
+        )
+    )
     return markdown(
         f"""
         # {lesson}교시. {title}
@@ -1180,8 +1208,7 @@ def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
 
         필수 실습에서는 제공 예제를 사용합니다. 다른 자료를 사용한 경우에는
         화면에 표시된 파일명이 내가 선택한 파일과 같은지 먼저 확인합니다.
-        모델 설치가 3분 이상 진행되지 않으면 실행을 중지하고 제공 예제로
-        핵심 단계를 계속합니다.
+        {recovery_note}
         """
     )
 
@@ -2757,116 +2784,311 @@ def notebook_04() -> dict:
         intro(
             4,
             "멀티모달·생성형 AI 기반 핵심 정보 추출",
-            "receipt.json",
-            "같은 영수증을 업무 JSON 초안으로 만들고 모든 핵심값에 원본 근거를 붙입니다.",
+            "paddleocr_vl_result.md",
+            "공개 영수증을 실제 문서 VLM으로 읽고 업무 JSON과 원본 근거를 확인합니다.",
         ),
         runtime_cell(),
-        code(sample_constants()),
         code(parser_source()),
         markdown(
             """
-            ## OCR+규칙과 VLM 구조 초안은 다른 경로입니다
+            ## 이번 실습은 실제 문서 VLM을 실행합니다
 
-            이 교시에서는 두 결과를 나란히 봅니다.
+            사용하는 전체 파이프라인은 **PaddleOCR-VL-1.6**이고, 그 안에서
+            이미지를 언어와 함께 처리하는 모델은
+            **PaddleOCR-VL-1.6-0.9B**입니다.
 
-            - **내 문서 경로**: 3교시 OCR 결과에 규칙 추출을 적용합니다.
-            - **VLM 비교 경로**: 같은 공개 영수증을 표 Markdown으로 구조화한
-              수업용 VLM 구조 예제를 사용합니다.
+            ```text
+            현재 이미지 픽셀
+              → 문서 레이아웃 영역 탐지
+              → 영역 자르기와 읽기 순서 결정
+              → PaddleOCR-VL-1.6-0.9B가 각 영역 인식
+              → Markdown·구조 JSON 조립
+              → 업무용 영수증 JSON 변환
+            ```
 
-            비교 예제는 지금 모델을 실행한 결과가 아닙니다. 강사의 VLM 직접 시연 또는
-            녹화가 실제 호출 경험을 담당하며, 필수 실습에서는 비용·GPU·계정
-            변수를 없앱니다. 어느 경로든 다음 세 가지를 확인합니다.
+            PaddleOCR-VL은 문서를 Markdown과 구조 JSON으로 복원하는 문서 전용
+            VLM입니다. 상호명·합계 같은 회사 업무 필드로 옮기는 마지막 단계는
+            아래의 투명한 Python 규칙이 담당합니다. 이 둘을 한 모델의 능력처럼
+            섞어 부르지 않습니다.
 
-            1. **스키마**: 필요한 필드와 자료형이 맞는가?
-            2. **근거**: 값이 원본 어느 줄에서 왔는가?
-            3. **불확실성**: 근거가 없으면 추측하지 않고 `null`인가?
+            이 실습은 API 키와 건당 호출 비용은 없지만 Colab GPU와 최초 모델
+            다운로드가 필요합니다. GPU가 없거나 실제 추론이 실패하면 성공한
+            예제 결과로 몰래 바꾸지 않고 그 셀에서 멈춥니다.
+            """
+        ),
+        code(
+            f"""
+            # INPUT_FORM_CELL
+            import io
+            import requests
+            from PIL import Image
+            try:
+                from IPython.display import display
+            except ImportError:
+                def display(value):
+                    print(value)
+
+            SAMPLE_IMAGE_PATH = (
+                "sample_docs/public_receipts/korea/"
+                "taebaek_restaurant_2025_redacted.png"
+            )
+            provided_bytes = load_course_assets(SAMPLE_IMAGE_PATH)[SAMPLE_IMAGE_PATH]
+
+            # TODO(선택): 제공 예제를 끝낸 뒤 이미지 한 장만 바꾸어 다시 실행하세요.
+            실습_자료 = "제공 예제" #@param ["제공 예제", "내 컴퓨터에서 업로드", "인터넷 이미지 URL"]
+            인터넷_이미지_URL = "" #@param {{type:"string"}}
+            if AUTOMATED_CHECK:
+                실습_자료 = "제공 예제"
+
+            input_bytes = provided_bytes
+            INPUT_FILE_NAME = "taebaek_restaurant_2025_redacted.png"
+            if 실습_자료 == "내 컴퓨터에서 업로드":
+                from google.colab import files
+                print(
+                    "JPG·JPEG·PNG·WEBP 한 장을 선택하세요. "
+                    "개인·회사 문서는 식별정보를 먼저 가립니다."
+                )
+                uploaded = files.upload()
+                if len(uploaded) != 1:
+                    raise ValueError("문서 이미지 한 장만 선택하세요.")
+                INPUT_FILE_NAME, input_bytes = next(iter(uploaded.items()))
+            elif 실습_자료 == "인터넷 이미지 URL":
+                if not 인터넷_이미지_URL.strip():
+                    raise ValueError("인터넷_이미지_URL에 이미지 주소를 붙여 넣으세요.")
+                response = requests.get(인터넷_이미지_URL.strip(), timeout=30)
+                response.raise_for_status()
+                input_bytes = response.content
+                from urllib.parse import urlparse
+                INPUT_FILE_NAME = (
+                    Path(urlparse(인터넷_이미지_URL).path).name
+                    or "internet_document.png"
+                )
+
+            if len(input_bytes) > 5 * 1024 * 1024:
+                raise ValueError("수업에서는 5MB 이하 이미지 한 장만 사용합니다.")
+            try:
+                vlm_input_image = Image.open(io.BytesIO(input_bytes)).convert("RGB")
+            except Exception as exc:
+                raise ValueError(
+                    "웹페이지가 아니라 JPG·JPEG·PNG·WEBP 이미지 자체가 필요합니다."
+                ) from exc
+
+            suffix = Path(INPUT_FILE_NAME).suffix.lower()
+            if suffix not in {{".jpg", ".jpeg", ".png", ".webp"}}:
+                suffix = ".png"
+            VLM_INPUT_PATH = OUTPUT_DIR / f"vlm_input{{suffix}}"
+            vlm_input_image.save(VLM_INPUT_PATH)
+
+            previous_path = OUTPUT_DIR / "clean_receipt.json"
+            if previous_path.exists():
+                clean_result = json.loads(previous_path.read_text(encoding="utf-8"))
+                ocr_baseline_text = "\\n".join(clean_result["cleaned_lines"])
+                OCR_BASELINE_SOURCE = "3교시 정리 결과"
+            elif 실습_자료 == "제공 예제":
+                ocr_baseline_text = {SAMPLE_OCR_TEXT!r}
+                OCR_BASELINE_SOURCE = "제공 예제의 사람이 확인한 OCR 원문"
+            else:
+                ocr_baseline_text = ""
+                OCR_BASELINE_SOURCE = "비교할 OCR 원문 없음"
+
+            display(vlm_input_image)
+            print("선택한 자료:", 실습_자료)
+            print("실제 VLM 입력 파일:", INPUT_FILE_NAME)
+            print("이미지 크기:", vlm_input_image.size)
+            print("OCR 비교 자료:", OCR_BASELINE_SOURCE)
+            """
+        ),
+        markdown(
+            """
+            ## Colab에서 GPU를 켭니다
+
+            메뉴에서 `런타임 → 런타임 유형 변경 → T4 GPU`를 선택한 뒤 아래 셀을
+            실행합니다. GPU 이름이 보이지 않으면 모델 셀로 넘어가지 않습니다.
+
+            설치하는 `paddleocr[doc-parser]`는 문서 파싱 파이프라인이고,
+            `transformers`는 이 실습에서 실제 VLM 추론을 수행하는 엔진입니다.
             """
         ),
         code(
             """
-            # INPUT_FORM_CELL
-            import requests
+            import subprocess
 
-            previous_path = OUTPUT_DIR / "clean_receipt.json"
-            # TODO(선택): 제공 예제를 끝낸 뒤 3교시 결과로 바꾸어 보세요.
-            실습_자료 = "제공 예제" #@param ["제공 예제", "3교시 결과 파일 업로드", "인터넷 JSON URL"]
-            인터넷_JSON_URL = "" #@param {type:"string"}
-            if (
-                not previous_path.exists()
-                and 실습_자료 == "3교시 결과 파일 업로드"
-            ):
-                upload_previous_artifact("clean_receipt.json")
-            elif (
-                not previous_path.exists()
-                and 실습_자료 == "인터넷 JSON URL"
-            ):
-                if not 인터넷_JSON_URL.strip():
-                    raise ValueError("인터넷_JSON_URL에 JSON 주소를 붙여 넣으세요.")
-                response = requests.get(인터넷_JSON_URL.strip(), timeout=30)
-                response.raise_for_status()
-                previous_path.write_bytes(response.content)
+            VLM_PIPELINE_NAME = "PaddleOCR-VL-1.6"
+            VLM_MODEL_NAME = "PaddleOCR-VL-1.6-0.9B"
+            VLM_ENGINE = "transformers"
 
-            if previous_path.exists():
-                clean_result = json.loads(previous_path.read_text(encoding="utf-8"))
-                source_text = "\\n".join(clean_result["cleaned_lines"])
-                INPUT_SOURCE = "3교시 정리 결과"
+            if AUTOMATED_CHECK:
+                VLM_RUNTIME_READY = False
+                print("저장소 자동검사: 거대 모델 다운로드만 생략합니다.")
             else:
-                source_text = SAMPLE_OCR_TEXT
-                INPUT_SOURCE = "제공 예제"
+                import torch
 
-            receipt_source_label = (
-                "3교시 OCR 정리 결과를 규칙으로 추출"
-                if INPUT_SOURCE == "3교시 정리 결과"
-                else "제공 예제 OCR 원문을 규칙으로 추출"
-            )
-            receipt = extract_receipt_from_text(
-                source_text,
-                receipt_source_label,
-            )
-            receipt["provenance"] = {
-                "reference_type": (
-                    "앞 교시 결과"
-                    if INPUT_SOURCE == "3교시 정리 결과"
-                    else "사람이 원본과 대조한 제공 예제"
-                ),
-                "input_file": (
-                    "clean_receipt.json"
-                    if INPUT_SOURCE == "3교시 정리 결과"
-                    else "제공 예제 OCR 원문"
-                ),
-                "engine": "course_rule_extractor",
-                "engine_version": "v2",
-                "target_technology": "OCR + rule baseline",
-                "recorded_at": "2026-07-28",
-                "reviewer": (
-                    "learner"
-                    if INPUT_SOURCE == "3교시 정리 결과"
-                    else "교육자료 검수자"
-                ),
-                "disclaimer": "이 receipt.json은 VLM 결과가 아니라 OCR+규칙 기준선입니다.",
+                if not torch.cuda.is_available():
+                    raise RuntimeError(
+                        "GPU가 없습니다. 런타임 → 런타임 유형 변경 → "
+                        "T4 GPU를 선택하고 이 셀부터 다시 실행하세요."
+                    )
+                print("GPU:", torch.cuda.get_device_name(0))
+                print("실행환경을 설치합니다. 최초 한 번은 몇 분 걸릴 수 있습니다.")
+                subprocess.check_call([
+                    sys.executable,
+                    "-m",
+                    "pip",
+                    "install",
+                    "-q",
+                    "paddleocr[doc-parser]==3.7.0",
+                    "transformers>=5.8,<6",
+                ])
+                VLM_RUNTIME_READY = True
+
+            print("전체 파이프라인:", VLM_PIPELINE_NAME)
+            print("실제 VLM 모델:", VLM_MODEL_NAME)
+            print("추론 엔진:", VLM_ENGINE)
+            """
+        ),
+        markdown(
+            """
+            ## 현재 이미지를 실제 VLM으로 읽습니다
+
+            아래 셀은 `VLM_INPUT_PATH`의 픽셀을 모델에 직접 전달합니다.
+            처음 실행할 때 공식 모델 파일을 내려받기 때문에 시간이 더 걸립니다.
+            결과가 나오면 Markdown과 원시 JSON을 모두 저장합니다.
+
+            오류가 나면 메시지를 그대로 확인합니다. 이 셀에는 준비된 VLM 결과로
+            대신하는 코드가 없습니다.
+            """
+        ),
+        code(
+            """
+            def json_safe(value):
+                if hasattr(value, "tolist"):
+                    return value.tolist()
+                return str(value)
+
+
+            VLM_EXECUTED = False
+            vlm_markdown = ""
+            vlm_pages = []
+            official_output_dir = OUTPUT_DIR / "paddleocr_vl_official"
+            official_output_dir.mkdir(exist_ok=True)
+
+            if AUTOMATED_CHECK:
+                print("저장소 자동검사에서는 실제 모델 추론을 실행하지 않습니다.")
+                print("Colab의 일반 실행에서는 이 분기를 사용하지 않습니다.")
+            else:
+                from paddleocr import PaddleOCRVL
+
+                vlm_pipeline = PaddleOCRVL(
+                    pipeline_version="v1.6",
+                    engine=VLM_ENGINE,
+                    device="gpu",
+                    use_doc_orientation_classify=False,
+                    use_doc_unwarping=False,
+                )
+                page_results = list(vlm_pipeline.predict(str(VLM_INPUT_PATH)))
+                if not page_results:
+                    raise RuntimeError("VLM이 페이지 결과를 반환하지 않았습니다.")
+
+                for page_number, page_result in enumerate(page_results, start=1):
+                    page_result.save_to_json(save_path=official_output_dir)
+                    page_result.save_to_markdown(save_path=official_output_dir)
+
+                    raw_payload = getattr(page_result, "json", {})
+                    if callable(raw_payload):
+                        raw_payload = raw_payload()
+                    raw_payload = raw_payload.get("res", raw_payload)
+
+                    markdown_payload = getattr(page_result, "markdown", {})
+                    if callable(markdown_payload):
+                        markdown_payload = markdown_payload()
+                    markdown_text = (
+                        markdown_payload.get("markdown_texts", "")
+                        if isinstance(markdown_payload, dict)
+                        else str(markdown_payload or "")
+                    )
+                    if isinstance(markdown_text, list):
+                        markdown_text = "\\n\\n".join(map(str, markdown_text))
+
+                    if not markdown_text:
+                        blocks = raw_payload.get("parsing_res_list", [])
+                        markdown_text = "\\n\\n".join(
+                            str(block.get("block_content", ""))
+                            for block in blocks
+                            if block.get("block_content")
+                        )
+                    vlm_pages.append({
+                        "page": page_number,
+                        "markdown": markdown_text,
+                        "raw": raw_payload,
+                    })
+
+                vlm_markdown = "\\n\\n".join(
+                    page["markdown"] for page in vlm_pages if page["markdown"]
+                )
+                if not vlm_markdown.strip():
+                    raise RuntimeError("모델은 실행됐지만 읽을 수 있는 문서 내용이 없습니다.")
+                VLM_EXECUTED = True
+
+            vlm_run_record = {
+                "model_executed": VLM_EXECUTED,
+                "pipeline": VLM_PIPELINE_NAME,
+                "vlm_model": VLM_MODEL_NAME,
+                "engine": VLM_ENGINE,
+                "input_file": INPUT_FILE_NAME,
+                "pages": vlm_pages,
+                "automated_repository_check": AUTOMATED_CHECK,
             }
-            receipt["input_source"] = INPUT_SOURCE
-            receipt["source_text"] = source_text
-
-            vlm_demo = extract_receipt_from_text(
-                SAMPLE_VLM_MARKDOWN,
-                "제공된 VLM 구조 예시를 규칙으로 변환",
+            raw_path = OUTPUT_DIR / "paddleocr_vl_raw.json"
+            raw_path.write_text(
+                json.dumps(
+                    vlm_run_record,
+                    ensure_ascii=False,
+                    indent=2,
+                    default=json_safe,
+                ) + "\\n",
+                encoding="utf-8",
             )
-            vlm_demo["provenance"] = {
-                "reference_type": "제공 예제",
-                "input_file": "taebaek_restaurant_2025_redacted.png",
-                "engine": "이 노트북에서는 실행하지 않음",
-                "engine_version": "해당 없음",
-                "target_technology": "PaddleOCR-VL-1.6",
-                "recorded_at": "2026-07-28",
-                "reviewer": "교육자료 검수자",
-                "disclaimer": "현재 실행에서 VLM을 호출한 결과가 아닙니다.",
+            if VLM_EXECUTED:
+                markdown_path = OUTPUT_DIR / "paddleocr_vl_result.md"
+                markdown_path.write_text(vlm_markdown + "\\n", encoding="utf-8")
+
+            print("모델 실행 완료:", VLM_EXECUTED)
+            if VLM_EXECUTED:
+                print("\\n--- 실제 VLM Markdown 앞부분 ---")
+                print(vlm_markdown[:3000])
+                print("\\n저장:", raw_path, markdown_path)
+            """
+        ),
+        code(
+            """
+            ocr_receipt = extract_receipt_from_text(
+                ocr_baseline_text,
+                "OCR 원문 + Python 규칙",
+            )
+            ocr_receipt["provenance"] = {
+                "model_executed": False,
+                "engine": "course_rule_extractor",
+                "input": OCR_BASELINE_SOURCE,
+                "disclaimer": "VLM 결과가 아니라 비교용 OCR+규칙 기준선입니다.",
+            }
+
+            vlm_receipt = extract_receipt_from_text(
+                vlm_markdown,
+                "PaddleOCR-VL-1.6 실제 Markdown + Python 업무 규칙",
+            )
+            vlm_receipt["provenance"] = {
+                "model_executed": VLM_EXECUTED,
+                "pipeline": VLM_PIPELINE_NAME,
+                "vlm_model": VLM_MODEL_NAME,
+                "engine": VLM_ENGINE,
+                "input_file": INPUT_FILE_NAME,
+                "postprocess": "공개된 Python 규칙으로 업무 스키마 변환",
             }
 
             comparison = {
                 field: {
-                    "ocr_rule": receipt.get(field),
-                    "provided_vlm_structure": vlm_demo.get(field),
+                    "ocr_rule": ocr_receipt.get(field),
+                    "actual_vlm": vlm_receipt.get(field),
                     "must_check_source": True,
                 }
                 for field in ("store_name", "date", "total_amount", "items")
@@ -2874,34 +3096,43 @@ def notebook_04() -> dict:
             comparison_path = OUTPUT_DIR / "vlm_comparison.json"
             comparison_path.write_text(
                 json.dumps({
-                    "warning": "수업용 VLM 구조 예제이며 지금 모델을 실행한 결과가 아님",
+                    "model_executed": VLM_EXECUTED,
+                    "model": VLM_MODEL_NAME,
+                    "input_file": INPUT_FILE_NAME,
                     "comparison": comparison,
-                    "vlm_provenance": vlm_demo["provenance"],
+                    "important": "두 결과 모두 원본 이미지와 사람이 대조해야 합니다.",
                 }, ensure_ascii=False, indent=2) + "\\n",
                 encoding="utf-8",
             )
 
-            assert receipt["total_amount"] is None or isinstance(
-                receipt["total_amount"], int
+            assert ocr_receipt["total_amount"] is None or isinstance(
+                ocr_receipt["total_amount"], int
             )
-            if INPUT_SOURCE == "제공 예제":
-                assert receipt["total_amount"] == 76000
-            assert vlm_demo["total_amount"] == 76000
-            assert len(vlm_demo["items"]) == 5
-            output_path = OUTPUT_DIR / "receipt.json"
-            output_path.write_text(
-                json.dumps(receipt, ensure_ascii=False, indent=2) + "\\n",
+            if 실습_자료 == "제공 예제":
+                assert ocr_receipt["total_amount"] == 76000
+            if not AUTOMATED_CHECK:
+                assert VLM_EXECUTED, "실제 VLM 실행이 완료되지 않았습니다."
+
+            ocr_path = OUTPUT_DIR / "receipt.json"
+            vlm_path = OUTPUT_DIR / "receipt_vlm.json"
+            ocr_path.write_text(
+                json.dumps(ocr_receipt, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            vlm_path.write_text(
+                json.dumps(vlm_receipt, ensure_ascii=False, indent=2) + "\\n",
                 encoding="utf-8",
             )
             print(json.dumps({
-                "total_amount": receipt["total_amount"],
-                "evidence": receipt["evidence"]["total_amount"],
-                "OCR·규칙 결과 출처": receipt["result_source"],
-                "VLM 구조 예시 출처": vlm_demo["result_source"],
+                "실제 VLM 실행": VLM_EXECUTED,
+                "VLM 모델": VLM_MODEL_NAME,
+                "OCR·규칙 총액": ocr_receipt["total_amount"],
+                "실제 VLM 총액": vlm_receipt["total_amount"],
+                "실제 VLM 총액 근거": vlm_receipt["evidence"]["total_amount"],
             }, ensure_ascii=False, indent=2))
-            print("입력 자료:", INPUT_SOURCE)
-            print("✅ 실습 완료:", output_path, comparison_path)
-            download_artifact(output_path)
+            print("✅ 실습 완료:", ocr_path, vlm_path, comparison_path)
+            download_artifact(ocr_path)
+            download_artifact(vlm_path)
             download_artifact(comparison_path)
             """
         ),
@@ -2941,10 +3172,12 @@ def notebook_04() -> dict:
             """
             ANSWER_REVIEW = {
                 "field": "total_amount",
-                "evidence_found": bool(receipt["evidence"]["total_amount"]["raw_value"]),
+                "evidence_found": bool(
+                    vlm_receipt["evidence"]["total_amount"]["raw_value"]
+                ),
                 "action": (
                     "Excel 저장 전 원본 검토"
-                    if receipt["evidence"]["total_amount"]["raw_value"]
+                    if vlm_receipt["evidence"]["total_amount"]["raw_value"]
                     else "사람이 원본부터 다시 확인"
                 ),
             }

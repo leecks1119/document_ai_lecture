@@ -180,7 +180,6 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "draw.rectangle(" not in source
     if path.name in {
         "03_document_structure.ipynb",
-        "04_genai_extraction.ipynb",
         "07_validation_export.ipynb",
     }:
         assert '실습_자료 = "제공 예제"' in source
@@ -188,8 +187,23 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "인터넷_JSON_URL" in source
     if path.name == "04_genai_extraction.ipynb":
         assert "evidence" in source and "provenance" in source
-        assert '"engine": "이 노트북에서는 실행하지 않음"' in source
-        assert "현재 실행에서 VLM을 호출한 결과가 아닙니다." in source
+        assert '실습_자료 = "제공 예제"' in source
+        assert '"내 컴퓨터에서 업로드"' in source
+        assert '"인터넷 이미지 URL"' in source
+        assert "인터넷_이미지_URL" in source
+        assert "PaddleOCRVL(" in source
+        assert 'pipeline_version="v1.6"' in source
+        assert 'engine=VLM_ENGINE' in source
+        assert 'device="gpu"' in source
+        assert "vlm_pipeline.predict(str(VLM_INPUT_PATH))" in source
+        assert "PaddleOCR-VL-1.6-0.9B" in source
+        assert '"model_executed": VLM_EXECUTED' in source
+        assert "receipt_vlm.json" in source
+        assert "paddleocr_vl_raw.json" in source
+        assert "paddleocr_vl_result.md" in source
+        assert "SAMPLE_VLM_MARKDOWN" not in source
+        assert "제공된 VLM 구조 예시" not in source
+        assert "이 노트북에서는 실행하지 않음" not in source
     if path.name == "05_streamlit_basic.ipynb":
         assert "uploaded.getvalue()" in source
         assert "serve_kernel_port_as_iframe" in source
@@ -294,6 +308,30 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
                     "height": 1003,
                 }
                 assert abs(namespace["scale_x"] - namespace["scale_y"]) < 0.01
+            if path.name == "04_genai_extraction.ipynb":
+                raw_record = json.loads(
+                    Path("course_outputs/paddleocr_vl_raw.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                assert raw_record["model_executed"] is False
+                assert raw_record["automated_repository_check"] is True
+                assert raw_record["vlm_model"] == "PaddleOCR-VL-1.6-0.9B"
+                assert raw_record["pages"] == []
+                comparison = json.loads(
+                    Path("course_outputs/vlm_comparison.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                assert comparison["model_executed"] is False
+                assert (
+                    comparison["comparison"]["total_amount"]["actual_vlm"]
+                    is None
+                )
+                assert namespace["VLM_EXECUTED"] is False
+                assert not Path(
+                    "course_outputs/paddleocr_vl_result.md"
+                ).exists()
             research_note = Path(
                 f"course_outputs/lesson{path.name[:2]}_research_note.md"
             )
