@@ -28,6 +28,7 @@ def parse_with_paddleocr_vl(
     document_path: str | Path,
     *,
     engine: str = "transformers",
+    device: str = "gpu",
 ) -> dict:
     """PaddleOCR-VL 1.6 전체 파이프라인으로 문서를 파싱한다."""
 
@@ -46,6 +47,7 @@ def parse_with_paddleocr_vl(
     pipeline = PaddleOCRVL(
         pipeline_version="v1.6",
         engine=engine,
+        device=device,
         use_doc_orientation_classify=False,
         use_doc_unwarping=False,
     )

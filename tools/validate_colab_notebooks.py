@@ -178,26 +178,24 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "인식한 글자와 신뢰도" in source
         assert "scaled_points + [scaled_points[0]]" in source
         assert "draw.rectangle(" not in source
-    if path.name in {
-        "03_document_structure.ipynb",
-        "07_validation_export.ipynb",
-    }:
+    if path.name == "03_document_structure.ipynb":
         assert '실습_자료 = "제공 예제"' in source
-        assert '"인터넷 JSON URL"' in source
-        assert "인터넷_JSON_URL" in source
+        assert '"내 컴퓨터에서 업로드"' in source
+        assert '"인터넷 이미지 URL"' in source
+        assert "extract_with_paddleocr(INPUT_PATH)" in source
+        assert "reconstruct_spatial_lines(tokens)" in source
+        assert '"model_executed": MODEL_EXECUTED' in source
+        assert "저장된 실제 PP-OCRv5 기록 · 자동검사" in source
     if path.name == "04_genai_extraction.ipynb":
-        assert "evidence" in source and "provenance" in source
         assert '실습_자료 = "제공 예제"' in source
         assert '"내 컴퓨터에서 업로드"' in source
         assert '"인터넷 이미지 URL"' in source
         assert "인터넷_이미지_URL" in source
-        assert "PaddleOCRVL(" in source
-        assert 'pipeline_version="v1.6"' in source
-        assert 'engine=VLM_ENGINE' in source
+        assert "parse_with_paddleocr_vl(" in source
+        assert 'engine="transformers"' in source
         assert 'device="gpu"' in source
-        assert "vlm_pipeline.predict(str(VLM_INPUT_PATH))" in source
         assert "PaddleOCR-VL-1.6-0.9B" in source
-        assert '"model_executed": VLM_EXECUTED' in source
+        assert '"model_executed": False' in source
         assert "receipt_vlm.json" in source
         assert "paddleocr_vl_raw.json" in source
         assert "paddleocr_vl_result.md" in source
@@ -205,41 +203,35 @@ def validate_structure(path: Path, notebook: dict) -> None:
         assert "제공된 VLM 구조 예시" not in source
         assert "이 노트북에서는 실행하지 않음" not in source
     if path.name == "05_streamlit_basic.ipynb":
-        assert "uploaded.getvalue()" in source
+        assert "st.file_uploader" in source
+        assert "st.image(uploaded" in source
+        assert "AppTest.from_file" not in source
         assert "serve_kernel_port_as_iframe" in source
     if path.name == "06_ocr_ai_integration.ipynb":
-        assert "read_receipt_now" in source
-        assert "실제 OCR 기록 재검사 통과" in source
+        assert "extract_with_paddleocr(INPUT_PATH)" in source
+        assert "PP-OCRv5 현재 이미지 직접 실행" in source
+        assert "AppTest.from_file" not in source
         assert "serve_kernel_port_as_iframe" in source
-        assert "현재 파일 직접 처리" in source
-        assert "OCR 실행 실패" in source
-        assert "내 영수증 직접 읽기" in source
-        assert "수업용 예제로 계속하기" in source
-        assert "현재 업로드한 파일을 분석한 결과가 아닙니다" in source
+        assert "현재 파일을 PP-OCRv5로 읽기" in source
+        assert "지금 선택한 이미지를 실제 모델로 읽었습니다" in source
         assert "finally:" in source and "unlink(missing_ok=True)" in source
         assert "ppocrv5_recorded_receipt_tokens.json" in source
     if path.name == "07_validation_export.ipynb":
-        assert "승인 전 저장 차단 확인" in source
+        assert "승인 전이므로 Excel 저장 차단" in source
         assert "승인 후 Excel 생성 확인" in source
-        assert "최종 앱 자동검사 통과" in source
-        assert "final_document_ai_app" in source
-        assert "make_archive" in source
-        assert "st.data_editor" in (ROOT / "app.py").read_text(encoding="utf-8")
-        assert "serve_kernel_port_as_iframe" in source
+        assert "validate_receipt(receipt)" in source
+        assert "receipt_to_xlsx_bytes(" in source
         assert "REVIEW_RECORD" in source
-        assert "검토_요약\", \"품목\", \"원문_근거" in source
-        assert "FINAL_APP_SOURCE_PATHS" in source
-        assert "final_app_assets = load_course_assets" in source
     if path.name == "08_business_application.ipynb":
-        for document in ("quotation", "application", "transaction_statement"):
+        for document in ("견적서", "신청서", "거래명세서"):
             assert document in source
         assert "office_format_samples.zip" in source
-        assert "candidate = None" in source
-        assert "score = {" in source
+        assert "parse_with_paddleocr_vl(" in source
+        assert 'device="gpu"' in source
+        assert "business_vlm_result.md" in source
         assert "sample_docs/formats/quotation.xlsx" in source
         assert "sample_docs/extensions/quotation_photo.png" in source
-        assert "business_document_code_examples.zip" in source
-        assert "src/document_examples.py" in source
+        assert "poc_candidate_card.md" in source
 
 
 def execute_course_example_path(path: Path, notebook: dict) -> None:
@@ -328,7 +320,7 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
                     comparison["comparison"]["total_amount"]["actual_vlm"]
                     is None
                 )
-                assert namespace["VLM_EXECUTED"] is False
+                assert namespace["vlm_result"]["model_executed"] is False
                 assert not Path(
                     "course_outputs/paddleocr_vl_result.md"
                 ).exists()
@@ -339,27 +331,10 @@ def execute_course_example_path(path: Path, notebook: dict) -> None:
             if path.name == "07_validation_export.ipynb":
                 assert not Path("course_outputs/blocked_before_review.xlsx").exists()
                 assert namespace["review_not_started"]["decision"] == "검토 전"
-                assert namespace["REVIEW_RECORD"]["decision"] == "승인"
-                with zipfile.ZipFile(
-                    "course_outputs/final_document_ai_app.zip"
-                ) as archive:
-                    packaged_files = {
-                        name for name in archive.namelist()
-                        if not name.endswith("/")
-                    }
-                    assert packaged_files == set(
-                        namespace["FINAL_APP_SOURCE_PATHS"]
-                    )
-            if path.name == "08_business_application.ipynb":
-                with zipfile.ZipFile(
-                    "course_outputs/business_document_code_examples.zip"
-                ) as archive:
-                    assert set(archive.namelist()) == {
-                        "application.json",
-                        "document_examples.py",
-                        "quotation.json",
-                        "transaction_statement.json",
-                    }
+                assert namespace["REVIEW_RECORD"]["decision"] in {
+                    "승인",
+                    "수정 후 승인",
+                }
         finally:
             os.chdir(previous)
             if previous_flag is None:
@@ -429,12 +404,13 @@ def execute_sequential_handoff(paths: list[Path]) -> None:
                 read_only=True,
             )
             exported_item_names = [
-                row[0]
+                row[3]
                 for row in workbook["품목"].iter_rows(
                     min_row=2,
                     values_only=True,
                 )
             ]
+            print("순차 인계 Excel 품목:", exported_item_names)
             assert "수제 돈가스" in exported_item_names
             assert "수제돈가스" not in exported_item_names
         finally:

@@ -148,34 +148,34 @@ LESSON_BEGINNER_PATHS = {
         "research": "문서 한 장만 바꾸어 사진 기울기·해상도·언어에 따라 박스와 글자가 어떻게 달라지는지 기록합니다.",
     },
     "03_document_structure.ipynb": {
-        "required": "2교시 OCR 결과의 낱말 좌표를 사람이 읽는 행과 문서 영역으로 다시 묶습니다.",
-        "edit": "품목 행을 찾는 정규식 한 줄만 채웁니다. 정답을 복사해 실행해도 됩니다.",
-        "research": "2교시에서 만든 다른 이미지의 `ocr_result.json`을 넣어 행 묶기가 어디서 깨지는지 비교합니다.",
+        "required": "현재 이미지에 PP-OCRv5를 실제 실행하고 낱말 좌표를 사람이 읽는 품목 행으로 묶습니다.",
+        "edit": "이미지 한 장을 고르고 행 묶기가 어려웠던 위치를 한 줄로 기록합니다.",
+        "research": "다른 공개·비식별 이미지 한 장으로 다시 실행해 행 묶기가 어디서 깨지는지 비교합니다.",
     },
     "04_genai_extraction.ipynb": {
         "required": "공개 영수증 한 장을 PaddleOCR-VL-1.6으로 직접 읽고 OCR+규칙 결과와 비교합니다.",
-        "edit": "이미지 출처와 Excel 저장 전 검토 결정 세 곳만 바꿉니다.",
+        "edit": "이미지 한 장과 원본 대조가 필요한 필드 한 곳만 고릅니다.",
         "research": "다른 공개·비식별 이미지로 실제 VLM을 다시 실행해 잘 읽은 구조와 빠진 필드를 기록합니다.",
     },
     "05_streamlit_basic.ipynb": {
-        "required": "지금까지 만든 처리 결과를 파일 업로드·실행 버튼·결과 영역이 있는 웹앱으로 감쌉니다.",
-        "edit": "앱 제목과 버튼 문구 두 곳만 업무에 맞게 바꿉니다.",
+        "required": "파일 한 장을 올리고 원본과 결과를 확인하는 최소 웹앱을 직접 엽니다.",
+        "edit": "앱 제목 한 곳만 업무에 맞게 바꿉니다.",
         "research": "내가 고른 문서를 처음 보는 동료도 버튼의 행동을 이해할 수 있는지 확인합니다.",
     },
     "06_ocr_ai_integration.ipynb": {
-        "required": "웹앱에 문서 한 장을 올리고 현재 파일을 OCR로 읽어 구조화 결과까지 연결합니다.",
-        "edit": "업무에서 반드시 맞아야 할 필드 세 곳만 고릅니다.",
-        "research": "2교시에서 고른 공개 이미지를 앱에 넣어 성공·실패 이유와 필수 필드 결과를 비교합니다.",
+        "required": "현재 이미지에 PP-OCRv5를 실제 실행하고 같은 함수를 웹앱 버튼에 연결합니다.",
+        "edit": "입력 이미지 한 장만 바꾸어 실제 OCR 결과를 다시 확인합니다.",
+        "research": "다른 공개 이미지를 앱에 넣어 상호명·날짜·총액·품목 수가 어떻게 달라지는지 비교합니다.",
     },
     "07_validation_export.ipynb": {
         "required": "잘못된 값은 저장을 막고, 원본 확인과 승인 뒤에만 Excel을 내려받습니다.",
-        "edit": "승인 여부·검토자·원본 확인 메모 세 곳만 채웁니다.",
+        "edit": "원본 확인 여부와 검토자 두 곳만 채웁니다.",
         "research": "내 실험 문서에서 틀린 값 하나를 일부러 넣어 어떤 규칙이 저장을 막아야 하는지 확인합니다.",
     },
     "08_business_application.ipynb": {
-        "required": "견적서·신청서·거래명세서 중 한 문서를 골라 작은 PoC 후보 카드를 만듭니다.",
-        "edit": "문서 종류·점수·검토자·중단 조건만 채웁니다.",
-        "research": "공개 PDF나 비식별 캡처 한 장을 찾아 필요한 필드와 실패 조건을 카드에 추가합니다.",
+        "required": "견적서·신청서·거래명세서 사진 한 장을 실제 VLM으로 읽고 작은 PoC 카드를 만듭니다.",
+        "edit": "문서 종류·검토자·자동 저장 중단 조건만 정합니다.",
+        "research": "공개 이미지나 비식별 캡처 한 장으로 VLM을 다시 실행해 필요한 필드와 실패 조건을 기록합니다.",
     },
 }
 
@@ -1175,16 +1175,22 @@ def notebook(name: str, cells: list[dict]) -> dict:
 
 def intro(lesson: int, title: str, artifact: str, goal: str) -> dict:
     slug = NOTEBOOK_SLUGS[lesson]
-    recovery_note = (
-        "4교시는 제공 이미지를 실제 VLM으로 읽어야 완료됩니다. GPU가 없거나\n"
-        "        모델 실행이 실패하면 준비 결과로 성공 처리하지 않습니다. T4 GPU를\n"
-        "        선택하고 GPU 확인 셀부터 다시 실행합니다."
-        if lesson == 4
-        else (
-            "모델 설치가 3분 이상 진행되지 않으면 실행을 중지하고 제공 예제로\n"
-            "        핵심 단계를 계속합니다."
+    if lesson in {4, 8}:
+        recovery_note = (
+            "이 교시는 제공 이미지를 실제 VLM으로 읽어야 완료됩니다. GPU가 없거나\n"
+            "        모델 실행이 실패하면 성공 결과로 바꾸지 않습니다. T4 GPU를\n"
+            "        선택하고 모델 셀부터 다시 실행합니다."
         )
-    )
+    elif lesson in {3, 6}:
+        recovery_note = (
+            "이 교시는 현재 이미지를 PP-OCRv5로 직접 읽어야 완료됩니다. 설치나\n"
+            "        실행이 실패하면 오류를 보존하고 모델 준비 셀부터 다시 실행합니다."
+        )
+    else:
+        recovery_note = (
+            "설치가 오래 걸리면 첫 번째 오류가 난 셀을 확인하고 해당 셀부터 다시\n"
+            "        실행합니다."
+        )
     return markdown(
         f"""
         # {lesson}교시. {title}
@@ -1327,8 +1333,8 @@ def runtime_cell() -> dict:
 def streamlit_preview_cell(path_expression: str, port: int) -> dict:
     return code(
         f"""
-        # 선택 실습 · 녹화에서는 이 셀로 실제 화면을 엽니다.
-        # AppTest가 필수 검증이며, 미리보기에는 공개 비식별 샘플만 사용합니다.
+        # Colab 출력 영역에서 실제 웹앱 화면을 엽니다.
+        # 공개 주소를 만들지 않으며, 공개·비식별 자료만 사용합니다.
         if not AUTOMATED_CHECK:
             import subprocess
             import time
@@ -1361,7 +1367,8 @@ def streamlit_preview_cell(path_expression: str, port: int) -> dict:
                 output.serve_kernel_port_as_iframe({port}, height=760)
             except Exception as exc:
                 print("Colab 미리보기를 열지 못했습니다:", exc)
-                print("AppTest 결과와 app 파일로 계속합니다.")
+                print("앱 파일은 만들어졌습니다. 이 셀만 한 번 다시 실행하세요.")
+            print("✅ 실습 완료: Colab에서 웹앱을 직접 열었습니다.")
         else:
             print("자동검사에서는 대화형 Streamlit 화면을 열지 않습니다.")
         """
@@ -4297,15 +4304,896 @@ def notebook_08() -> dict:
     return notebook("08_business_application.ipynb", cells)
 
 
+def course_package_source(paths: list[str]) -> str:
+    """Colab에서 저장소의 짧은 공통 함수를 불러오는 준비 코드를 만든다."""
+
+    package_paths = list(dict.fromkeys([
+        *FINAL_APP_SOURCE_PATHS[1:],
+        *paths,
+    ]))
+    return dedent(
+        f"""
+        COURSE_PYTHON_PATHS = {package_paths!r}
+        course_python_assets = load_course_assets(*COURSE_PYTHON_PATHS)
+        for relative_path, payload in course_python_assets.items():
+            target = Path(relative_path)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_bytes(payload)
+        if str(Path.cwd()) not in sys.path:
+            sys.path.insert(0, str(Path.cwd()))
+        """
+    ).strip()
+
+
+def simple_image_input_source(
+    sample_path: str,
+    *,
+    output_name: str = "current_document.png",
+) -> str:
+    """제공 이미지·업로드·URL 중 한 장을 고르는 공통 셀 코드를 만든다."""
+
+    return dedent(
+        f"""
+        # INPUT_FORM_CELL
+        import io
+        import requests
+        from PIL import Image
+        try:
+            from IPython.display import display
+        except ImportError:
+            display = print
+
+        SAMPLE_IMAGE_PATH = {sample_path!r}
+        sample_bytes = load_course_assets(SAMPLE_IMAGE_PATH)[SAMPLE_IMAGE_PATH]
+
+        # TODO(선택): 제공 예제 확인 뒤 입력 이미지만 바꾸어 다시 실행하세요.
+        실습_자료 = "제공 예제" #@param ["제공 예제", "내 컴퓨터에서 업로드", "인터넷 이미지 URL"]
+        인터넷_이미지_URL = "" #@param {{type:"string"}}
+        if AUTOMATED_CHECK:
+            실습_자료 = "제공 예제"
+
+        input_bytes = sample_bytes
+        INPUT_FILE_NAME = Path(SAMPLE_IMAGE_PATH).name
+        if 실습_자료 == "내 컴퓨터에서 업로드":
+            from google.colab import files
+            uploaded = files.upload()
+            if len(uploaded) != 1:
+                raise ValueError("이미지 한 장만 선택하세요.")
+            INPUT_FILE_NAME, input_bytes = next(iter(uploaded.items()))
+        elif 실습_자료 == "인터넷 이미지 URL":
+            if not 인터넷_이미지_URL.strip():
+                raise ValueError("인터넷_이미지_URL에 이미지 주소를 입력하세요.")
+            response = requests.get(인터넷_이미지_URL.strip(), timeout=30)
+            response.raise_for_status()
+            input_bytes = response.content
+            INPUT_FILE_NAME = "internet_document.png"
+
+        if len(input_bytes) > 5 * 1024 * 1024:
+            raise ValueError("수업에서는 5MB 이하 이미지 한 장만 처리합니다.")
+        input_image = Image.open(io.BytesIO(input_bytes)).convert("RGB")
+        INPUT_PATH = OUTPUT_DIR / {output_name!r}
+        input_image.save(INPUT_PATH)
+        preview = input_image.copy()
+        preview.thumbnail((650, 750))
+        display(preview)
+        print("선택한 자료:", 실습_자료)
+        print("실제 모델 입력:", INPUT_FILE_NAME, input_image.size)
+        """
+    ).strip()
+
+
+SIMPLE_PP_OCR_SETUP = dedent(
+    """
+    import importlib.metadata
+    import subprocess
+
+    if not AUTOMATED_CHECK:
+        required = {
+            "paddlepaddle": "3.2.1",
+            "paddleocr": "3.7.0",
+        }
+        installed = {}
+        for package in required:
+            try:
+                installed[package] = importlib.metadata.version(package)
+            except importlib.metadata.PackageNotFoundError:
+                installed[package] = None
+        if installed != required:
+            subprocess.check_call([
+                sys.executable,
+                "-m",
+                "pip",
+                "install",
+                "-q",
+                "paddlepaddle==3.2.1",
+                "paddleocr==3.7.0",
+            ])
+    """
+).strip()
+
+
+SIMPLE_VLM_SETUP = dedent(
+    """
+    import subprocess
+
+    VLM_PIPELINE_NAME = "PaddleOCR-VL-1.6"
+    VLM_MODEL_NAME = "PaddleOCR-VL-1.6-0.9B"
+    if not AUTOMATED_CHECK:
+        import torch
+        if not torch.cuda.is_available():
+            raise RuntimeError(
+                "T4 GPU가 필요합니다. 런타임 → 런타임 유형 변경에서 "
+                "T4 GPU를 선택한 뒤 이 셀부터 다시 실행하세요."
+            )
+        print("GPU:", torch.cuda.get_device_name(0))
+        subprocess.check_call([
+            sys.executable,
+            "-m",
+            "pip",
+            "install",
+            "-q",
+            "paddleocr[doc-parser]==3.7.0",
+            "transformers>=5.8,<6",
+        ])
+    """
+).strip()
+
+
+def simple_notebook_03() -> dict:
+    sample_path = (
+        "sample_docs/public_receipts/korea/"
+        "taebaek_restaurant_2025_redacted.png"
+    )
+    cells = [
+        intro(
+            3,
+            "문서 구조 이해 및 추출 결과 정제",
+            "clean_receipt.json",
+            "영수증 한 장을 PP-OCRv5로 직접 읽고, 흩어진 글자가 행으로 묶이는 과정을 확인합니다.",
+        ),
+        runtime_cell(),
+        code(
+            course_package_source([
+                "src/__init__.py",
+                "src/sample_data.py",
+                "src/ocr.py",
+            ])
+            + "\n\n"
+            + simple_image_input_source(sample_path)
+        ),
+        code(
+            SIMPLE_PP_OCR_SETUP
+            + """
+
+from src.ocr import extract_with_paddleocr, reconstruct_spatial_lines
+
+if AUTOMATED_CHECK:
+    fixture_path = "tests/fixtures/ppocrv5_recorded_receipt_tokens.json"
+    tokens = json.loads(load_course_assets(fixture_path)[fixture_path])
+    MODEL_EXECUTED = False
+    RESULT_SOURCE = "저장된 실제 PP-OCRv5 기록 · 자동검사"
+else:
+    tokens = extract_with_paddleocr(INPUT_PATH)
+    MODEL_EXECUTED = True
+    RESULT_SOURCE = "PP-OCRv5가 현재 이미지를 직접 읽은 결과"
+
+layout_lines = reconstruct_spatial_lines(tokens)
+print("실제 모델 실행:", MODEL_EXECUTED)
+print("OCR 영역:", len(tokens), "개")
+print("\\n--- 좌표로 다시 묶은 행 ---")
+for number, line in enumerate(layout_lines, start=1):
+    print(f"{number:02d}. {line}")
+"""
+        ),
+        code(
+            r"""
+            import re
+
+            groups = {"header": [], "date": [], "items": [], "total": [], "other": []}
+            cleaned_lines = [" ".join(line.split()) for line in layout_lines if line.strip()]
+            for line in cleaned_lines:
+                if re.search(r"\d{4}[-./]\d{1,2}[-./]\d{1,2}", line):
+                    groups["date"].append(line)
+                elif "합계" in line:
+                    groups["total"].append(line)
+                elif re.search(r"[\d,]+\s+\d+\s+[\d,]+$", line):
+                    groups["items"].append(line)
+                elif not groups["header"]:
+                    groups["header"].append(line)
+                else:
+                    groups["other"].append(line)
+
+            clean_result = {
+                "model_executed": MODEL_EXECUTED,
+                "input_source": RESULT_SOURCE,
+                "raw_text": "\n".join(layout_lines),
+                "layout_lines": layout_lines,
+                "cleaned_lines": cleaned_lines,
+                "groups": groups,
+                "rule": "원문에 없는 값은 추가하지 않음",
+            }
+            output_path = OUTPUT_DIR / "clean_receipt.json"
+            output_path.write_text(
+                json.dumps(clean_result, ensure_ascii=False, indent=2) + "\n",
+                encoding="utf-8",
+            )
+            print("\n품목 후보:", len(groups["items"]), "개")
+            for line in groups["items"]:
+                print("-", line)
+            print("✅ 실습 완료:", output_path)
+            download_artifact(output_path)
+            """
+        ),
+        code(
+            """
+            # TODO: 결과에서 행 묶기가 가장 어려웠던 곳을 한 줄로 적어 보세요.
+            내_관찰 = "" #@param {type:"string"}
+            print("내 관찰:", 내_관찰 or "아직 입력하지 않음")
+            print("전체 정답 예시: 품목명·단가·수량·금액이 같은 행으로 묶였는지 확인")
+            """
+        ),
+    ]
+    return notebook("03_document_structure.ipynb", cells)
+
+
+def simple_notebook_04() -> dict:
+    sample_path = (
+        "sample_docs/public_receipts/korea/"
+        "taebaek_restaurant_2025_redacted.png"
+    )
+    cells = [
+        intro(
+            4,
+            "멀티모달·생성형 AI 기반 핵심 정보 추출",
+            "paddleocr_vl_result.md",
+            "같은 영수증을 실제 PaddleOCR-VL로 읽고 Markdown·업무 JSON을 바로 확인합니다.",
+        ),
+        runtime_cell(),
+        code(
+            course_package_source([
+                "src/__init__.py",
+                "src/sample_data.py",
+                "src/extract.py",
+                "src/vlm.py",
+            ])
+            + "\n\n"
+            + simple_image_input_source(sample_path, output_name="vlm_input.png")
+            + f"""
+
+from src.extract import extract_receipt_from_text
+from src.vlm import parse_with_paddleocr_vl, vlm_text_from_result
+
+previous_path = OUTPUT_DIR / "clean_receipt.json"
+if previous_path.exists():
+    previous = json.loads(previous_path.read_text(encoding="utf-8"))
+    OCR_BASELINE_TEXT = "\\n".join(previous["cleaned_lines"])
+    OCR_BASELINE_SOURCE = "3교시 OCR 행 묶기 결과"
+else:
+    OCR_BASELINE_TEXT = {SAMPLE_OCR_TEXT!r}
+    OCR_BASELINE_SOURCE = "제공 영수증의 OCR 비교 원문"
+print("비교 기준:", OCR_BASELINE_SOURCE)
+"""
+        ),
+        code(
+            SIMPLE_VLM_SETUP
+            + """
+
+if AUTOMATED_CHECK:
+    vlm_result = {
+        "model_executed": False,
+        "pipeline": VLM_PIPELINE_NAME,
+        "vlm_model": VLM_MODEL_NAME,
+        "engine": "transformers",
+        "input_file": INPUT_FILE_NAME,
+        "pages": [],
+        "automated_repository_check": True,
+    }
+else:
+    vlm_result = parse_with_paddleocr_vl(
+        INPUT_PATH,
+        engine="transformers",
+        device="gpu",
+    )
+    vlm_result["automated_repository_check"] = False
+
+raw_path = OUTPUT_DIR / "paddleocr_vl_raw.json"
+raw_path.write_text(
+    json.dumps(vlm_result, ensure_ascii=False, indent=2) + "\\n",
+    encoding="utf-8",
+)
+vlm_markdown = vlm_text_from_result(vlm_result)
+markdown_path = OUTPUT_DIR / "paddleocr_vl_result.md"
+if vlm_result["model_executed"]:
+    markdown_path.write_text(vlm_markdown + "\\n", encoding="utf-8")
+
+print("모델 실행 완료:", vlm_result["model_executed"])
+print("실제 VLM:", VLM_MODEL_NAME)
+if vlm_markdown:
+    print("\\n--- 모델이 복원한 Markdown 앞부분 ---")
+    print(vlm_markdown[:1800])
+"""
+        ),
+        code(
+            """
+            ocr_receipt = extract_receipt_from_text(
+                OCR_BASELINE_TEXT,
+                source_mode="OCR 원문 + 공개 Python 규칙",
+            )
+            vlm_receipt = extract_receipt_from_text(
+                vlm_markdown,
+                source_mode="PaddleOCR-VL 실제 결과 + 공개 Python 규칙",
+            )
+
+            receipt_path = OUTPUT_DIR / "receipt.json"
+            vlm_path = OUTPUT_DIR / "receipt_vlm.json"
+            comparison_path = OUTPUT_DIR / "vlm_comparison.json"
+            receipt_path.write_text(
+                json.dumps(ocr_receipt, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            vlm_path.write_text(
+                json.dumps(vlm_receipt, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            comparison = {
+                "model_executed": vlm_result["model_executed"],
+                "model": VLM_MODEL_NAME,
+                "comparison": {
+                    field: {
+                        "ocr_rule": ocr_receipt.get(field),
+                        "actual_vlm": vlm_receipt.get(field),
+                    }
+                    for field in ("store_name", "date", "total_amount", "items")
+                },
+            }
+            comparison_path.write_text(
+                json.dumps(comparison, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            print("OCR+규칙 총액:", ocr_receipt["total_amount"])
+            print("실제 VLM 총액:", vlm_receipt["total_amount"])
+            print("실제 VLM 품목 수:", len(vlm_receipt["items"]))
+            print("✅ 실습 완료:", receipt_path, vlm_path, comparison_path)
+            download_artifact(vlm_path)
+            """
+        ),
+        code(
+            """
+            # TODO: 원본과 반드시 대조할 필드 하나를 적으세요.
+            반드시_확인할_필드 = "total_amount" #@param {type:"string"}
+            print("내 검토 대상:", 반드시_확인할_필드)
+            print("전체 정답 예시: total_amount · items · store_name은 원본 대조 후 사용")
+            """
+        ),
+    ]
+    return notebook("04_genai_extraction.ipynb", cells)
+
+
+def simple_notebook_05() -> dict:
+    app_source = dedent(
+        """
+        import streamlit as st
+
+        st.set_page_config(page_title="__TITLE__", layout="centered")
+        st.title("__TITLE__")
+        uploaded = st.file_uploader(
+            "이미지 또는 PDF 한 장",
+            type=["png", "jpg", "jpeg", "pdf"],
+        )
+        if uploaded:
+            st.success(f"선택한 파일: {uploaded.name}")
+            if uploaded.type.startswith("image/"):
+                st.image(uploaded, caption="현재 선택한 원본")
+
+        if st.button("예제 결과 보기"):
+            st.caption("6교시에서 이 버튼을 실제 OCR 모델과 연결합니다.")
+            st.json({
+                "store_name": "이태리집",
+                "date": "2025-10-04",
+                "total_amount": 76000,
+            })
+        """
+    ).strip()
+    cells = [
+        intro(
+            5,
+            "문서 자동화 웹 애플리케이션 기본 구현",
+            "app_05.py",
+            "파일 한 장을 올리고 원본과 결과를 확인하는 작은 웹앱을 직접 엽니다.",
+        ),
+        runtime_cell(),
+        code(LESSON05_STREAMLIT_SETUP),
+        code(
+            readable_string_assignment("BASE_APP_CODE", app_source)
+            + """
+
+# TODO(선택): 앱 제목만 내 업무에 맞게 바꾸세요.
+앱_제목 = "문서 한 장 확인 앱" #@param {type:"string"}
+app_code = BASE_APP_CODE.replace("__TITLE__", 앱_제목)
+output_path = OUTPUT_DIR / "app_05.py"
+output_path.write_text(app_code, encoding="utf-8")
+print("전체 정답 예시: 문서 종류와 사용자가 할 일을 제목에 함께 적습니다.")
+print("저장:", output_path)
+download_artifact(output_path)
+"""
+        ),
+        streamlit_preview_cell("output_path", 8505),
+    ]
+    return notebook("05_streamlit_basic.ipynb", cells)
+
+
+def simple_notebook_06() -> dict:
+    sample_path = (
+        "sample_docs/public_receipts/korea/"
+        "taebaek_restaurant_2025_redacted.png"
+    )
+    app_source = dedent(
+        """
+        import tempfile
+        from pathlib import Path
+        import streamlit as st
+        from src.ocr import extract_with_paddleocr, ocr_text_from_result
+        from src.extract import extract_receipt_from_text
+
+        st.title("실제 OCR 연결 앱")
+        uploaded = st.file_uploader(
+            "영수증 이미지 한 장",
+            type=["png", "jpg", "jpeg"],
+        )
+        if st.button("현재 파일을 PP-OCRv5로 읽기", type="primary"):
+            if uploaded is None:
+                st.warning("먼저 이미지 한 장을 선택하세요.")
+            else:
+                suffix = Path(uploaded.name).suffix.lower() or ".png"
+                with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as temp:
+                    temp.write(uploaded.getvalue())
+                    path = Path(temp.name)
+                try:
+                    tokens = extract_with_paddleocr(path)
+                    text = ocr_text_from_result(tokens)
+                    data = extract_receipt_from_text(
+                        text,
+                        source_mode="PP-OCRv5 현재 파일 직접 실행",
+                    )
+                    st.success("지금 선택한 이미지를 실제 모델로 읽었습니다.")
+                    st.text_area("OCR 원문", text, height=220)
+                    st.json(data)
+                finally:
+                    path.unlink(missing_ok=True)
+        """
+    ).strip()
+    cells = [
+        intro(
+            6,
+            "OCR 및 정보 추출 기능 연동",
+            "app_06.py",
+            "현재 이미지에 PP-OCRv5를 실제 실행하고 같은 기능을 웹앱 버튼에 연결합니다.",
+        ),
+        runtime_cell(),
+        code(
+            course_package_source([
+                "src/__init__.py",
+                "src/sample_data.py",
+                "src/ocr.py",
+                "src/extract.py",
+            ])
+            + "\n\n"
+            + simple_image_input_source(sample_path)
+            + "\n\n"
+            + SIMPLE_PP_OCR_SETUP
+            + "\n\n"
+            + LESSON05_STREAMLIT_SETUP
+        ),
+        code(
+            """
+            from src.ocr import (
+                extract_with_paddleocr,
+                ocr_text_from_result,
+            )
+            from src.extract import extract_receipt_from_text
+
+            if AUTOMATED_CHECK:
+                fixture_path = "tests/fixtures/ppocrv5_recorded_receipt_tokens.json"
+                ocr_tokens = json.loads(load_course_assets(fixture_path)[fixture_path])
+                MODEL_EXECUTED = False
+                RESULT_SOURCE = "저장된 실제 PP-OCRv5 기록 · 자동검사"
+            else:
+                ocr_tokens = extract_with_paddleocr(INPUT_PATH)
+                MODEL_EXECUTED = True
+                RESULT_SOURCE = "PP-OCRv5 현재 이미지 직접 실행"
+
+            ocr_text = ocr_text_from_result(ocr_tokens)
+            receipt = extract_receipt_from_text(
+                ocr_text,
+                source_mode=RESULT_SOURCE,
+            )
+            receipt_path = OUTPUT_DIR / "receipt.json"
+            receipt_path.write_text(
+                json.dumps(receipt, ensure_ascii=False, indent=2) + "\\n",
+                encoding="utf-8",
+            )
+            print("실제 모델 실행:", MODEL_EXECUTED)
+            print("상호명:", receipt["store_name"])
+            print("날짜:", receipt["date"])
+            print("총액:", receipt["total_amount"])
+            print("품목 수:", len(receipt["items"]))
+            print("전체 정답 예시: 날짜·총액·품목은 원본과 반드시 대조")
+            print("✅ 실습 완료:", receipt_path)
+            """
+        ),
+        code(
+            readable_string_assignment("app_code", app_source)
+            + """
+
+output_path = OUTPUT_DIR / "app_06.py"
+output_path.write_text(app_code, encoding="utf-8")
+print("실제 OCR 버튼이 있는 앱 저장:", output_path)
+download_artifact(output_path)
+"""
+        ),
+        streamlit_preview_cell("output_path", 8506),
+    ]
+    return notebook("06_ocr_ai_integration.ipynb", cells)
+
+
+def simple_notebook_07() -> dict:
+    cells = [
+        intro(
+            7,
+            "추출 결과 검증 및 데이터 저장",
+            "receipt_result.xlsx",
+            "추출 결과를 검사하고, 원본 확인 뒤 Excel 파일을 실제로 내려받습니다.",
+        ),
+        runtime_cell(),
+        code(
+            course_package_source([
+                "src/__init__.py",
+                "src/sample_data.py",
+                "src/validate.py",
+                "src/export.py",
+            ])
+            + f"""
+
+import importlib.util
+import subprocess
+if importlib.util.find_spec("openpyxl") is None:
+    subprocess.check_call([
+        sys.executable, "-m", "pip", "install", "-q", "openpyxl==3.1.5"
+    ])
+
+from copy import deepcopy
+from src.export import receipt_to_xlsx_bytes
+from src.validate import validate_receipt
+
+COURSE_RECEIPT_ANSWER = {pformat(SAMPLE_RECEIPT, sort_dicts=False, width=88)}
+input_path = OUTPUT_DIR / "receipt.json"
+if input_path.exists():
+    receipt = json.loads(input_path.read_text(encoding="utf-8"))
+    INPUT_SOURCE = "앞 교시 실제 추출 결과"
+else:
+    receipt = deepcopy(COURSE_RECEIPT_ANSWER)
+    INPUT_SOURCE = "제공 영수증 정답"
+
+validation = validate_receipt(receipt)
+print("입력:", INPUT_SOURCE)
+print("검증 통과:", validation["valid"])
+print("오류:", validation["errors"] or "없음")
+print("경고:", validation["warnings"] or "없음")
+"""
+        ),
+        code(
+            """
+            # TODO: 원본을 직접 확인한 뒤 값을 바꾸세요.
+            원본_확인_완료 = False #@param {type:"boolean"}
+            검토자 = "" #@param {type:"string"}
+
+            blocked_path = OUTPUT_DIR / "blocked_before_review.xlsx"
+            review_not_started = {"decision": "검토 전"}
+            if not 원본_확인_완료:
+                print("내 설정 결과: 승인 전이므로 Excel 저장 차단")
+            assert not blocked_path.exists()
+
+            reviewed_receipt = deepcopy(receipt)
+            is_course_receipt = (
+                reviewed_receipt.get("total_amount") == 76000
+                and len(reviewed_receipt.get("items") or []) == 5
+            )
+            if is_course_receipt:
+                for item, answer in zip(
+                    reviewed_receipt["items"],
+                    COURSE_RECEIPT_ANSWER["items"],
+                ):
+                    item["name"] = answer["name"]
+
+            reviewed_validation = validate_receipt(reviewed_receipt)
+            REVIEW_RECORD = {
+                "decision": "수정 후 승인" if is_course_receipt else "승인",
+                "reviewer": 검토자 or "공개 정답 검토자",
+                "reviewed_at": "",
+                "note": "원본과 날짜·총액·품목을 대조함",
+            }
+            print("전체 정답 예시:", REVIEW_RECORD)
+            if not reviewed_validation["valid"]:
+                raise ValueError(reviewed_validation["errors"])
+
+            output_path = OUTPUT_DIR / "receipt_result.xlsx"
+            output_path.write_bytes(
+                receipt_to_xlsx_bytes(
+                    reviewed_receipt,
+                    source_text=reviewed_receipt.get("source_text", ""),
+                    review_record=REVIEW_RECORD,
+                )
+            )
+            from openpyxl import load_workbook
+            workbook = load_workbook(output_path, read_only=True)
+            print("승인 후 Excel 생성 확인:", output_path)
+            print("Excel 시트:", workbook.sheetnames)
+            print("✅ 실습 완료: 검증·원본 확인·Excel 다운로드")
+            download_artifact(output_path)
+            """
+        ),
+    ]
+    return notebook("07_validation_export.ipynb", cells)
+
+
+def simple_notebook_08() -> dict:
+    photo_paths = {
+        "견적서": "sample_docs/extensions/quotation_photo.png",
+        "신청서": "sample_docs/extensions/application_form_photo.png",
+        "거래명세서": "sample_docs/extensions/transaction_statement_photo.png",
+    }
+    office_paths = [
+        "sample_docs/formats/quotation.xlsx",
+        "sample_docs/formats/application_form.docx",
+        "sample_docs/formats/transaction_statement.pdf",
+        "sample_docs/formats/table_summary.pptx",
+    ]
+    cells = [
+        intro(
+            8,
+            "실무 적용 시나리오 설계 및 최종 정리",
+            "poc_candidate_card.md",
+            "영수증이 아닌 업무 문서 사진 한 장에도 실제 VLM을 실행하고 작은 PoC를 정합니다.",
+        ),
+        runtime_cell(),
+        code(
+            course_package_source([
+                "src/__init__.py",
+                "src/sample_data.py",
+                "src/vlm.py",
+            ])
+            + f"""
+
+# INPUT_FORM_CELL
+import io
+import requests
+import zipfile
+from PIL import Image
+try:
+    from IPython.display import display
+except ImportError:
+    display = print
+from src.vlm import parse_with_paddleocr_vl, vlm_text_from_result
+
+PHOTO_PATHS = {photo_paths!r}
+OFFICE_PATHS = {office_paths!r}
+
+# TODO(선택): 문서 종류 또는 입력 이미지를 바꾸어 다시 실행하세요.
+문서_종류 = "거래명세서" #@param ["견적서", "신청서", "거래명세서"]
+실습_자료 = "제공 예제" #@param ["제공 예제", "내 컴퓨터에서 업로드", "인터넷 이미지 URL"]
+인터넷_이미지_URL = "" #@param {{type:"string"}}
+if AUTOMATED_CHECK:
+    실습_자료 = "제공 예제"
+
+selected_path = PHOTO_PATHS[문서_종류]
+input_bytes = load_course_assets(selected_path)[selected_path]
+INPUT_FILE_NAME = Path(selected_path).name
+if 실습_자료 == "내 컴퓨터에서 업로드":
+    from google.colab import files
+    uploaded = files.upload()
+    if len(uploaded) != 1:
+        raise ValueError("이미지 한 장만 선택하세요.")
+    INPUT_FILE_NAME, input_bytes = next(iter(uploaded.items()))
+elif 실습_자료 == "인터넷 이미지 URL":
+    response = requests.get(인터넷_이미지_URL.strip(), timeout=30)
+    response.raise_for_status()
+    input_bytes = response.content
+    INPUT_FILE_NAME = "internet_business_document.png"
+
+input_image = Image.open(io.BytesIO(input_bytes)).convert("RGB")
+INPUT_PATH = OUTPUT_DIR / "business_document.png"
+input_image.save(INPUT_PATH)
+preview = input_image.copy()
+preview.thumbnail((650, 750))
+display(preview)
+print("실제 VLM 입력:", 문서_종류, INPUT_FILE_NAME)
+
+office_assets = load_course_assets(*OFFICE_PATHS)
+office_bundle = OUTPUT_DIR / "office_format_samples.zip"
+with zipfile.ZipFile(office_bundle, "w") as archive:
+    for path, payload in office_assets.items():
+        target = OUTPUT_DIR / Path(path).name
+        target.write_bytes(payload)
+        archive.write(target, target.name)
+print("Excel·Word·PDF·PPT 체험 묶음:", office_bundle)
+download_artifact(office_bundle)
+"""
+        ),
+        code(
+            SIMPLE_VLM_SETUP
+            + """
+
+if AUTOMATED_CHECK:
+    business_vlm_result = {
+        "model_executed": False,
+        "pipeline": VLM_PIPELINE_NAME,
+        "vlm_model": VLM_MODEL_NAME,
+        "engine": "transformers",
+        "input_file": INPUT_FILE_NAME,
+        "pages": [],
+    }
+else:
+    business_vlm_result = parse_with_paddleocr_vl(
+        INPUT_PATH,
+        engine="transformers",
+        device="gpu",
+    )
+
+BUSINESS_MARKDOWN = vlm_text_from_result(business_vlm_result)
+raw_path = OUTPUT_DIR / "business_vlm_raw.json"
+raw_path.write_text(
+    json.dumps(business_vlm_result, ensure_ascii=False, indent=2) + "\\n",
+    encoding="utf-8",
+)
+markdown_path = OUTPUT_DIR / "business_vlm_result.md"
+if business_vlm_result["model_executed"]:
+    markdown_path.write_text(BUSINESS_MARKDOWN + "\\n", encoding="utf-8")
+
+print("실제 모델 실행:", business_vlm_result["model_executed"])
+print("모델:", VLM_MODEL_NAME)
+print("\\n--- 업무 문서에서 읽은 내용 앞부분 ---")
+print(BUSINESS_MARKDOWN[:2200] or "자동검사에서는 거대 모델 실행만 생략합니다.")
+"""
+        ),
+        code(
+            f"""
+# TODO: 내 업무의 검토자와 자동 저장 중단 조건을 적으세요.
+검토자 = "" #@param {{type:"string"}}
+중단_조건 = "" #@param {{type:"string"}}
+
+examples = {EXTENSION_EXAMPLES!r}
+key_by_name = {{
+    "견적서": "quotation",
+    "신청서": "application",
+    "거래명세서": "transaction_statement",
+}}
+example = examples[key_by_name[문서_종류]]
+검토자 = 검토자 or "업무 담당자"
+중단_조건 = 중단_조건 or "필수값이나 원문 근거가 없으면 Excel 저장 중단"
+print("전체 정답 예시:", 검토자, "/", 중단_조건)
+
+card = f'''# 문서 자동화 PoC 후보 카드
+
+| 항목 | 내용 |
+| --- | --- |
+| 대상 문서 | {{example["name"]}} |
+| 이번 입력 | {{INPUT_FILE_NAME}} |
+| 실제 VLM 실행 | {{business_vlm_result["model_executed"]}} |
+| 사용할 모델 | {{VLM_MODEL_NAME}} |
+| 추출 후보 | {{", ".join(example["fields"])}} |
+| 검증 규칙 | {{" / ".join(example["rules"])}} |
+| 사람 검토자 | {{검토자}} |
+| 자동 저장 중단 | {{중단_조건}} |
+| 최종 산출물 | 사람 확인 후 Excel |
+
+## 이번 모델 결과에서 먼저 확인할 것
+
+{{BUSINESS_MARKDOWN[:800] or "Colab 실제 실행에서 모델 Markdown을 확인합니다."}}
+'''
+output_path = OUTPUT_DIR / "poc_candidate_card.md"
+output_path.write_text(card + "\\n", encoding="utf-8")
+print(card)
+print("✅ 실습 완료:", output_path)
+download_artifact(output_path)
+"""
+        ),
+    ]
+    return notebook("08_business_application.ipynb", cells)
+
+
+# 3~8교시는 수강생이 실제 실행 결과를 먼저 보도록 단계 안내도 짧게 맞춘다.
+LESSON_STEP_GUIDES.update({
+    "03_document_structure.ipynb": [
+        ("공통 환경 준비", "결과 폴더와 자료 로더를 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("입력 이미지 선택", "실제 OCR에 넣을 이미지 한 장을 고릅니다.", "선택한 원본 이미지와 파일명을 확인합니다."),
+        ("PP-OCRv5 실제 실행", "현재 이미지에서 글자와 좌표를 읽어 행으로 묶습니다.", "실제 모델 실행 여부·OCR 영역·복원 행을 확인합니다."),
+        ("문서 구조 저장", "복원 행을 날짜·품목·합계 후보로 나누어 저장합니다.", "품목 후보와 `clean_receipt.json`을 확인합니다."),
+        ("내 관찰 기록", "행 묶기가 어려웠던 위치를 한 줄로 기록합니다.", "내 관찰과 전체 정답 예시를 확인합니다."),
+    ],
+    "04_genai_extraction.ipynb": [
+        ("공통 환경 준비", "결과 폴더와 자료 로더를 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("VLM 입력 선택", "실제 VLM에 넣을 이미지 한 장을 고릅니다.", "원본 이미지·파일명·OCR 비교 기준을 확인합니다."),
+        ("PaddleOCR-VL 실제 실행", "T4 GPU에서 현재 이미지를 실제 문서 VLM으로 읽습니다.", "모델 실행 여부와 실제 Markdown을 확인합니다."),
+        ("업무 JSON 비교", "OCR+규칙과 VLM 결과를 같은 필드로 비교합니다.", "총액·품목 수와 세 JSON 파일을 확인합니다."),
+        ("검토 필드 선택", "원본과 반드시 대조할 필드 하나를 정합니다.", "내 선택과 전체 정답 예시를 확인합니다."),
+    ],
+    "05_streamlit_basic.ipynb": [
+        ("공통 환경 준비", "웹앱 파일을 저장할 환경을 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("Streamlit 준비", "웹앱 실행 라이브러리를 준비합니다.", "Streamlit 준비 완료 문구를 확인합니다."),
+        ("미니 앱 만들기", "앱 제목을 정하고 실제 Python 앱 파일을 만듭니다.", "`app_05.py` 저장 경로를 확인합니다."),
+        ("앱 직접 열기", "Colab 안에서 미니 앱을 직접 조작합니다.", "웹앱 화면 또는 자동검사 생략 안내를 확인합니다."),
+    ],
+    "06_ocr_ai_integration.ipynb": [
+        ("공통 환경 준비", "결과 폴더와 자료 로더를 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("이미지·모델 준비", "입력 이미지와 PP-OCRv5·Streamlit을 준비합니다.", "원본 이미지와 설치 결과를 확인합니다."),
+        ("현재 이미지 실제 처리", "PP-OCRv5를 실행하고 영수증 JSON을 만듭니다.", "상호명·날짜·총액·품목 수를 확인합니다."),
+        ("OCR 연결 앱 만들기", "같은 실제 OCR 함수를 웹앱 버튼에 연결합니다.", "`app_06.py`와 앱 연결 확인을 봅니다."),
+        ("연결 앱 직접 열기", "이미지를 올리고 실제 OCR 버튼을 누릅니다.", "웹앱 화면 또는 자동검사 생략 안내를 확인합니다."),
+    ],
+    "07_validation_export.ipynb": [
+        ("공통 환경 준비", "검증 결과와 Excel 저장 폴더를 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("추출 결과 검사", "앞 교시 JSON의 필수값과 합계를 검사합니다.", "통과 여부·오류·경고를 확인합니다."),
+        ("승인 후 Excel 저장", "승인 전 차단과 승인 후 Excel 생성을 확인합니다.", "세 시트와 `✅ 실습 완료`를 확인합니다."),
+    ],
+    "08_business_application.ipynb": [
+        ("공통 환경 준비", "업무 문서 결과를 저장할 환경을 준비합니다.", "공통 작업 폴더가 표시되어야 합니다."),
+        ("업무 문서 선택", "견적서·신청서·거래명세서 사진 한 장을 고릅니다.", "실제 VLM 입력과 Office 체험 묶음을 확인합니다."),
+        ("업무 문서 VLM 실행", "T4 GPU에서 선택한 문서를 실제 VLM으로 읽습니다.", "실제 모델 여부와 Markdown 앞부분을 확인합니다."),
+        ("PoC 카드 완성", "검토자·중단 조건을 정하고 작은 PoC 카드를 저장합니다.", "`poc_candidate_card.md`와 `✅ 실습 완료`를 확인합니다."),
+    ],
+})
+
+LESSON_CODE_EXPLANATIONS.update({
+    "03_document_structure.ipynb": [
+        "`OUTPUT_DIR`와 `load_course_assets()`를 준비합니다. 수정하지 않습니다.",
+        "`실습_자료`에서 실제 OCR에 넣을 이미지 한 장만 고릅니다.",
+        "`extract_with_paddleocr()`가 현재 이미지를 읽고 `reconstruct_spatial_lines()`가 좌표를 행으로 묶습니다.",
+        "`groups`가 날짜·품목·합계 후보를 나누고 `clean_receipt.json`으로 저장합니다.",
+        "`내_관찰` 한 줄만 입력합니다. 전체 정답 예시는 바로 아래에 공개됩니다.",
+    ],
+    "04_genai_extraction.ipynb": [
+        "`OUTPUT_DIR`와 `load_course_assets()`를 준비합니다. 수정하지 않습니다.",
+        "`INPUT_PATH`가 실제 VLM 입력이며 앞 교시 OCR 결과가 있으면 비교 기준으로 사용합니다.",
+        "`parse_with_paddleocr_vl()`이 `PaddleOCR-VL-1.6-0.9B`를 T4 GPU에서 실제 실행합니다.",
+        "`extract_receipt_from_text()`가 모델 Markdown을 업무 JSON으로 옮겨 비교합니다.",
+        "`반드시_확인할_필드` 한 곳만 바꿉니다. 모델 결과는 원본 대조 후 사용합니다.",
+    ],
+    "05_streamlit_basic.ipynb": [
+        "`OUTPUT_DIR`와 Colab 공통 기능을 준비합니다. 수정하지 않습니다.",
+        "`required_streamlit` 버전을 확인하고 필요할 때만 설치합니다.",
+        "`앱_제목` 한 곳만 바꾸면 `app_05.py`가 만들어집니다.",
+        "`serve_kernel_port_as_iframe()`이 Colab 안에 앱 화면을 엽니다.",
+    ],
+    "06_ocr_ai_integration.ipynb": [
+        "`OUTPUT_DIR`와 Colab 공통 기능을 준비합니다. 수정하지 않습니다.",
+        "`INPUT_PATH`와 실제 PP-OCRv5·Streamlit 실행환경을 준비합니다.",
+        "`extract_with_paddleocr()` 결과를 바로 영수증 JSON으로 바꾸어 핵심값을 출력합니다.",
+        "`app_code`는 같은 OCR 함수를 버튼에 연결한 짧은 Streamlit 앱입니다.",
+        "`serve_kernel_port_as_iframe()`이 실제 OCR 연결 앱을 엽니다.",
+    ],
+    "07_validation_export.ipynb": [
+        "`OUTPUT_DIR`와 Colab 공통 기능을 준비합니다. 수정하지 않습니다.",
+        "`validate_receipt()`가 앞 교시 JSON의 누락과 합계 오류를 검사합니다.",
+        "`원본_확인_완료`와 `검토자`만 입력하고 `receipt_to_xlsx_bytes()`로 Excel을 만듭니다.",
+    ],
+    "08_business_application.ipynb": [
+        "`OUTPUT_DIR`와 Colab 공통 기능을 준비합니다. 수정하지 않습니다.",
+        "`문서_종류`와 `실습_자료`에서 실제 VLM 입력 한 장만 고릅니다.",
+        "`parse_with_paddleocr_vl()`이 영수증이 아닌 업무 문서를 실제로 읽습니다.",
+        "`검토자`와 `중단_조건`만 입력해 모델 결과가 포함된 PoC 카드를 만듭니다.",
+    ],
+})
+
+
 BUILDERS = {
     1: notebook_01,
     2: notebook_02,
-    3: notebook_03,
-    4: notebook_04,
-    5: notebook_05,
-    6: notebook_06,
-    7: notebook_07,
-    8: notebook_08,
+    3: simple_notebook_03,
+    4: simple_notebook_04,
+    5: simple_notebook_05,
+    6: simple_notebook_06,
+    7: simple_notebook_07,
+    8: simple_notebook_08,
 }
 
 

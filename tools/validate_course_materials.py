@@ -28,11 +28,10 @@ EXPECTED_OUTPUTS = {
     "04": ["receipt.json", "vlm_comparison.json"],
     "05": ["app_05.py"],
     "06": ["app_06.py"],
-    "07": ["receipt_result.xlsx", "final_document_ai_app.zip"],
+    "07": ["receipt_result.xlsx"],
     "08": [
         "poc_candidate_card.md",
         "office_format_samples.zip",
-        "business_document_code_examples.zip",
     ],
 }
 
@@ -149,10 +148,13 @@ def validate_repository_links() -> None:
             'lang="korean"',
             'ocr_version="PP-OCRv5"',
         ),
-        "05_streamlit_basic.md": ("공개 영수증 결과 확인",),
+        "05_streamlit_basic.md": (
+            "예제 결과 보기",
+            "현재 이미지를 모델로 처리한 결과가 아닙니다",
+        ),
         "06_ocr_ai_integration.md": (
-            "수업용 예제로 계속하기",
-            "내 영수증 직접 읽기",
+            "현재 파일을 PP-OCRv5로 읽기",
+            "실제 모델로 읽었습니다",
         ),
     }
     for lesson_name, phrases in lesson_specific_checks.items():

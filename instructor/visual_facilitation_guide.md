@@ -12,7 +12,7 @@
 | 2 | 원본·bbox·저품질 이미지 | OCR 세 요소 |
 | 3 | [실제 영수증 구조 주석](../lessons/assets/03/03_receipt_regions.png), raw/clean/change_log 실제 값 | 구조 지도 |
 | 4 | evidence가 있는 실제 JSON | 스키마·근거·불확실성 |
-| 5 | [실제 수업용 예제 앱 화면](../lessons/assets/screens/app_prepared_result.png)과 AppTest 통과 로그 | 최소 앱 구조 |
+| 5 | [실제 수업용 예제 앱 화면](../lessons/assets/screens/app_prepared_result.png) | 입력·원본·결과의 최소 앱 구조 |
 | 6 | `OCR 실행 실패`와 [수업용 예제 상태 화면](../lessons/assets/screens/app_prepared_result.png) | 처리 경로 선택 |
 | 7 | [잘못된 수정값 차단 화면](../lessons/assets/screens/app_validation_blocked.png), [승인 뒤 다운로드 화면](../lessons/assets/screens/app_approved_excel.png), Excel 3시트 | 수정·재검증·승인 게이트 |
 | 8 | 문서 사진 3종과 Office 4파일 | PoC 카드 |

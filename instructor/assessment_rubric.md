@@ -4,7 +4,7 @@
 
 - 총점 70점 이상
 - 안전·승인 항목에서 0점이 없어야 함
-- `receipt_result.xlsx`, `final_document_ai_app.zip`, `poc_candidate_card.md`가 실제로 존재해야 함
+- `receipt_result.xlsx`, `poc_candidate_card.md`가 실제로 존재해야 함
 
 ## 100점 평가
 
@@ -46,7 +46,7 @@
 
 ### 5. 사람 수정·승인·Excel 20점
 
-- 5점: `PENDING`에서 파일이 없다.
+- 5점: 검증 오류가 남아 있을 때 Excel 파일이 만들어지지 않는다.
 - 5점: 잘못된 총액 또는 품목 수정 시 재검증 오류로 다운로드가 차단된다.
 - 5점: Excel 세 시트가 있다.
 - 5점: 원문값·정제값·최종값과 승인 결정·검토자·시각·메모를 구분한다.

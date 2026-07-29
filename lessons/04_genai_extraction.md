@@ -84,13 +84,18 @@ Colab GPU는 항상 배정된다고 보장되지 않으며, 처음 실행할 때
 
 ### 3. 현재 이미지를 실제 VLM으로 읽습니다
 
-다음 한 줄이 핵심입니다.
+다음 호출이 핵심입니다. 어려운 모델 초기화 코드는 공통 함수 안에 두고,
+수강생은 현재 이미지와 실제 결과에 집중합니다.
 
 ```python
-page_results = list(vlm_pipeline.predict(str(VLM_INPUT_PATH)))
+vlm_result = parse_with_paddleocr_vl(
+    INPUT_PATH,
+    engine="transformers",
+    device="gpu",
+)
 ```
 
-`VLM_INPUT_PATH`에는 화면에서 확인한 현재 이미지가 들어 있습니다. 실행 뒤에는
+`INPUT_PATH`에는 화면에서 확인한 현재 이미지가 들어 있습니다. 실행 뒤에는
 반드시 `모델 실행 완료: True`와 실제 Markdown 앞부분을 확인합니다. 준비된
 VLM 문자열로 바꾸는 코드는 없습니다.
 
