@@ -683,8 +683,8 @@ LESSON_CODE_EXPLANATIONS = {
             "`load_course_assets()`는 공개 이미지를 받습니다. 수정하지 않습니다."
         ),
         (
-            "`extract_receipt_from_text()`는 정규식으로 날짜·합계·품목을 찾고 "
-            "각 값의 원문 근거까지 함께 반환합니다."
+            "`document_lines()`는 VLM이 만든 HTML 표를 행과 열로 먼저 복원합니다. "
+            "`extract_receipt_from_text()`가 그 줄에서 날짜·합계·품목과 근거를 찾습니다."
         ),
         (
             "`실습_자료`에서 제공 예제·내 파일·인터넷 이미지 주소를 고릅니다. "
@@ -1455,14 +1455,57 @@ def sample_constants() -> str:
 def parser_source() -> str:
     return r'''
 import re
+from html import unescape
 
 def to_int(value):
     return int(value.replace(",", ""))
 
 
+def document_lines(text):
+    """VLM의 HTML 표와 일반 OCR 줄을 같은 줄 목록으로 바꿉니다."""
+    visible = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    visible = re.sub(r"</t[dh]\s*>", "\t", visible, flags=re.IGNORECASE)
+    visible = re.sub(r"</tr\s*>", "\n", visible, flags=re.IGNORECASE)
+    visible = re.sub(r"<[^>]+>", "", visible)
+    visible = unescape(visible)
+    lines = []
+    for raw_line in visible.splitlines():
+        cells = [
+            re.sub(r"\s+", " ", cell).strip()
+            for cell in raw_line.split("\t")
+        ]
+        line = "\t".join(cell for cell in cells if cell)
+        if line:
+            lines.append(line)
+    return lines
+
+
+def find_store_name(lines):
+    ignored = re.compile(
+        r"^(?:거래|사업자|대표|주소|전화|상품명|품명|상\s*품)",
+        re.IGNORECASE,
+    )
+    for line in lines:
+        candidate = line.lstrip("# ").strip()
+        title = re.match(
+            r"^\[?영수증\]?\s*(.+?)(?:\s*/\s*|$)",
+            candidate,
+            re.IGNORECASE,
+        )
+        if title and title.group(1).strip():
+            return title.group(1).strip()
+        if candidate and not ignored.search(candidate):
+            return candidate
+    return None
+
+
 def extract_receipt_from_text(text, result_source):
-    lines = [line.strip() for line in text.splitlines() if line.strip()]
-    date_match = re.search(r"\b(\d{4})[-./](\d{1,2})[-./](\d{1,2})\b", text)
+    lines = document_lines(text)
+    normalized_text = "\n".join(lines)
+    date_match = re.search(
+        r"\b(\d{4})[-./](\d{1,2})[-./](\d{1,2})\b",
+        normalized_text,
+    )
     total_line = next(
         (
             line
@@ -1479,11 +1522,11 @@ def extract_receipt_from_text(text, result_source):
     total_raw = total_candidates[-1] if total_candidates else None
     supply_match = re.search(
         r"(?:부가세\s*)?과세물품가액\s*[:：]?\s*([\d,]+)",
-        text,
+        normalized_text,
     )
     vat_match = re.search(
         r"^부가세(?!\s*과세물품가액)\s*[:：]?\s*([\d,]+)",
-        text,
+        normalized_text,
         re.MULTILINE,
     )
     item_pattern = re.compile(
@@ -1494,12 +1537,18 @@ def extract_receipt_from_text(text, result_source):
         r"^\|\s*(?P<name>[^|]+?)\s*\|\s*(?P<quantity>\d+)\s*\|"
         r"\s*(?P<unit>[\d,]+)원\s*\|\s*(?P<line>[\d,]+)원\s*\|$"
     )
+    vlm_html_item_pattern = re.compile(
+        r"^(?P<name>[^\t]+)\t(?P<unit>[\d,]+)\t"
+        r"(?P<quantity>\d)(?P<line>\d{1,3}(?:,\d{3})+)$"
+    )
     items = []
     item_evidence = []
     for line_number, line in enumerate(lines, start=1):
         match = item_pattern.search(line)
         if not match:
             match = markdown_item_pattern.search(line)
+        if not match:
+            match = vlm_html_item_pattern.search(line)
         if match:
             item = {
                 "name": match.group("name"),
@@ -1520,7 +1569,7 @@ def extract_receipt_from_text(text, result_source):
     vat_value = to_int(vat_match.group(1)) if vat_match else None
     return {
         "document_type": "receipt",
-        "store_name": lines[0] if lines else None,
+        "store_name": find_store_name(lines),
         "date": date_value,
         "total_amount": total_value,
         "items": items,
@@ -1532,17 +1581,20 @@ def extract_receipt_from_text(text, result_source):
             "payable_total": total_value,
         } if supply_value is not None and vat_value is not None else None,
         "raw_values": {
-            "store_name": lines[0] if lines else None,
+            "store_name": find_store_name(lines),
             "date": date_match.group(0) if date_match else None,
             "total_amount": total_raw,
         },
         "cleaned_values": {
-            "store_name": lines[0] if lines else None,
+            "store_name": find_store_name(lines),
             "date": date_value,
             "total_amount": total_value,
         },
         "evidence": {
-            "store_name": {"line": 1, "raw_value": lines[0] if lines else None},
+            "store_name": {
+                "line": 1,
+                "raw_value": find_store_name(lines),
+            },
             "date": {"raw_value": date_match.group(0) if date_match else None},
             "total_amount": {"raw_value": total_line},
             "items": item_evidence,
@@ -3128,8 +3180,14 @@ def notebook_04() -> dict:
                 "VLM 모델": VLM_MODEL_NAME,
                 "OCR·규칙 총액": ocr_receipt["total_amount"],
                 "실제 VLM 총액": vlm_receipt["total_amount"],
+                "실제 VLM 품목 수": len(vlm_receipt["items"]),
                 "실제 VLM 총액 근거": vlm_receipt["evidence"]["total_amount"],
             }, ensure_ascii=False, indent=2))
+            print("\\n--- 실제 VLM이 읽은 품목 ---")
+            if vlm_receipt["items"]:
+                display(pd.DataFrame(vlm_receipt["items"]))
+            else:
+                print("품목을 업무 JSON으로 옮기지 못했습니다. 실제 Markdown 표를 확인하세요.")
             print("✅ 실습 완료:", ocr_path, vlm_path, comparison_path)
             download_artifact(ocr_path)
             download_artifact(vlm_path)

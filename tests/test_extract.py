@@ -62,6 +62,50 @@ def test_public_korean_receipt_variants_are_parsed():
     assert result["evidence"]["total_amount"]["raw_value"] == "합계 금액 76,000"
 
 
+def test_actual_paddleocr_vl_html_receipt_table_is_parsed():
+    actual_vlm_markdown = """# [영수증] 이태리집 / 강원특별자치도 태백시 민영로 262(황지동)
+2025-10-04 12:33:37
+<table>
+<tr><td>상품명</td><td>단가</td><td>수량 금액</td></tr>
+<tr><td>패퍼로디엔칩스</td><td>29,000</td><td>129,000</td></tr>
+<tr><td>콜라</td><td>2,000</td><td>36,000</td></tr>
+<tr><td>합계금액</td><td colspan="2">76,000</td></tr>
+<tr><td>부가세 과세물품가액</td><td colspan="2">69,094</td></tr>
+<tr><td>부가세</td><td colspan="2">6,906</td></tr>
+<tr><td colspan="3">*** 현금영수증(소득공제)[1] ***</td></tr>
+</table>"""
+
+    result = extract_receipt_from_text(
+        actual_vlm_markdown,
+        source_mode="paddleocr_vl_1_6_actual_inference",
+    )
+
+    assert result["store_name"] == "이태리집"
+    assert result["date"] == "2025-10-04"
+    assert result["total_amount"] == 76000
+    assert result["evidence"]["total_amount"]["raw_value"] == "합계금액\t76,000"
+    assert result["items"] == [
+        {
+            "name": "패퍼로디엔칩스",
+            "quantity": 1,
+            "unit_price": 29000,
+            "line_total": 29000,
+        },
+        {
+            "name": "콜라",
+            "quantity": 3,
+            "unit_price": 2000,
+            "line_total": 6000,
+        },
+    ]
+    assert result["tax_breakdown"] == {
+        "mode": "included_in_item_prices",
+        "supply_amount": 69094,
+        "vat": 6906,
+        "payable_total": 76000,
+    }
+
+
 def test_total_uses_last_amount_when_ocr_adds_a_stray_token():
     result = extract_receipt_from_text("이태리집\n합계 9 76,000")
 

@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import re
 from copy import deepcopy
+from html import unescape
 from typing import Any
 
 from .sample_data import SAMPLE_RECEIPT
@@ -101,9 +102,36 @@ def _find_store_name(lines: list[str]) -> tuple[str | None, int | None]:
     )
     for index, line in enumerate(lines, start=1):
         candidate = line.lstrip("# ").strip()
+        receipt_title = re.match(
+            r"^\[?영수증\]?\s*(.+?)(?:\s*/\s*|$)",
+            candidate,
+            re.IGNORECASE,
+        )
+        if receipt_title and receipt_title.group(1).strip():
+            return receipt_title.group(1).strip(), index
         if candidate and not ignored.search(candidate):
             return candidate, index
     return None, None
+
+
+def _document_lines(text: str) -> list[str]:
+    """일반 OCR 줄과 문서 VLM의 HTML 표를 같은 줄 목록으로 정규화한다."""
+
+    visible = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    visible = re.sub(r"</t[dh]\s*>", "\t", visible, flags=re.IGNORECASE)
+    visible = re.sub(r"</tr\s*>", "\n", visible, flags=re.IGNORECASE)
+    visible = re.sub(r"<[^>]+>", "", visible)
+    visible = unescape(visible)
+    lines = []
+    for raw_line in visible.splitlines():
+        cells = [
+            re.sub(r"\s+", " ", cell).strip()
+            for cell in raw_line.split("\t")
+        ]
+        line = "\t".join(cell for cell in cells if cell)
+        if line:
+            lines.append(line)
+    return lines
 
 
 def extract_receipt_from_text(
@@ -118,7 +146,7 @@ def extract_receipt_from_text(
     추측하지 않고 ``None``으로 남긴다.
     """
 
-    lines = [line.strip() for line in ocr_text.splitlines() if line.strip()]
+    lines = _document_lines(ocr_text)
     if not lines:
         empty = deepcopy(SAMPLE_RECEIPT)
         empty.update(
@@ -132,7 +160,11 @@ def extract_receipt_from_text(
         )
         return empty
 
-    date_match = re.search(r"\b(\d{4}[-./]\d{1,2}[-./]\d{1,2})\b", ocr_text)
+    normalized_text = "\n".join(lines)
+    date_match = re.search(
+        r"\b(\d{4}[-./]\d{1,2}[-./]\d{1,2})\b",
+        normalized_text,
+    )
     total_line_text = next(
         (
             line
@@ -153,11 +185,11 @@ def extract_receipt_from_text(
     total_raw = total_candidates[-1] if total_candidates else None
     supply_match = re.search(
         r"(?:부가세\s*)?과세물품가액\s*[:：]?\s*(?P<amount>[\d,]+)",
-        ocr_text,
+        normalized_text,
     )
     vat_match = re.search(
         r"^부가세(?!\s*과세물품가액)\s*[:：]?\s*(?P<amount>[\d,]+)",
-        ocr_text,
+        normalized_text,
         re.MULTILINE,
     )
     item_pattern = re.compile(
@@ -172,6 +204,10 @@ def extract_receipt_from_text(
         r"^(?P<name>.+?)\s+(?P<unit>[\d,]+)\s+"
         r"(?P<quantity>\d+)\s+(?P<line>[\d,]+)\s*원?$"
     )
+    vlm_html_item_pattern = re.compile(
+        r"^(?P<name>[^\t]+)\t(?P<unit>[\d,]+)\t"
+        r"(?P<quantity>\d)(?P<line>\d{1,3}(?:,\d{3})+)$"
+    )
 
     items = []
     item_evidence = []
@@ -181,6 +217,8 @@ def extract_receipt_from_text(
             match = markdown_item_pattern.search(line)
         if not match:
             match = receipt_column_pattern.search(line)
+        if not match:
+            match = vlm_html_item_pattern.search(line)
         if match:
             item = {
                 "name": match.group("name").strip(),
