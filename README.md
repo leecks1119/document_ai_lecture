@@ -1,5 +1,7 @@
 # Document AI와 생성형 AI를 활용한 문서 데이터 추출 실습
 
+https://vivid-mailbox-751.notion.site/Document-AI-281707c7ae7581beb748feca63ac4e16
+
 이 과정은 Python을 한 번쯤 사용해 본 실무자를 위한 하루 과정입니다. 문법을 외우는 대신, 한국 영수증 한 장을 직접 처리하면서 문서 자동화가 어떤 순서로 이루어지는지 경험합니다.
 
 ![영수증 한 장이 판독·구조화·검증·사람 확인을 거쳐 업무 데이터가 되는 과정](lessons/assets/course_cover_v2.png)
